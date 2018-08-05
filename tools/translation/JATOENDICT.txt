@@ -1,0 +1,3 @@
+apps/APPLICATIONS.jp.md apps/APPLICATIONS.md
+shell/SHELL.jp.md shell/SHELL.md
+configs/CONFIG.jp.md configs/CONFIG.md

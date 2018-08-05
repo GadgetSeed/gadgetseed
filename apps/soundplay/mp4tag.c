@@ -1,0 +1,549 @@
+/** @file
+    @brief	MP4TAGデコード
+
+    @date	2017.04.08
+    @auther	Takashi SHUDO
+*/
+
+#include "str.h"
+#include "tprintf.h"
+#include "mp4tag.h"
+#include "file.h"
+#include "soundplay.h"
+#include "memory.h"
+#include "graphics.h"
+#include "charcode.h"
+
+//#define DEBUGTBITS 0x01
+#include "dtprintf.h"
+
+
+#define MAX_MP4TAG_BUFSIZE	256
+
+static int box_decode(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek);
+
+static unsigned char tag_header_buf[MP4TAG_HEADER_SIZE];
+static unsigned char tag_buf[MAX_MP4TAG_BUFSIZE + 1];
+static int read_size = 0;
+
+static int calc_box_size(unsigned char *tag)
+{
+	int box_size = 0;
+
+	box_size =
+			(((int)(((*(tag + 0)) & 0xff))) << 24) +
+			(((int)(((*(tag + 1)) & 0xff))) << 16) +
+			(((int)(((*(tag + 2)) & 0xff))) << 8) +
+			(((int)(((*(tag + 3)) & 0xff))) << 0);
+
+	return box_size - MP4TAG_HEADER_SIZE;
+}
+
+static int mp4tag_box_header_decode(unsigned char *tag)
+{
+	int box_size = 0;
+	unsigned char box_name[4 + 1] = { 0, 0, 0, 0, 0 };
+
+	strncopy(box_name, (const unsigned char *)&tag[4], 4);
+	DTPRINTF(0x01, "box = %s\n", box_name);
+
+	box_size = calc_box_size(&tag[0]);
+
+	return box_size;
+}
+
+struct st_mp4tag_decode {
+	char box_name[5];
+	int (* decode)(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek);
+};
+
+static int decode_tag_str(unsigned char *str, unsigned char *tag, int len)
+{
+	int rt = 0;
+
+	if(len > MAX_MINFO_STR) {
+		len = MAX_MINFO_STR;
+	}
+
+	// UTF-8
+#if 0
+	utf82sjis(str, tag, len);
+#else
+	strncopy(str, tag, len);
+#endif
+
+	return rt;
+}
+
+
+static int read_data(unsigned char *dest, int box_size, mp4tag_read_func tag_read)
+{
+	int size = 0;
+	int rt = 0;
+
+	rt = tag_read(dest, box_size);
+	if(rt < box_size) {
+		tprintf("box Read Error(size: %d)\n", rt);
+	}
+	size += rt;
+
+	return size;
+}
+
+static int read_box_data(int box_size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int size = 0;
+	int rt = 0;
+
+	if(box_size > MAX_MP4TAG_BUFSIZE) {
+		DTPRINTF(0x01, "BIG box(size: %d)\n", box_size);
+		rt = read_data(tag_buf, MAX_MP4TAG_BUFSIZE, tag_read);
+		if(rt < MAX_MP4TAG_BUFSIZE) {
+			tprintf("box Read Error(size: %d)\n", rt);
+		}
+		size += rt;
+		rt = tag_seek(tag_buf, box_size - MAX_MP4TAG_BUFSIZE);
+		size += rt;
+	} else {
+		rt = read_data(tag_buf, box_size, tag_read);
+		if(rt < box_size) {
+			tprintf("box Read Error(size: %d)\n", rt);
+		}
+		size += rt;
+	}
+
+	return size;
+}
+
+static unsigned char *malloc_ptr;
+
+static int malloc_read_box_data(int box_size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int size = 0;
+	int rt = 0;
+
+	DTPRINTF(0x01, "malloc box(size: %d)\n", box_size);
+
+	malloc_ptr = (unsigned char *)alloc_memory(box_size);
+	if(malloc_ptr == 0) {
+		tprintf("box malloc fail\n");
+		return size;
+	}
+
+	rt = read_data(malloc_ptr, box_size, tag_read);
+	if(rt < box_size) {
+		tprintf("box Read Error(size: %d)\n", rt);
+	}
+	size += rt;
+
+	return size;
+}
+
+/*
+ * 各boxデコード
+ */
+
+static int decode_ftyp(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt = read_box_data(size, tag_read, tag_seek);
+
+	XDUMP(0x02, tag_buf, rt);
+
+	return rt;
+}
+
+static int decode_free(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt = read_box_data(size, tag_read, tag_seek);
+
+	XDUMP(0x02, tag_buf, 64);
+
+	return rt;
+}
+
+static int decode_moov(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt;
+
+	rt = box_decode(info, size, tag_read, tag_seek);
+
+	return rt;
+}
+
+static int decode_mvhd(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt = read_box_data(size, tag_read, tag_seek);
+
+	info->sampling_rate =
+			(((int)tag_buf[12]) << 24) +
+			(((int)tag_buf[13]) << 16) +
+			(((int)tag_buf[14]) <<  8) +
+			(((int)tag_buf[15]) <<  0);
+
+	DTPRINTF(0x01, "Sampling Rate : %d\n", info->sampling_rate);
+
+	return rt;
+}
+
+static int decode_stts(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt = read_box_data(size, tag_read, tag_seek);
+
+	XDUMP(0x02, tag_buf, rt);
+
+	info->sample_count =
+			(((int)tag_buf[ 8]) << 24) +
+			(((int)tag_buf[ 9]) << 16) +
+			(((int)tag_buf[10]) <<  8) +
+			(((int)tag_buf[11]) <<  0);
+
+	DTPRINTF(0x01, "Sample Count : %d\n", info->sample_count);
+
+	info->frame_size =
+			(((int)tag_buf[12]) << 24) +
+			(((int)tag_buf[13]) << 16) +
+			(((int)tag_buf[14]) <<  8) +
+			(((int)tag_buf[15]) <<  0);
+
+	DTPRINTF(0x01, "Frame Size : %d\n", info->frame_size);
+
+	info->time_length = (unsigned long long)info->sample_count * info->frame_size * 1000 / info->sampling_rate;
+
+	return rt;
+}
+
+static int decode_stsz(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt = read_box_data(12, tag_read, tag_seek);
+
+	info->sample_count =
+			(((int)tag_buf[ 8]) << 24) +
+			(((int)tag_buf[ 9]) << 16) +
+			(((int)tag_buf[10]) <<  8) +
+			(((int)tag_buf[11]) <<  0);
+
+	DTPRINTF(0x01, "Sample Count : %d\n", info->sample_count);
+
+	info->sample_size_data = alloc_memory(info->sample_count * 4);
+	if(info->sample_size_data == 0) {
+		tprintf("Sample size alloc Error\n");
+		return -1;
+	}
+
+	rt = read_data(info->sample_size_data, info->sample_count * 4, tag_read);
+	if(rt < (info->sample_count * 4)) {
+		tprintf("Sample size data read Error\n");
+		return -1;
+	}
+
+#if 0
+	int i;
+
+	for(i=0; i<info->sample_count; i++) {
+		unsigned long ssize =
+				((long)info->sample_size_data[i*4 + 0] << 24) +
+				((long)info->sample_size_data[i*4 + 1] << 16) +
+				((long)info->sample_size_data[i*4 + 2] <<  8) +
+				((long)info->sample_size_data[i*4 + 3] <<  0);
+		DTPRINTF(0x01, "Sample size[%d] : %ld\n", i+1, ssize);
+	}
+#endif
+
+	return rt;
+}
+
+static int decode_meta(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rsize = 0;
+	int rt;
+
+	rt = read_box_data(4, tag_read, tag_seek);
+	rsize += rt;
+	rt = box_decode(info, size, tag_read, tag_seek);
+	rsize += rt;
+
+	return rsize;
+}
+
+static int decode_ilst(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt;
+
+	rt = box_decode(info, size, tag_read, tag_seek);
+
+	return rt;
+}
+
+static int decode_hifn(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt = read_box_data(size, tag_read, tag_seek);
+
+	XDUMP(0x02, tag_buf, 64);
+
+	return rt;
+}
+
+static int decode_name(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt = read_box_data(size, tag_read, tag_seek);
+
+	tag_buf[rt] = 0;
+	DTPRINTF(0x01, "Title : %s\n", (char *)&tag_buf[16]);
+
+	decode_tag_str(info->title, &tag_buf[16], size-16);
+
+	return rt;
+}
+
+static int decode_art(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt = read_box_data(size, tag_read, tag_seek);
+
+	tag_buf[rt] = 0;
+	DTPRINTF(0x01, "Artist : %s\n", (char *)&tag_buf[16]);
+
+	decode_tag_str(info->artist, &tag_buf[16], size-16);
+
+	return rt;
+}
+
+static int decode_alb(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt = read_box_data(size, tag_read, tag_seek);
+
+	tag_buf[rt] = 0;
+	DTPRINTF(0x01, "Album : %s\n", (char *)&tag_buf[16]);
+
+	decode_tag_str(info->album, &tag_buf[16], size-16);
+
+	return rt;
+}
+
+static int decode_trkn(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt = read_box_data(size, tag_read, tag_seek);
+
+	DTPRINTF(0x01, "Track : %d/%d\n", (int)tag_buf[19], (int)tag_buf[21]);
+
+	info->track = tag_buf[19];
+	info->last_track = tag_buf[21];
+
+	return rt;
+}
+
+static int flg_mp4_decode_artwork = 0;
+
+void set_mp4_decode_artwork(int flg_env)
+{
+	flg_mp4_decode_artwork = flg_env;
+
+	DTFPRINTF(0x01, "art_decode = %d\n", flg_mp4_decode_artwork);
+}
+
+#ifdef GSC_LIB_ENABLE_PICOJPEG
+#include "jpegdec.h"
+#endif
+
+#ifdef GSC_LIB_ENABLE_LIBPNG
+#include "pngdec.h"
+#endif
+
+static int decode_covr(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt;
+
+	if(flg_mp4_decode_artwork != 0) {
+		unsigned char *cover_ptr;
+		rt = malloc_read_box_data(size, tag_read, tag_seek);
+		cover_ptr = malloc_ptr+16;
+		XDUMP(0x01, cover_ptr, 64);
+
+		if((cover_ptr[0] == 0xff) && (cover_ptr[1] == 0xd8)) {
+			// JPEG
+			DTPRINTF(0x01, "JPEG Decode\n");
+#ifdef GSC_LIB_ENABLE_PICOJPEG
+			pjpeg_image_info_t jpeginfo;
+
+			get_jpeg_data_info(cover_ptr, &jpeginfo, 0);
+			DTPRINTF(0x01, "Width = %d, Height = %d\n", jpeginfo.m_width, jpeginfo.m_height);
+			//draw_jpeg(0, 0);
+			void *image = alloc_memory(jpeginfo.m_width * jpeginfo.m_height * sizeof(PIXEL_DATA));
+			decode_jpeg(image);
+			//draw_image(0, 0, jpeginfo.m_width, jpeginfo.m_height, image, jpeginfo.m_width);
+			resize_image(info->artwork, ART_WIDTH, ART_HEIGHT, image, jpeginfo.m_width, jpeginfo.m_height);
+			//draw_image(0, 0, ART_WIDTH, ART_HEIGHT, info->artwork, ART_WIDTH);
+			free_memory(image);
+			info->flg_have_artwork = 1;
+#endif
+		} else if(strncomp((const uchar *)cover_ptr, (const uchar *)"\211PNG", 4) == 0) {
+			// PNG
+			DTPRINTF(0x01, "PNG Decode\n");
+#ifdef GSC_LIB_ENABLE_LIBPNG
+			short width, height;
+
+			get_png_data_info(cover_ptr, &width, &height);
+			DTPRINTF(0x01, "Width = %d, Height = %d\n", width, height);
+			//draw_png(0, 0);
+			void *image = alloc_memory(width * height * 4);
+			decode_png(image);
+			resize_image(info->artwork, ART_WIDTH, ART_HEIGHT, image, width, height);
+			//draw_image(0, 0, ART_WIDTH, ART_HEIGHT, info->artwork, ART_WIDTH);
+			free_memory(image);
+			dispose_png_info();
+			info->flg_have_artwork = 1;
+#endif
+		} else {
+			DTPRINTF(0x01, "Unknow format\n");
+		}
+		free_memory(malloc_ptr);
+	} else {
+		rt = read_box_data(size, tag_read, tag_seek);
+	}
+
+	return rt;
+}
+
+static int decode_mdat(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	DTPRINTF(0x01, "Find mdat(%d)\n", size);
+
+	return 0;	// 以後オーディオデータ
+}
+
+static int decode_unknown(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt;
+	int dsize = 64;
+
+	DTPRINTF(0x01, "Unknown box %c%c%c%c %d\n",
+		 tag_header_buf[4],
+		 tag_header_buf[5],
+		 tag_header_buf[6],
+		 tag_header_buf[7],
+		 size);
+
+	rt = read_box_data(size, tag_read, tag_seek);
+
+	if(rt < dsize) {
+		dsize = rt;
+	}
+
+	XDUMP(0x02, tag_buf, dsize);
+
+	return rt;
+}
+
+
+static struct st_mp4tag_decode mp4tag_decode_list[] = {
+	{ "ftyp", decode_ftyp },
+	{ "moov", decode_moov },
+	  { "mvhd", decode_mvhd },
+	  { "trak", decode_moov },
+	    { "mdia", decode_moov },
+	      { "mdhd", decode_mvhd },
+	      { "minf", decode_moov },
+	        { "stbl", decode_moov },
+	          { "stts", decode_stts },
+	          { "stsz", decode_stsz },
+	  { "udta", decode_moov },
+	    { "meta", decode_meta },
+	      { "ilst", decode_ilst },
+		{ "----", decode_hifn },
+		{ "\251nam", decode_name },
+		{ "\251ART", decode_art },
+		{ "\251alb", decode_alb },
+		{ "trkn", decode_trkn },
+		{ "covr", decode_covr },
+	      { "free", decode_free },
+	{ "mdat", decode_mdat },
+	{ {0, 0, 0, 0, 0}, 0 }
+};
+
+static int box_decode(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	int rt = 0;
+	int box_size = 0;
+
+	while(1) {
+		if(size != 0) {
+			if(read_size >= size) {
+				DTPRINTF(0x01, "Read All %d\n", read_size);
+				break;
+			}
+		}
+
+		// box Header
+		rt = tag_read(tag_header_buf, MP4TAG_HEADER_SIZE);
+		if(rt < MP4TAG_HEADER_SIZE) {
+			tprintf("box Read Error(size: %d)\n", rt);
+			return -1;
+		}
+		read_size += rt;
+		DTPRINTF(0x01, "READ SIZE %d %08x\n", read_size, read_size);
+
+		box_size = mp4tag_box_header_decode(tag_header_buf);
+		DTPRINTF(0x01, "box size = %d\n", box_size);
+
+		{
+			struct st_mp4tag_decode *p_mp4dec = mp4tag_decode_list;
+
+			if(tag_header_buf[4] == 0) {
+				DTPRINTF(0x01, "NULL box %02X%02X%02X%02X\n",
+					  tag_buf[0],
+					  tag_buf[1],
+					  tag_buf[2],
+					  tag_buf[3]);
+				//return read_size;
+				return -1;
+			}
+
+			while(p_mp4dec->box_name[0] != 0) {
+				if(strncomp(&tag_header_buf[4], (const unsigned char *)p_mp4dec->box_name, 4) == 0) {
+					rt = p_mp4dec->decode(info, box_size, tag_read, tag_seek);
+					if(rt == 0) {
+						// mdat検出
+						goto end;
+					} else
+					if(rt < 0) {
+						// デコードエラー
+						read_size = rt;
+						goto end;
+					} else {
+						read_size += rt;
+					}
+					break;
+				}
+				p_mp4dec ++;
+			}
+			// 解析できないbox
+			if(p_mp4dec->box_name[0] == 0) {
+				rt = decode_unknown(info, box_size, tag_read, tag_seek);
+				read_size += rt;
+			}
+		}
+	}
+
+end:
+	DTPRINTF(0x01, "box READ SIZE %d %08x\n", read_size, read_size);
+
+	return read_size;
+}
+
+int mp4tag_decode(struct st_music_info *info, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+{
+	read_size = 0;
+
+	init_music_info(info);
+
+	info->format = MUSIC_FMT_AAC;
+
+	return box_decode(info, 0, tag_read, tag_seek);
+}
+
+void mp4tag_dispose(struct st_music_info *info)
+{
+	if(info->sample_size_data != 0) {
+		free_memory(info->sample_size_data);
+		info->sample_size_data = 0;
+	}
+}

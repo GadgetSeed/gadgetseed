@@ -1,0 +1,45 @@
+*** mt19937ar.c	2006-03-04 07:05:31.000000000 +0900
+--- random.c	2008-01-09 23:29:49.000000000 +0900
+***************
+*** 1,3 ****
+--- 1,11 ----
++ /*
++   µ¿»÷Íð¿ôÈ¯À¸
++ 
++   2008.01.09	Takashi SHUDO
++ */
++ 
++ #include "random.h"
++ 
+  /* 
+     A C-program for MT19937, with initialization improved 2002/1/26.
+     Coded by Takuji Nishimura and Makoto Matsumoto.
+***************
+*** 41,47 ****
+--- 49,57 ----
+     email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
+  */
+  
++ #if 0
+  #include <stdio.h>
++ #endif
+  
+  /* Period parameters */  
+  #define N 624
+***************
+*** 136,141 ****
+--- 146,152 ----
+      return y;
+  }
+  
++ #if 0
+  /* generates a random number on [0,0x7fffffff]-interval */
+  long genrand_int31(void)
+  {
+***************
+*** 188,190 ****
+--- 199,202 ----
+      }
+      return 0;
+  }
++ #endif

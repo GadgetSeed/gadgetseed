@@ -1,0 +1,8 @@
+TCP/IP
+SetupSTM32CubeMX-4.26.0.linux
+gcc-arm-none-eabi-7-2017-q4-major-linux.tar.bz2
+32F769IDISCOVERY
+32F746GDISCOVERY
+NUCLEO-F411RE
+32F7xxxDISCOVERY
+NUCLEO-F4xxxx

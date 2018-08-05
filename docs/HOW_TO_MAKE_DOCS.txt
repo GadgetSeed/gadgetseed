@@ -1,0 +1,6 @@
+# for Ubuntu
+
+sudo apt install -y doxygen graphviz
+make docs
+
+# firefox docs/html/index.html

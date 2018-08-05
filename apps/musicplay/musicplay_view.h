@@ -1,0 +1,51 @@
+/** @file
+    @brief	音楽再生表示
+
+    @date	2017.05.02
+    @auther	Takashi SHUDO
+*/
+
+#ifndef MUSICPLAY_VIEW_H
+#define MUSICPLAY_VIEW_H
+
+#include "../soundplay/music_info.h"
+
+#define MP_FORE_COLOR		RGB(150, 150, 200)
+#define MP_BACK_COLOR		RGB(10, 10, 80)
+#define MP_ACTIVE_FORE_COLOR	RGB(200, 200, 250)
+#define MP_ACTIVE_BACK_COLOR	RGB(100, 100, 250)
+#define MP_RED_COLOR		RGB(220, 50, 50)
+#define MP_GREEN_COLOR		RGB(0, 250, 100)
+#define MP_BLUE_COLOR		RGB(50, 50, 250)
+
+#if GSC_GRAPHICS_DISPLAY_WIDTH >= 800
+#define BUTTON_WIDTH	96
+#define BUTTON_HEIGHT	96
+#define V_BTN_LEFT	700
+#define H_BTN_TOP	380
+#define BTN_INTERVAL	20
+#define MPFONT	"jiskan24"
+//#define MPFONT	"genshingothic_p18"
+//#define MPFONT	"mplus_p2_p18"
+#define TEXT_INTERVAL	32
+#define SCRBAR_WIDTH	32
+#define ARTWORK_LEFT	528
+#define ARTWORK_TOP	200
+#define INFO_WIDTH	(GSC_GRAPHICS_DISPLAY_WIDTH - 108 - SCRBAR_WIDTH)
+#define INFO_HEIGHT	(GSC_GRAPHICS_DISPLAY_HEIGHT - 108 - SCRBAR_WIDTH)
+#else
+#define BUTTON_WIDTH	64
+#define BUTTON_HEIGHT	64
+#define V_BTN_LEFT	410
+#define H_BTN_TOP	204
+#define BTN_INTERVAL	16
+#define MPFONT	"jiskan16"
+#define TEXT_INTERVAL	20
+#define SCRBAR_WIDTH	16
+#define ARTWORK_LEFT	316
+#define ARTWORK_TOP	0
+#define INFO_WIDTH	(GSC_GRAPHICS_DISPLAY_WIDTH - 84 - SCRBAR_WIDTH)
+#define INFO_HEIGHT	(GSC_GRAPHICS_DISPLAY_HEIGHT - 80 - SCRBAR_WIDTH)
+#endif
+
+#endif // MUSICPLAY_VIEW_H

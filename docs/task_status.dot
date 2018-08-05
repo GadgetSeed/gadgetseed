@@ -1,0 +1,45 @@
+// タスク状態
+
+digraph task_status {
+	graph [
+		charset = "UTF-8",
+		label = "タスク状態",
+		layout = dot,
+		//layout = circo
+		//layout = neato
+		//layout = fdp
+		//layout = sfdp
+		rankdir = LR,
+		//rankdir = TB,
+	];
+
+	node [
+		fontsize = 10,
+	];
+
+	edge [
+		fontsize = 10,
+		color = "#4488EE",
+		labelfloat = false,
+	];
+
+	ready [label = "READY\n(実行可能状態)"];
+	run [label = "RUN\n(実行状態)"];
+	timer_wait [label = "TIMER_WAIT\n(タイマ待ち状態)"];
+	event_wait [label = "EVENT_WAIT\n(イベント待ち状態)"];
+	mutex_wait [label = "MUTEX_WAIT\n(MUTEXロック解除待ち状態)"];
+	request_wait [label = "REQUEST_WAIT\n(起床待ち状態)"];
+	dormant [label = "DORMANT\n(休止状態)"];
+
+	ready -> run [label = "実行可能"];
+	run -> ready [label = "他のタスクが起床"];
+	run -> timer_wait [label = "task_sleep()"];
+	run -> event_wait [label = "event_wait()"];
+	run -> mutex_wait [label = "ロック済みのMUTEXに対してmutex_lock()"];
+	run -> request_wait [label = "task_pause()"];
+	run -> dormant [label = "task_exit()"];
+	timer_wait -> run [label = "タイマ満了"];
+	event_wait -> run [label = "イベント登録(他タスクよりevent_wakeup() or\n割り込みハンドラよりevent_wakeup_ISR())"];
+	mutex_wait -> run [label = "MUTEXロック解除(他タスクよりmutex_unlock())"];
+	request_wait -> run [label = "タスク起床要求(他タスクよりtask_wakeup_id() or\n割り込みハンドラよりtask_wakeup_id_ISR())"];
+}
