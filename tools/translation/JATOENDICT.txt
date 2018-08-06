@@ -1,3 +1,4 @@
 apps/APPLICATIONS.jp.md apps/APPLICATIONS.md
 shell/SHELL.jp.md shell/SHELL.md
 configs/CONFIG.jp.md configs/CONFIG.md
+http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/mt19937ar.html http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html

@@ -6,6 +6,18 @@
    MP3ファイル、AACファイルを再生できます。
    アルバムアートを含めた楽曲の情報を表示できます。
 
+   AACオーディオデコーダに [faad2](https://github.com/dsvensson/faad2) を使用しています。
+
+   MP3オーディオデコーダに [libmad](https://www.underbit.com/products/mad/) を使用しています。
+
+   JPEGとPNGフォーマットのアルバムアートを表示することができます。
+
+   JPEG画像のデコードに [picojpeg](https://code.google.com/archive/p/picojpeg/) を使用しています。
+
+   PNG画像コーデックに [libpng](http://www.libpng.org/pub/png/) と [zlib](https://zlib.net/) を使用しています。
+
+   ランダム再生機能の乱数発生に [mt19937ar](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/mt19937ar.html) を使用しています。
+
    32F769IDISCOVERY、32F746GDISCOVERYで動作します。
 
    ![musicplay](musicplay.png)
@@ -70,7 +82,7 @@
    デバッグコンソールへ"Hello, word!"を表示します。
 
    ```sh
-   GadgetSeed Ver. 0.94
+   GadgetSeed Ver. 0.9.5
    (c)2010-2018 Takashi SHUDO
    CPU ARCH     : Cortex-M7
    CPU NAME     : STM32F746NGH6

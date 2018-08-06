@@ -6,6 +6,18 @@
    You can play MP3 and AAC files.
    You can view music information, including album art.
 
+   The AAC audio decoder uses [faad2](https://github.com/dsvensson/faad2).
+
+   The MP3 audio decoder uses [Libmad](https://www.underbit.com/products/mad/).
+
+   You can view album art in JPEG and PNG format.
+
+   Using [Picojpeg](https://code.google.com/archive/p/picojpeg/) to decode JPEG images.
+
+   The PNG image codec uses [libpng](http://www.libpng.org/pub/png/) and zlib (https://zlib.net/).
+
+   The random replay feature uses [Mt19937ar](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html) for random occurrences.
+
    32F769IDISCOVERY, operating at 32F746GDISCOVERY.
 
    ![musicplay](musicplay.png)
@@ -70,7 +82,7 @@
    "Hello, Word!" to the Debug console On the screen.
 
    ```sh
-   GadgetSeed Ver. 0.94
+   GadgetSeed Ver. 0.9.5
    (c)2010-2018 Takashi SHUDO
    CPU ARCH     : Cortex-M7
    CPU NAME     : STM32F746NGH6
