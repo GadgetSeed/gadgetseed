@@ -41,7 +41,7 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 
 ![32F769IDISCOVERY](http://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/group0/5b/1e/e6/2e/d1/1b/45/44/32f769i-disco.jpg/files/stm32f769i-disco.jpg/_jcr_content/translations/en.stm32f769i-disco.jpg)
 
-<http://www.st.com/en/evaluation-tools/32f769idiscovery.html>[English]  
+<http://www.st.com/en/evaluation-tools/32f769idiscovery.html>[English]
 <http://www.st.com/ja/evaluation-tools/32f769idiscovery.html>[Japanese]
 
 <a name="32F746GDISCOVERY"></a>
@@ -49,7 +49,7 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 
 ![STM32F746G-Discovery](http://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/group0/ea/c4/6d/73/c3/f5/46/e2/stm32f746g-disco/files/stm32f746g-disco.jpg/_jcr_content/translations/en.stm32f746g-disco.jpg)
 
-<http://www.st.com/en/evaluation-tools/32f746gdiscovery.html>[English]  
+<http://www.st.com/en/evaluation-tools/32f746gdiscovery.html>[English]
 <http://www.st.com/ja/evaluation-tools/32f746gdiscovery.html>[Japanese]
 
 <a name="NUCLEO-F4x1RE"></a>
@@ -57,13 +57,13 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 
 ![STM32F411RE](http://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/68/fb/69/d3/eb/3d/47/5a/nucleo-F4.jpg/files/nucleo-F4.jpg/_jcr_content/translations/en.nucleo-F4.jpg)
 
-NUCLEO-F411RE  
-<http://www.st.com/en/evaluation-tools/nucleo-f411re.html>[English]  
+NUCLEO-F411RE
+<http://www.st.com/en/evaluation-tools/nucleo-f411re.html>[English]
 <http://www.st.com/ja/evaluation-tools/nucleo-f411re.html>[Japanese]
 
 <!--
-NUCLEO-F401RE  
-<http://www.st.com/en/evaluation-tools/nucleo-f401re.html>[English]  
+NUCLEO-F401RE
+<http://www.st.com/en/evaluation-tools/nucleo-f401re.html>[English]
 <http://www.st.com/ja/evaluation-tools/nucleo-f401re.html>[Japanese]
 -->
 
@@ -83,14 +83,14 @@ NUCLEO-F401RE
 
 1. STM32CUBEMX Installation
 
-   <http://www.st.com/en/development-tools/stm32cubemx.html>[English]  
+   <http://www.st.com/en/development-tools/stm32cubemx.html>[English]
    <http://www.st.com/ja/development-tools/stm32cubemx.html>[Japanese]
 
    Download Stm32cubemx from the above site and unzip "En.stm32cubemx.zip".
    Use "SetupSTM32CubeMX-4.26.0.linux" from the unzipped "En.stm32cubemx.zip".
 
    ```sh
-   sudo apt install -y libc6-i386 default-jre openjfx  
+   sudo apt install -y libc6-i386 default-jre openjfx
    sudo ./SetupSTM32CubeMX-4.26.0.linux
    ```
 
@@ -99,10 +99,10 @@ NUCLEO-F401RE
    Start the STM32CUBEMX and install the HAL driver and the LL driver.
 
    ```sh
-   /usr/local/STMicroelectronics/STM32Cube/STM32CubeMX/STM32CubeMX &  
+   /usr/local/STMicroelectronics/STM32Cube/STM32CubeMX/STM32CubeMX &
    ```
 
-   Install "Stm32cube MCU Package for stm32f7 Serias Version 1.11.0" for the MCU STM32F7 system.  
+   Install "Stm32cube MCU Package for stm32f7 Serias Version 1.12.0" for the MCU STM32F7 system.  
    Install "Stm32cube MCU Package for stm32f4 Serias Version 1.21.0" for the MCU STM32F4 system.  
 
 1. ARM-GCC Installation
@@ -143,14 +143,14 @@ NUCLEO-F401RE
 <!--
 1. STM32CubeProgrammer
 
-   <http://www.st.com/en/development-tools/stm32cubeprog.html>[English]  
+   <http://www.st.com/en/development-tools/stm32cubeprog.html>[English]
    <http://www.st.com/ja/development-tools/stm32cubeprog.html>[Japanese]
 
    Install as needed.
 
    ```sh
-   sudo apt-get -y install libusb-1.0.0-dev  
-   sudo ./SetupSTM32CubeProgrammer-1.0.0.linux  
+   sudo apt-get -y install libusb-1.0.0-dev
+   sudo ./SetupSTM32CubeProgrammer-1.0.0.linux
    sudo cp /usr/local/STMicroelectronics/STM32Cube/STM32CubeProgrammer/Drivers/rules/* /etc/udev/rules.d/
    ```
 -->
