@@ -1,0 +1,3 @@
+awk -f tools/mkbuildtest.awk configs/*.conf > buildalltest.sh
+echo "grep BUILD *.log" >> buildalltest.sh
+chmod +x buildalltest.sh

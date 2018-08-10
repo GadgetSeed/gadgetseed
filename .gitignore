@@ -50,5 +50,4 @@ gs_logo.txt
 targetconfig.mk
 include/asm.h
 include/sysconfig.h
-mkbuildtest.sh
 version.c
