@@ -11,7 +11,8 @@ OBJDUMP	= $(CROSS)objdump
 
 #CFLAGS	= -g -O2 -Wall -Werror
 CFLAGS	= -g -Wall -mthumb -mcpu=cortex-m4 -mthumb-interwork \
-	-mfpu=fpv4-sp-d16 -mfloat-abi=softfp -fipa-sra -mtune=cortex-m4
+	-mfpu=fpv4-sp-d16 -mfloat-abi=softfp -fipa-sra -mtune=cortex-m4 \
+	-DLONGLONGSWAP
 
 CFLAGS	+= -O2
 #CFLAGS	+= -O0

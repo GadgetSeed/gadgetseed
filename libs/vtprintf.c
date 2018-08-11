@@ -14,10 +14,6 @@
 #include "str.h"
 #include "console.h"
 
-#if ARCH != cortex-m7 // ARM GCC or NEWLIB Bug ?
-#define LONGLONGSWAP
-#endif
-
 static int print_write(io_write write, unsigned int *len, unsigned int size, uchar *str, unsigned int slen)
 {
 	if((size != 0) && (slen > (size - *len))) {
