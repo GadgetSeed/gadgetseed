@@ -13,9 +13,6 @@
 #include "device/video_ioctl.h"
 #include "device/vio_ioctl.h"
 
-#define VECT_TAB_OFFSET  0x00 /*!< Vector Table base offset field. 
-                                   This value must be a multiple of 0x200. */
-
 #ifdef GSC_COMP_ENABLE_GRAPHICS
 #include "graphics.h"
 #endif

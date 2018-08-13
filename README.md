@@ -21,6 +21,7 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 
 * ARM Cortex-M7
 * ARM Cortex-M4
+* ARM Cortex-M3
 
 ## Support Hardware
 
@@ -31,6 +32,7 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 | [32F769IDISCOVERY](#32F769IDISCOVERY) | STM32F769NIH6 | ARM Cortex-M7  |
 | [32F746GDISCOVERY](#32F746GDISCOVERY) | STM32F746NGH6 | ARM Cortex-M7  |
 | [NUCLEO-F411RE](#NUCLEO-F4x1RE)       | STM32F401RET6 | ARM Cortex-M4  |
+| [NUCLEO-L152RE](#NUCLEO-L152RE)       | STM32L152RET6 | ARM Cortex-M3  |
 
 <!--
 | [NUCLEO-F401RE](#NUCLEO-F4x1RE)       | STM32F411RET6 | ARM Cortex-M4  |
@@ -41,7 +43,7 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 
 ![32F769IDISCOVERY](http://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/group0/5b/1e/e6/2e/d1/1b/45/44/32f769i-disco.jpg/files/stm32f769i-disco.jpg/_jcr_content/translations/en.stm32f769i-disco.jpg)
 
-<http://www.st.com/en/evaluation-tools/32f769idiscovery.html>[English]
+<http://www.st.com/en/evaluation-tools/32f769idiscovery.html>[English]  
 <http://www.st.com/ja/evaluation-tools/32f769idiscovery.html>[Japanese]
 
 <a name="32F746GDISCOVERY"></a>
@@ -49,7 +51,7 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 
 ![STM32F746G-Discovery](http://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/group0/ea/c4/6d/73/c3/f5/46/e2/stm32f746g-disco/files/stm32f746g-disco.jpg/_jcr_content/translations/en.stm32f746g-disco.jpg)
 
-<http://www.st.com/en/evaluation-tools/32f746gdiscovery.html>[English]
+<http://www.st.com/en/evaluation-tools/32f746gdiscovery.html>[English]  
 <http://www.st.com/ja/evaluation-tools/32f746gdiscovery.html>[Japanese]
 
 <a name="NUCLEO-F4x1RE"></a>
@@ -57,15 +59,23 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 
 ![STM32F411RE](http://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/68/fb/69/d3/eb/3d/47/5a/nucleo-F4.jpg/files/nucleo-F4.jpg/_jcr_content/translations/en.nucleo-F4.jpg)
 
-NUCLEO-F411RE
-<http://www.st.com/en/evaluation-tools/nucleo-f411re.html>[English]
+<http://www.st.com/en/evaluation-tools/nucleo-f411re.html>[English]  
 <http://www.st.com/ja/evaluation-tools/nucleo-f411re.html>[Japanese]
 
-<!--
-NUCLEO-F401RE
-<http://www.st.com/en/evaluation-tools/nucleo-f401re.html>[English]
+<!-- NUCLEO-F401RE
+
+<http://www.st.com/en/evaluation-tools/nucleo-f401re.html>[English]  
 <http://www.st.com/ja/evaluation-tools/nucleo-f401re.html>[Japanese]
 -->
+
+<a name="NUCLEO-L152RE"></a>
+### NUCLEO-L152RE
+
+![STM32L152RE](https://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/9e/75/14/86/ee/4a/43/78/nucleo-Lx.jpg/files/nucleo-Lx.jpg/_jcr_content/translations/en.nucleo-Lx.jpg)
+
+<http://www.st.com/en/evaluation-tools/nucleo-l152re.html>[English]  
+<http://www.st.com/ja/evaluation-tools/nucleo-l152re.html>[Japanese]
+
 
 ## Sample Application
 
@@ -83,7 +93,7 @@ NUCLEO-F401RE
 
 1. STM32CUBEMX Installation
 
-   <http://www.st.com/en/development-tools/stm32cubemx.html>[English]
+   <http://www.st.com/en/development-tools/stm32cubemx.html>[English]  
    <http://www.st.com/ja/development-tools/stm32cubemx.html>[Japanese]
 
    Download Stm32cubemx from the above site and unzip "En.stm32cubemx.zip".
@@ -103,7 +113,7 @@ NUCLEO-F401RE
    ```
 
    Install "Stm32cube MCU Package for stm32f7 Serias Version 1.12.0" for the MCU STM32F7 system.  
-   Install "Stm32cube MCU Package for stm32f4 Serias Version 1.21.0" for the MCU STM32F4 system.  
+   Install "Stm32cube MCU Package for stm32f4 Serias Version 1.21.0" for the MCU STM32F4 system.
 
 1. ARM-GCC Installation
 
@@ -143,7 +153,7 @@ NUCLEO-F401RE
 <!--
 1. STM32CubeProgrammer
 
-   <http://www.st.com/en/development-tools/stm32cubeprog.html>[English]
+   <http://www.st.com/en/development-tools/stm32cubeprog.html>[English]  
    <http://www.st.com/ja/development-tools/stm32cubeprog.html>[Japanese]
 
    Install as needed.
@@ -176,7 +186,8 @@ NUCLEO-F401RE
      3 : NUCLEO-F411RE                  : STM NUCLEO-F411RE                             : NUCLEO-F411RE.conf
      4 : NUCLEO-F411RE_HVGA-LCD-HX8357D : STM NUCLEO-F411RE + MAR3520(HVGA LCD HX8357D) : NUCLEO-F411RE_HVGA-LCD-HX8357D.conf
      5 : NUCLEO-F411RE_QVGA-LCD-ILI9341 : STM NUCLEO-F411RE + K60(QVGA LCD ILI9341)     : NUCLEO-F411RE_QVGA-LCD-ILI9341.conf
-     6 : emu                            : Emulator system with linux                    : emu.conf
+     6 : NUCLEO-L152RE                  : STM NUCLEO-L152RE                             : NUCLEO-L152RE.conf
+     7 : emu                            : Emulator system with linux                    : emu.conf
    Input No. : 
    ```
 

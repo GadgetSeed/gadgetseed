@@ -178,7 +178,7 @@ void init_timer(char *devname)
 	int_count = 1000000; // [TODO] 適当な値
 #endif
 
-	DKPRINTF(0x01, "%d ms count = %d\n", KERNEL_TIMER_INTERVAL_MSEC, int_count);
+	DKPRINTF(0x01, "%d ms count = %d\n", GSC_KERNEL_TIMER_INTERVAL_MSEC, int_count);
 
 err:
 	return;

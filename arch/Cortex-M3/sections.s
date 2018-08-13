@@ -1,6 +1,5 @@
 	.syntax unified
-	.cpu cortex-m4
-	.fpu fpv4-sp-d16
+	.cpu cortex-m3
 	.thumb
 	.text
 	.align	4

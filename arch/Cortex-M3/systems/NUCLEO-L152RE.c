@@ -1,7 +1,7 @@
 /** @file
-    @brief	STM32F411RE Nucleo Initialize
+    @brief	STM32L152RE Nucleo Initialize
 
-    @date	2015.08.02
+    @date	2018.08.11
     @author	Takashi SHUDO
 */
 
@@ -18,39 +18,65 @@
 #include "graphics.h"
 #endif
 
-#include "stm32f4xx_hal.h"
+#include "stm32l1xx_hal.h"
 
-/*
-  System Clock Configuration
-*/
+/**
+  * @brief  System Clock Configuration
+  *         The system Clock is configured as follow :
+  *            System Clock source            = PLL (HSI)
+  *            SYSCLK(Hz)                     = 24000000
+  *            HCLK(Hz)                       = 24000000
+  *            AHB Prescaler                  = 1
+  *            APB1 Prescaler                 = 1
+  *            APB2 Prescaler                 = 1
+  *            HSI Frequency(Hz)              = 12000000
+  *            PLLMUL                         = 6
+  *            PLLDIV                         = 3
+  *            Flash Latency(WS)              = 1
+  * @retval None
+  */
 void SystemClock_Config(void)
 {
-	RCC_OscInitTypeDef RCC_OscInitStruct;
-	RCC_ClkInitTypeDef RCC_ClkInitStruct;
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 
-	__PWR_CLK_ENABLE();
+	/* Enable HSE Oscillator and Activate PLL with HSE as source */
+	RCC_OscInitStruct.OscillatorType      = RCC_OSCILLATORTYPE_HSI;
+	RCC_OscInitStruct.HSIState            = RCC_HSI_ON;
+	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+	RCC_OscInitStruct.PLL.PLLState        = RCC_PLL_ON;
+	RCC_OscInitStruct.PLL.PLLSource       = RCC_PLLSOURCE_HSI;
+#if GSC_CPU_CLOCK_HZ == 24000000 // 24MHz
+	RCC_OscInitStruct.PLL.PLLMUL          = RCC_PLL_MUL6;
+	RCC_OscInitStruct.PLL.PLLDIV          = RCC_PLL_DIV4;
+#else // 32MHz
+	// 32MHz だとWFI命令からの復帰が正常にできない
+	RCC_OscInitStruct.PLL.PLLMUL          = RCC_PLL_MUL6;
+	RCC_OscInitStruct.PLL.PLLDIV          = RCC_PLL_DIV3;
+#endif
+	if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+		// Error
+	}
 
-	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+	/* Set Voltage scale1 as MCU will run at 32MHz */
+	__HAL_RCC_PWR_CLK_ENABLE();
+	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+  
+	/* Poll VOSF bit of in PWR_CSR. Wait until it is reset to 0 */
+	while(__HAL_PWR_GET_FLAG(PWR_FLAG_VOS) != RESET) {
+		//
+	};
 
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSE;
-	RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-	RCC_OscInitStruct.HSICalibrationValue = 16;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-	RCC_OscInitStruct.PLL.PLLM = 16;
-	RCC_OscInitStruct.PLL.PLLN = 192;
-	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-	RCC_OscInitStruct.PLL.PLLQ = 4;
-	HAL_RCC_OscConfig(&RCC_OscInitStruct);
-
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_PCLK1
-			|RCC_CLOCKTYPE_PCLK2;
+	/* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
+	   clocks dividers */
+	RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
-	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3);
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) {
+		// Error
+	}
 }
 
 /**
@@ -80,7 +106,7 @@ void init_cpu(void)
 
 extern const struct st_device usart2_device;
 extern const struct st_device usart2_low_device;
-extern const struct st_device usart6_device;
+extern const struct st_device usart4_device;
 
 extern const struct st_device null_device;
 
@@ -134,8 +160,6 @@ void init_system(int *argc, char ***argv)
 	*/
 	SCB->CCR |= SCB_CCR_NONBASETHRDENA_Msk;
 	SCB->CCR |= SCB_CCR_STKALIGN_Msk;
-//	SCB->CCR |= SCB_CCR_USERSETMPEND_Msk;
-//	SCB->CCR |= SCB_CCR_BFHFNMIGN_Msk;
 }
 
 /**
@@ -149,8 +173,8 @@ void init_system_drivers(void)
 	register_console_in_dev(&usart2_device);
 	register_error_out_dev(&usart2_low_device);
 
-	// USART6
-	register_device(&usart6_device, 0);
+	// USART4
+	//register_device(&usart4_device, 0);
 
 #ifdef GSC_DEV_ENABLE_RTC
 	// RTC初期化
@@ -270,7 +294,7 @@ void init_system_process(void)
 #endif
 }
 
-#include "stm32f4xx_hal_iwdg.h"
+#include "stm32l1xx_hal_iwdg.h"
 
 static IWDG_HandleTypeDef IwdgHandle;
 

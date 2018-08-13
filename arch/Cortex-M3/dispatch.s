@@ -1,12 +1,11 @@
 /*
-	Cortex-M4 タスクディスパッチ
+	Cortex-M3 タスクディスパッチ
 
-	2013.03.04	Takashi SHUDO
+	2018.08.13	Takashi SHUDO
 */
 
 	.syntax unified
-	.cpu cortex-m4
-	.fpu fpv4-sp-d16
+	.cpu cortex-m3
 	.thumb
 	.text
 	.align	4
