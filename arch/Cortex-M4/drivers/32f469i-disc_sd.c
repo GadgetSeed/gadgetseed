@@ -1,7 +1,7 @@
 /** @file
-    @brief	SD MMC ドライバ STM32F[769I|746G]-Discovery
+    @brief	SD ドライバ 32F469IDISCOVERY
 
-    @date	2016.01.09
+    @date	2018.08.18
     @author	Takashi SHUDO
 */
 
@@ -14,41 +14,20 @@
 #include "device/sd_ioctl.h"
 #include "task/syscall.h"
 
-#ifdef GSC_TARGET_SYSTEM_STM32F769IDISCOVERY
-#include "stm32f769i_discovery_sd.h"
-#define SDMMC_IRQn	SDMMC2_IRQn
-#elif defined(GSC_TARGET_SYSTEM_STM32F746GDISCOVERY)
-#include "stm32746g_discovery_sd.h"
-#define SDMMC_IRQn	SDMMC1_IRQn
-#endif
+#include "stm32469i_discovery_sd.h"
 
-#define ENABLE_SDMMC_DMA	/// DMA転送を使用する
+#define ENABLE_SD_DMA	/// DMA転送を使用する
 #define SD_TIMEOUT (3*1000)
 
 //#define DEBUGKBITS 0x13
 #include "dkprintf.h"
 
 
-#ifdef ENABLE_SDMMC_DMA
+#ifdef ENABLE_SD_DMA
 extern SD_HandleTypeDef uSdHandle;
 
 static struct st_event dma_rx_evt;
 static struct st_event dma_tx_evt;
-
-void HAL_SD_ErrorCallback(SD_HandleTypeDef *hsd)
-{
-	SYSERR_PRINT("Error\n");
-}
-
-void HAL_SD_XferErrorCallback(SD_HandleTypeDef *hsd)
-{
-	SYSERR_PRINT("Error\n");
-}
-
-void BSP_SD_AbortCallback(void)
-{
-	SYSERR_PRINT("Abort\n");
-}
 
 static int flg_dma_rx_cmp = 0;
 static int flg_dma_tx_cmp = 0;
@@ -69,7 +48,7 @@ void BSP_SD_WriteCpltCallback(void)
 }
 
 /* DMA2 Stream0 */
-static void inthdr_sdmmc_dma_rx(unsigned int intnum, void *sp)
+static void inthdr_sd_dma_rx(unsigned int intnum, void *sp)
 {
 	DKFPRINTF(0x02, "intnum=%d\n", intnum);
 
@@ -85,7 +64,7 @@ static void inthdr_sdmmc_dma_rx(unsigned int intnum, void *sp)
 }
 
 /* DMA2 Stream5 */
-static void inthdr_sdmmc_dma_tx(unsigned int intnum, void *sp)
+static void inthdr_sd_dma_tx(unsigned int intnum, void *sp)
 {
 	DKFPRINTF(0x02, "intnum=%d\n", intnum);
 
@@ -124,56 +103,56 @@ static void inthdr_sd(unsigned int intnum, void *sp)
 		flg_sd_cmp = 1;
 	}
 }
-#endif //ENABLE_SDMMC_DMA
+#endif //ENABLE_SD_DMA
 
-static int sdmmc_register(struct st_device *dev, char *param)
+static int sd_register(struct st_device *dev, char *param)
 {
 	unsigned char stat;
 
 	stat = BSP_SD_Init();
 
 	if(stat != HAL_OK) {
-		SYSERR_PRINT("SD/MMC Initialize error(%d)\n", (int)stat);
+		SYSERR_PRINT("SD Initialize error(%d)\n", (int)stat);
 		return -1;
 	}
 
-#ifdef ENABLE_SDMMC_DMA
+#ifdef ENABLE_SD_DMA
 	//BSP_SD_ITConfig();
 
 	eventqueue_register_ISR(&dma_rx_evt, "sddmarx", 0, 0, 0);
 	HAL_NVIC_SetPriority(SD_DMAx_Rx_IRQn, 0, 0);	// 割り込みプライオリティは最低(0)
-	register_interrupt(IRQ2VECT(SD_DMAx_Rx_IRQn), inthdr_sdmmc_dma_rx);
+	register_interrupt(IRQ2VECT(SD_DMAx_Rx_IRQn), inthdr_sd_dma_rx);
 
 	eventqueue_register_ISR(&dma_tx_evt, "sddmatx", 0, 0, 0);
 	HAL_NVIC_SetPriority(SD_DMAx_Tx_IRQn, 0, 0);	// 割り込みプライオリティは最低(0)
-	register_interrupt(IRQ2VECT(SD_DMAx_Tx_IRQn), inthdr_sdmmc_dma_tx);
+	register_interrupt(IRQ2VECT(SD_DMAx_Tx_IRQn), inthdr_sd_dma_tx);
 
-	HAL_NVIC_SetPriority(SDMMC_IRQn, 0, 0);	// 割り込みプライオリティは最低(0)
-	register_interrupt(IRQ2VECT(SDMMC_IRQn), inthdr_sd);
-#endif //ENABLE_SDMMC_DMA
+	HAL_NVIC_SetPriority(SDIO_IRQn, 0, 0);	// 割り込みプライオリティは最低(0)
+	register_interrupt(IRQ2VECT(SDIO_IRQn), inthdr_sd);
+#endif //ENABLE_SD_DMA
 
 	return 0;
 }
 
-static int sdmmc_unregister(struct st_device *dev)
+static int sd_unregister(struct st_device *dev)
 {
-#ifdef ENABLE_SDMMC_DMA
+#ifdef ENABLE_SD_DMA
 	unregister_interrupt(IRQ2VECT(SD_DMAx_Rx_IRQn));
 	unregister_interrupt(IRQ2VECT(SD_DMAx_Tx_IRQn));
-	unregister_interrupt(IRQ2VECT(SDMMC_IRQn));
-#endif //ENABLE_SDMMC_DMA
+	unregister_interrupt(IRQ2VECT(SDIO_IRQn));
+#endif //ENABLE_SD_DMA
 
 	return 0;
 }
 
-static int sdmmc_open(struct st_device *dev)
+static int sd_open(struct st_device *dev)
 {
 	DKFPRINTF(0x01, "dev=%p\n", dev);
 
 	return 0;
 }
 
-static int sdmmc_close(struct st_device *dev)
+static int sd_close(struct st_device *dev)
 {
 	DKFPRINTF(0x01, "dev=%p\n", dev);
 
@@ -182,17 +161,16 @@ static int sdmmc_close(struct st_device *dev)
 
 static uint32_t sdbuf[BLOCKSIZE];
 
-static int sdmmc_block_read(struct st_device *dev, void *data, unsigned int sector, unsigned int blkcount)
+static int sd_block_read(struct st_device *dev, void *data, unsigned int sector, unsigned int blkcount)
 {
 	unsigned char res;
-#ifdef ENABLE_SDMMC_DMA
-	uint32_t alignedAddr;
+#ifdef ENABLE_SD_DMA
 	int tout;
 #endif
 
 	DKFPRINTF(0x01, "dev=%p, data=%p, sector=%u, blkcount=%u\n", dev, data, sector, blkcount);
 
-#ifdef ENABLE_SDMMC_DMA
+#ifdef ENABLE_SD_DMA
 	if((unsigned int)data & 0x3) {
 		DKFPRINTF(0x08, "data=%p\n", data);
 		/*
@@ -216,8 +194,6 @@ static int sdmmc_block_read(struct st_device *dev, void *data, unsigned int sect
 
 			res = BSP_SD_GetCardState();
 			if(res == SD_TRANSFER_OK) {
-				alignedAddr = (uint32_t)sdbuf & ~0x1F;
-				SCB_InvalidateDCache_by_Addr((uint32_t *)alignedAddr, BLOCKSIZE + ((uint32_t)sdbuf - alignedAddr));
 				memorycopy(data, (const void *)sdbuf, BLOCKSIZE);
 				data += BLOCKSIZE;
 				res = MSD_OK;
@@ -244,8 +220,7 @@ static int sdmmc_block_read(struct st_device *dev, void *data, unsigned int sect
 
 		res = BSP_SD_GetCardState();
 		if(res == SD_TRANSFER_OK) {
-			alignedAddr = (uint32_t)data & ~0x1F;
-			SCB_InvalidateDCache_by_Addr((uint32_t *)alignedAddr, blkcount * BLOCKSIZE + ((uint32_t)data - alignedAddr));
+			//
 		} else {
 			SYSERR_PRINT("BSP_SD_GetCardState error(%d)\n", res);
 			res = MSD_ERROR;
@@ -253,7 +228,7 @@ static int sdmmc_block_read(struct st_device *dev, void *data, unsigned int sect
 	}
 rd_error:
 #else
-	disable_interrupt();	/// @todo 割込を禁止しないと SDMMC_FLAG_RXOVERR エラーとなる。解析する。
+	disable_interrupt();	/// @todo 割込を禁止しないと SD_FLAG_RXOVERR エラーとなる。解析する。
 	res = BSP_SD_ReadBlocks((uint32_t *)data, sector, blkcount, SD_TIMEOUT);
 	enable_interrupt();
 #endif
@@ -267,16 +242,16 @@ rd_error:
 	}
 }
 
-static int sdmmc_block_write(struct st_device *dev, const void *data, unsigned int sector, unsigned int blkcount)
+static int sd_block_write(struct st_device *dev, const void *data, unsigned int sector, unsigned int blkcount)
 {
 	unsigned char res = 0;
-#ifdef ENABLE_SDMMC_DMA
+#ifdef ENABLE_SD_DMA
 	int tout;
 #endif
 
 	DKFPRINTF(0x01, "dev=%p, data=%p, sector=%u, blkcount=%u\n", dev, data, sector, blkcount);
 
-#ifdef ENABLE_SDMMC_DMA
+#ifdef ENABLE_SD_DMA
 	flg_dma_tx_cmp = 0;
 	flg_sd_cmp = 0;
 
@@ -336,7 +311,7 @@ static int sdmmc_block_write(struct st_device *dev, const void *data, unsigned i
 	}
 }
 
-static int sdmmc_ioctl(struct st_device *dev, unsigned int com, unsigned int arg, void *param)
+static int sd_ioctl(struct st_device *dev, unsigned int com, unsigned int arg, void *param)
 {
 	HAL_SD_CardInfoTypeDef cardInfo;
 	int rt = 0;
@@ -389,19 +364,19 @@ static int sdmmc_ioctl(struct st_device *dev, unsigned int com, unsigned int arg
 	return rt;
 }
 
-static int sdmmc_sync(struct st_device *dev)
+static int sd_sync(struct st_device *dev)
 {
 	return 0;
 }
 
-static int sdmmc_suspend(struct st_device *dev)
+static int sd_suspend(struct st_device *dev)
 {
 	int rt = 0;
 
 	return rt;
 }
 
-static int sdmmc_resume(struct st_device *dev)
+static int sd_resume(struct st_device *dev)
 {
 	int rt = 0;
 
@@ -409,17 +384,17 @@ static int sdmmc_resume(struct st_device *dev)
 }
 
 
-const struct st_device sdmmc_device = {
+const struct st_device sd_device = {
 	.name		= DEF_DEV_NAME_SD,
-	.explan		= "STM32F7xxx SD/MMC Storage",
-	.register_dev	= sdmmc_register,
-	.unregister_dev	= sdmmc_unregister,
-	.open		= sdmmc_open,
-	.close		= sdmmc_close,
-	.block_read	= sdmmc_block_read,
-	.block_write	= sdmmc_block_write,
-	.ioctl		= sdmmc_ioctl,
-	.sync		= sdmmc_sync,
-	.suspend	= sdmmc_suspend,
-	.resume		= sdmmc_resume,
+	.explan		= "32F469IDISCOVERY SD Card Storage",
+	.register_dev	= sd_register,
+	.unregister_dev	= sd_unregister,
+	.open		= sd_open,
+	.close		= sd_close,
+	.block_read	= sd_block_read,
+	.block_write	= sd_block_write,
+	.ioctl		= sd_ioctl,
+	.sync		= sd_sync,
+	.suspend	= sd_suspend,
+	.resume		= sd_resume,
 };

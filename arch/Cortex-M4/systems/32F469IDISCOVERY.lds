@@ -58,7 +58,7 @@ SECTIONS {
 		PROVIDE(edata = .);
 	} >ram
 
-_heap_end = ORIGIN(ram)+LENGTH(ram)-4;	/* due to 4byte alignments */
+/*_heap_end = ORIGIN(ram)+LENGTH(ram)-4;*/	/* due to 4byte alignments */
 
 	.bss (NOLOAD) : ALIGN(4) {
 		_sbss = .;
@@ -74,8 +74,8 @@ _heap_end = ORIGIN(ram)+LENGTH(ram)-4;	/* due to 4byte alignments */
 		_bss_end__ = . ;
 		__bss_end__ = . ;
 		__end__ = . ;
-		PROVIDE (end = .);
-		_end  = .;
+/*		PROVIDE (end = .);
+		_end  = .;*/
 	} >ram
 
 	.stack (NOLOAD) : ALIGN(8) {

@@ -154,7 +154,7 @@ static int framebuf_read(struct st_device *dev, void *data, unsigned int size)
 
 	DKFPRINTF(0x01, "data = %p, size = %ld\n", data, size);
 
-	for(i=0; i<size/2; i++) {
+	for(i=0; i<size/sizeof(PIXEL_DATA); i++) {
 		//PIXEL_DATA tmp = (((PIXEL_DATA)(*data)) << 8) + (*(data + 1));
 		*dp = framebuf_read_point(fc);
 		dp ++;
@@ -171,7 +171,7 @@ static int framebuf_write(struct st_device *dev, const void *data, unsigned int 
 
 	DKFPRINTF(0x01, "data = %p, size = %ld\n", data, size);
 
-	for(i=0; i<size/2; i++) {
+	for(i=0; i<size/sizeof(PIXEL_DATA); i++) {
 		//PIXEL_DATA tmp = (((PIXEL_DATA)(*data)) << 8) + (*(data + 1));
 		framebuf_write_point(fc, *dp);
 		dp ++;

@@ -52,7 +52,8 @@ BSP_SRCS_DIR = $(HAL_DIR)/Drivers/BSP/STM32469I-Discovery
 BSP_SRCS = $(BSP_SRCS_DIR)/stm32469i_discovery.c \
 	   $(BSP_SRCS_DIR)/stm32469i_discovery_sdram.c \
 	   $(BSP_SRCS_DIR)/stm32469i_discovery_lcd.c \
-	   $(BSP_SRCS_DIR)/stm32469i_discovery_ts.c
+	   $(BSP_SRCS_DIR)/stm32469i_discovery_ts.c \
+	   $(BSP_SRCS_DIR)/stm32469i_discovery_sd.c
 BSP_OBJS = $(addprefix $(BSP_OBJS_DIR)/, $(notdir $(BSP_SRCS:.c=.o)))
 endif
 
@@ -78,7 +79,9 @@ HALSRCS = $(HAL_DRIVERS_DIR)/stm32f4xx_hal.c \
 	  $(HAL_DRIVERS_DIR)/stm32f4xx_hal_ltdc_ex.c \
 	  $(HAL_DRIVERS_DIR)/stm32f4xx_hal_dma2d.c \
 	  $(HAL_DRIVERS_DIR)/stm32f4xx_hal_dsi.c \
-	  $(HAL_DRIVERS_DIR)/stm32f4xx_hal_pwr_ex.c
+	  $(HAL_DRIVERS_DIR)/stm32f4xx_hal_pwr_ex.c \
+	  $(HAL_DRIVERS_DIR)/stm32f4xx_hal_sd.c \
+	  $(HAL_DRIVERS_DIR)/stm32f4xx_ll_sdmmc.c
 
 OBJDIR   = ./hal_objs
 SYSOBJ   = $(addprefix $(OBJDIR)/, $(notdir $(SYSSRC:.c=.o)))

@@ -18,6 +18,10 @@ ifeq ($(DEV_ENABLE_TOUCHSENSOR),YES)
 ARCH_DRIVERS += 32f469i-disc_ts
 endif
 
+ifeq ($(DEV_ENABLE_STORAGE),YES)
+ARCH_DRIVERS += 32f469i-disc_sd
+endif
+
 ifeq ($(DEV_ENABLE_NULL),YES)
 DRIVERS += null
 endif

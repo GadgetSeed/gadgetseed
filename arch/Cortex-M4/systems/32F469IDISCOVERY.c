@@ -137,6 +137,8 @@ extern const struct st_device ts_device;
 
 extern const struct st_device grconsole_device;
 
+extern const struct st_device sd_device;
+
 extern const struct st_device irq_device;
 extern const struct st_device gpio_device;
 
@@ -224,6 +226,10 @@ void init_system_process(void)
 	/*
 	  ファイルシステム
 	*/
+#ifdef GSC_DEV_ENABLE_STORAGE
+	register_device(&sd_device, 0);
+#endif
+
 #ifdef GSC_COMP_ENABLE_FATFS
 	init_storage();
 	init_file();
