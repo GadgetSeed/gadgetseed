@@ -51,7 +51,8 @@ CFLAGS  += -I$(HAL_DIR)/Drivers/BSP/STM32469I-Discovery
 BSP_SRCS_DIR = $(HAL_DIR)/Drivers/BSP/STM32469I-Discovery
 BSP_SRCS = $(BSP_SRCS_DIR)/stm32469i_discovery.c \
 	   $(BSP_SRCS_DIR)/stm32469i_discovery_sdram.c \
-	   $(BSP_SRCS_DIR)/stm32469i_discovery_lcd.c
+	   $(BSP_SRCS_DIR)/stm32469i_discovery_lcd.c \
+	   $(BSP_SRCS_DIR)/stm32469i_discovery_ts.c
 BSP_OBJS = $(addprefix $(BSP_OBJS_DIR)/, $(notdir $(BSP_SRCS:.c=.o)))
 endif
 
@@ -83,9 +84,15 @@ OBJDIR   = ./hal_objs
 SYSOBJ   = $(addprefix $(OBJDIR)/, $(notdir $(SYSSRC:.c=.o)))
 HALOBJS  = $(addprefix $(OBJDIR)/, $(notdir $(HALSRCS:.c=.o)))
 
+ifeq ($(TARGET_SYSTEM_32F469IDISCOVERY),YES)
 LCD_SRC  = $(HAL_DIR)/Drivers/BSP/Components/otm8009a/otm8009a.c
 LCD_OBJ  = $(addprefix $(OBJDIR)/, $(notdir $(LCD_SRC:.c=.o)))
 OBJS     += $(LCD_OBJ)
+
+TSD_SRC  = $(HAL_DIR)/Drivers/BSP/Components/ft6x06/ft6x06.c
+TSD_OBJ  = $(addprefix $(OBJDIR)/, $(notdir $(TSD_SRC:.c=.o)))
+OBJS     += $(TSD_OBJ)
+endif
 
 all:	$(LIB)
 
@@ -96,6 +103,9 @@ $(OBJDIR)/%.o: $(HAL_DRIVERS_DIR)/%.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(BSP_OBJS_DIR)/%.o: $(BSP_SRCS_DIR)/%.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+$(TSD_OBJ): $(TSD_SRC)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(LCD_OBJ): $(LCD_SRC)

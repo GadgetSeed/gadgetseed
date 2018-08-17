@@ -133,6 +133,7 @@ extern const struct st_device led_device;
 
 extern const struct st_device lcd_device;
 extern const struct st_device framebuf_device;
+extern const struct st_device ts_device;
 
 extern const struct st_device grconsole_device;
 
@@ -211,7 +212,7 @@ void init_system_process(void)
 	register_device(&framebuf_device, 0);
 	init_graphics("fb");	// グラフィックス初期化
 #  ifdef GSC_DEV_ENABLE_TOUCHSENSOR
-	register_device(&ts_analog_device, 0);
+	register_device(&ts_device, 0);
 #  endif
 #  ifdef GSC_COMP_ENABLE_FONTS
 #    ifdef GSC_DEV_ENABLE_GRCONSOLE

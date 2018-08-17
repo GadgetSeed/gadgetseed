@@ -14,6 +14,10 @@ DRIVERS += grconsole
 endif
 endif
 
+ifeq ($(DEV_ENABLE_TOUCHSENSOR),YES)
+ARCH_DRIVERS += 32f469i-disc_ts
+endif
+
 ifeq ($(DEV_ENABLE_NULL),YES)
 DRIVERS += null
 endif
