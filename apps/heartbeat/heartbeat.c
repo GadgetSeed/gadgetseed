@@ -13,7 +13,7 @@
 
 static const char led_devname[] = DEF_DEV_NAME_LED;
 static struct st_device *led_dev;
-static unsigned char led_data[4] = { 0x00, 0x01, 0x02, 0x04 };
+static unsigned char led_data[4] = { 0x01, 0x02, 0x04, 0x08 };
 
 int hb_task(char *arg)
 {

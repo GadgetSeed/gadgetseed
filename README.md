@@ -31,6 +31,7 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 |---------------------------------------|---------------|----------------|
 | [32F769IDISCOVERY](#32F769IDISCOVERY) | STM32F769NIH6 | ARM Cortex-M7  |
 | [32F746GDISCOVERY](#32F746GDISCOVERY) | STM32F746NGH6 | ARM Cortex-M7  |
+| [32F469IDISCOVERY](#32F469IDISCOVERY) | STM32F469NIH6 | ARM Cortex-M4  |
 | [NUCLEO-F411RE](#NUCLEO-F4x1RE)       | STM32F401RET6 | ARM Cortex-M4  |
 | [NUCLEO-L152RE](#NUCLEO-L152RE)       | STM32L152RET6 | ARM Cortex-M3  |
 
@@ -41,31 +42,39 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 <a name="32F769IDISCOVERY"></a>
 ### 32F769IDISCOVERY
 
-![32F769IDISCOVERY](http://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/group0/5b/1e/e6/2e/d1/1b/45/44/32f769i-disco.jpg/files/stm32f769i-disco.jpg/_jcr_content/translations/en.stm32f769i-disco.jpg)
+![32F769IDISCOVERY](https://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/group0/5b/1e/e6/2e/d1/1b/45/44/32f769i-disco.jpg/files/stm32f769i-disco.jpg/_jcr_content/translations/en.stm32f769i-disco.jpg)
 
-<http://www.st.com/en/evaluation-tools/32f769idiscovery.html>[English]  
-<http://www.st.com/ja/evaluation-tools/32f769idiscovery.html>[Japanese]
+<https://www.st.com/en/evaluation-tools/32f769idiscovery.html>[English]  
+<https://www.st.com/ja/evaluation-tools/32f769idiscovery.html>[Japanese]
 
 <a name="32F746GDISCOVERY"></a>
 ### 32F746GDISCOVERY
 
-![STM32F746G-Discovery](http://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/group0/ea/c4/6d/73/c3/f5/46/e2/stm32f746g-disco/files/stm32f746g-disco.jpg/_jcr_content/translations/en.stm32f746g-disco.jpg)
+![STM32F746G-Discovery](https://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/group0/ea/c4/6d/73/c3/f5/46/e2/stm32f746g-disco/files/stm32f746g-disco.jpg/_jcr_content/translations/en.stm32f746g-disco.jpg)
 
-<http://www.st.com/en/evaluation-tools/32f746gdiscovery.html>[English]  
-<http://www.st.com/ja/evaluation-tools/32f746gdiscovery.html>[Japanese]
+<https://www.st.com/en/evaluation-tools/32f746gdiscovery.html>[English]  
+<https://www.st.com/ja/evaluation-tools/32f746gdiscovery.html>[Japanese]
+
+<a name="32F469IDISCOVERY"></a>
+### 32F469IDISCOVERY
+
+![STM32F469-Discovery](https://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/group0/e0/b4/a0/64/2f/ff/40/c7/stm32f469i-disco.jpg/files/stm32f469i-disco.jpg/_jcr_content/translations/en.stm32f469i-disco.jpg)
+
+<https://www.st.com/en/evaluation-tools/32f469idiscovery.html>[English]  
+<https://www.st.com/ja/evaluation-tools/32f469idiscovery.html>[Japanese]
 
 <a name="NUCLEO-F4x1RE"></a>
 ### NUCLEO-F411RE
 
-![STM32F411RE](http://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/68/fb/69/d3/eb/3d/47/5a/nucleo-F4.jpg/files/nucleo-F4.jpg/_jcr_content/translations/en.nucleo-F4.jpg)
+![STM32F411RE](https://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/68/fb/69/d3/eb/3d/47/5a/nucleo-F4.jpg/files/nucleo-F4.jpg/_jcr_content/translations/en.nucleo-F4.jpg)
 
-<http://www.st.com/en/evaluation-tools/nucleo-f411re.html>[English]  
-<http://www.st.com/ja/evaluation-tools/nucleo-f411re.html>[Japanese]
+<https://www.st.com/en/evaluation-tools/nucleo-f411re.html>[English]  
+<https://www.st.com/ja/evaluation-tools/nucleo-f411re.html>[Japanese]
 
 <!-- NUCLEO-F401RE
 
-<http://www.st.com/en/evaluation-tools/nucleo-f401re.html>[English]  
-<http://www.st.com/ja/evaluation-tools/nucleo-f401re.html>[Japanese]
+<https://www.st.com/en/evaluation-tools/nucleo-f401re.html>[English]  
+<https://www.st.com/ja/evaluation-tools/nucleo-f401re.html>[Japanese]
 -->
 
 <a name="NUCLEO-L152RE"></a>
@@ -73,8 +82,8 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 
 ![STM32L152RE](https://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/9e/75/14/86/ee/4a/43/78/nucleo-Lx.jpg/files/nucleo-Lx.jpg/_jcr_content/translations/en.nucleo-Lx.jpg)
 
-<http://www.st.com/en/evaluation-tools/nucleo-l152re.html>[English]  
-<http://www.st.com/ja/evaluation-tools/nucleo-l152re.html>[Japanese]
+<https://www.st.com/en/evaluation-tools/nucleo-l152re.html>[English]  
+<https://www.st.com/ja/evaluation-tools/nucleo-l152re.html>[Japanese]
 
 
 ## Sample Application
@@ -93,15 +102,15 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 
 1. STM32CUBEMX Installation
 
-   <http://www.st.com/en/development-tools/stm32cubemx.html>[English]  
-   <http://www.st.com/ja/development-tools/stm32cubemx.html>[Japanese]
+   <https://www.st.com/en/development-tools/stm32cubemx.html>[English]  
+   <https://www.st.com/ja/development-tools/stm32cubemx.html>[Japanese]
 
    Download Stm32cubemx from the above site and unzip "En.stm32cubemx.zip".
-   Use "SetupSTM32CubeMX-4.26.0.linux" from the unzipped "En.stm32cubemx.zip".
+   Use "Setupstm32cubemx-4.26.1.linux" from the unzipped "En.stm32cubemx.zip".
 
    ```sh
    sudo apt install -y libc6-i386 default-jre openjfx
-   sudo ./SetupSTM32CubeMX-4.26.0.linux
+   sudo ./SetupSTM32CubeMX-4.26.1.linux
    ```
 
 1. Install STM32 HAL and LL drivers
@@ -272,10 +281,22 @@ Gadgetseed is a multi-tasking OS for embedded devices.
    sudo openocd -f /usr/share/openocd/scripts/board/stm32f7discovery.cfg
    ```
 
+   ### 32F469IDISCOVERY
+
+   ```sh
+   sudo openocd -f /usr/share/openocd/scripts/board/stm32f469discovery.cfg
+   ```
+
    ### NUCLEO-F4xxxx
 
    ```sh
    sudo openocd -f /usr/share/openocd/scripts/board/st_nucleo_f4.cfg
+   ```
+
+   ### NUCLEO-L1xxxx
+
+   ```sh
+   sudo openocd -f /usr/share/openocd/scripts/board/st_nucleo_l1.cfg
    ```
 
    OPENOCD is in a state that remains operational.

@@ -49,8 +49,7 @@ HALSRCS = $(HAL_DRIVERS_DIR)/stm32l1xx_hal.c \
 	  $(HAL_DRIVERS_DIR)/stm32l1xx_hal_dma.c \
 	  $(HAL_DRIVERS_DIR)/stm32l1xx_hal_tim.c \
 	  $(HAL_DRIVERS_DIR)/stm32l1xx_hal_tim_ex.c \
-	  $(HAL_DRIVERS_DIR)/stm32l1xx_hal_iwdg.c \
-	  $(HAL_DRIVERS_DIR)/stm32l1xx_ll_utils.c
+	  $(HAL_DRIVERS_DIR)/stm32l1xx_hal_iwdg.c
 
 OBJDIR   = ./hal_objs
 SYSOBJ   = $(addprefix $(OBJDIR)/, $(notdir $(SYSSRC:.c=.o)))

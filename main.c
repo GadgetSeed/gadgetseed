@@ -14,7 +14,9 @@
     |-------------------|:--------------|:---------------|
     | 32F769IDISCOVERY	| STM32F769NIH6 | ARM Cortex-M7  |
     | 32F746GDISCOVERY	| STM32F746NGH6 | ARM Cortex-M7  |
+    | 32F469IDISCOVERY	| STM32F469NIH6 | ARM Cortex-M4  |
     | NUCLEO-F411RE	| STM32F401RET6 | ARM Cortex-M4  |
+    | NUCLEO-L152RE	| STM32L152RET6 | ARM Cortex-M3  |
 
     ---
     @section feature 特徴

@@ -19,6 +19,9 @@ typedef unsigned short	PIXEL_DATA;
 #ifdef GSC_GRAPHICS_COLOR_24BIT	///< $gsc グラフィックデバイスは24ビットカラー
 typedef unsigned int	PIXEL_DATA;
 #endif
+#ifdef GSC_GRAPHICS_COLOR_32BIT	///< $gsc グラフィックデバイスは32ビットカラー
+typedef unsigned int	PIXEL_DATA;
+#endif
 
 // 16bitカラー変換
 #define RGB16(r,g,b)	(unsigned int)(((b) >> 3) | (((g) >> 2) << 5) | (((r) >> 3) << 11))
@@ -29,6 +32,12 @@ typedef unsigned int	PIXEL_DATA;
 #define RGB24_TO_G(c)	(unsigned char)(((c) >>  8) & 0xff)
 #define RGB24_TO_B(c)	(unsigned char)(((c) >>  0) & 0xff)
 
+// 32bitカラー変換(ARGB)
+#define RGB32(r,g,b)	(unsigned int)(0xff000000 | (b) | ((g) << 8) | ((r) << 16))
+#define RGB32_TO_R(c)	(unsigned char)(((c) >> 16) & 0xff)
+#define RGB32_TO_G(c)	(unsigned char)(((c) >>  8) & 0xff)
+#define RGB32_TO_B(c)	(unsigned char)(((c) >>  0) & 0xff)
+
 // 色変換
 #if defined(GSC_GRAPHICS_COLOR_16BIT)
 #define RGB RGB16
@@ -37,6 +46,11 @@ typedef unsigned int	PIXEL_DATA;
 #define RGB_TO_R	RGB24_TO_R
 #define RGB_TO_G	RGB24_TO_G
 #define RGB_TO_B	RGB24_TO_B
+#elif defined(GSC_GRAPHICS_COLOR_32BIT)
+#define RGB RGB32
+#define RGB_TO_R	RGB32_TO_R
+#define RGB_TO_G	RGB32_TO_G
+#define RGB_TO_B	RGB32_TO_B
 #endif
 
 // set_draw_mode(mode)

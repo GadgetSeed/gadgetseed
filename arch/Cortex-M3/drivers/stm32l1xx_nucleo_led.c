@@ -28,12 +28,8 @@ typedef struct st_reg_gpio {
 } st_reg_gpio;
 
 #define GPIOA_BASE	(0x40020000 + 0x000)
-#define GPIOB_BASE	(0x40020000 + 0x400)
-#define GPIOD_BASE	(0x40020000 + 0xC00)
 
 #define GPIOA	((st_reg_gpio *)GPIOA_BASE)
-#define GPIOB	((st_reg_gpio *)GPIOB_BASE)
-#define GPIOD	((st_reg_gpio *)GPIOD_BASE)
 
 #define GPIO_MODE_BIT_IN	0x00	// Input Mode
 #define GPIO_MODE_BIT_OUT	0x01	// Output Mode

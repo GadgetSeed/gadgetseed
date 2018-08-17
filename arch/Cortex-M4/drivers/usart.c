@@ -4,13 +4,19 @@
     @date	2015.08.09
     @author	Takashi SHUDO
 
-    USART2_TX	PA2
-    USART2_RX	PA3
+    NUCLEO-F411RE Virtual COM port
+      USART2_TX	PA2
+      USART2_RX	PA3
 
-    USART6_TX	PA11
-    USART6_RX	PA12
+      USART6_TX	PA11
+      USART6_RX	PA12
+
+    32F469IDISCOVERY Virtual COM port
+      USART3_TX	PB10
+      USART3_RX	PB11
 */
 
+#include "sysconfig.h"
 #include "device.h"
 #include "interrupt.h"
 #include "fifo.h"
@@ -21,14 +27,10 @@
 
 #include "stm32f4xx_hal.h"
 
+#ifdef GSC_TARGET_SYSTEM_NUCLEO_F411RE
 static void init_rcc_usart2(void)
 {
 	__GPIOA_CLK_ENABLE();
-}
-
-static void init_rcc_usart6(void)
-{
-	__GPIOC_CLK_ENABLE();
 }
 
 static void init_gpio_usart2(void)
@@ -43,6 +45,37 @@ static void init_gpio_usart2(void)
 	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
 	GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
+
+const struct st_device usart2_device;
+#endif
+
+#ifdef GSC_TARGET_SYSTEM_32F469IDISCOVERY
+static void init_rcc_usart3(void)
+{
+	__GPIOB_CLK_ENABLE();
+}
+
+static void init_gpio_usart3(void)
+{
+	GPIO_InitTypeDef GPIO_InitStruct;
+
+	__USART3_CLK_ENABLE();
+
+	GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+}
+
+const struct st_device usart3_device;
+#endif
+
+static void init_rcc_usart6(void)
+{
+	__GPIOC_CLK_ENABLE();
 }
 
 static void init_gpio_usart6(void)
@@ -73,7 +106,6 @@ typedef struct st_usart_data {
 	UART_HandleTypeDef huart;
 } st_usart_data;
 
-const struct st_device usart2_device;
 const struct st_device usart6_device;
 
 static st_usart_data usart_data[3];
@@ -104,9 +136,17 @@ void inthdr_usart(unsigned int intnum, void *sp)
 	USART_TypeDef *usart;
 
 	//tkprintf("USART int(%ld)\n", intnum);
+#ifdef GSC_TARGET_SYSTEM_NUCLEO_F411RE
 	if(intnum == IRQ2VECT(USART2_IRQn)) {
 		usart_dt = &usart_data[0];
-	} else if(intnum == IRQ2VECT(USART6_IRQn)) {
+	}
+#endif
+#ifdef GSC_TARGET_SYSTEM_32F469IDISCOVERY
+	if(intnum == IRQ2VECT(USART3_IRQn)) {
+		usart_dt = &usart_data[0];
+	}
+#endif
+	else if(intnum == IRQ2VECT(USART6_IRQn)) {
 		usart_dt = &usart_data[1];
 	} else {
 		return;
@@ -156,11 +196,23 @@ void inthdr_usart(unsigned int intnum, void *sp)
 }
 
 const static char usart_rx_eventqueue_name[2][10] = {
-	"usart2_rx", "usart6_rx"
+#ifdef GSC_TARGET_SYSTEM_NUCLEO_F411RE
+	"usart2_rx",
+#endif
+#ifdef GSC_TARGET_SYSTEM_32F469IDISCOVERY
+	"usart3_rx",
+#endif
+	"usart6_rx"
 };
 
 const static char usart_tx_eventqueue_name[2][10] = {
-	"usart2_tx", "usart6_tx"
+#ifdef GSC_TARGET_SYSTEM_NUCLEO_F411RE
+	"usart2_tx",
+#endif
+#ifdef GSC_TARGET_SYSTEM_32F469IDISCOVERY
+	"usart3_tx",
+#endif
+	"usart6_tx"
 };
 
 /*
@@ -174,6 +226,7 @@ static int usart_init(struct st_device *dev, char *param)
 
 	init_fifo(&(usart_data->rfifo), usart_data->rbuf, MAXBUFSIZE);
 
+#ifdef GSC_TARGET_SYSTEM_NUCLEO_F411RE
 	if(dev == &usart2_device) {
 		eventqueue_register_ISR(&(usart_data->rx_evq),
 					usart_rx_eventqueue_name[0], 0, 0, 0);
@@ -185,7 +238,23 @@ static int usart_init(struct st_device *dev, char *param)
 		init_rcc_usart2();
 		init_gpio_usart2();
 		init_usart(usart_data, USART2, USART2_IRQn);
-	} else if(dev == &usart6_device) {
+	}
+#endif
+#ifdef GSC_TARGET_SYSTEM_32F469IDISCOVERY
+	if(dev == &usart3_device) {
+		eventqueue_register_ISR(&(usart_data->rx_evq),
+					usart_rx_eventqueue_name[0], 0, 0, 0);
+		eventqueue_register_ISR(&(usart_data->tx_evq),
+					usart_tx_eventqueue_name[0],
+					usart_data->tbuf, sizeof(unsigned char), 2);
+		register_interrupt(IRQ2VECT(USART3_IRQn), inthdr_usart);
+
+		init_rcc_usart3();
+		init_gpio_usart3();
+		init_usart(usart_data, USART3, USART3_IRQn);
+	}
+#endif
+	else if(dev == &usart6_device) {
 		eventqueue_register_ISR(&(usart_data->rx_evq),
 					usart_rx_eventqueue_name[1], 0, 0, 0);
 		eventqueue_register_ISR(&(usart_data->tx_evq),
@@ -278,6 +347,8 @@ static int usart_select(struct st_device *dev, unsigned int timeout)
 
 /*
   usart2_low
+  or
+  usart3_low
 */
 
 static UART_HandleTypeDef huart_low;
@@ -287,10 +358,17 @@ static UART_HandleTypeDef huart_low;
 */
 static int usart_init_low(struct st_device *dev, char *param)
 {
+#ifdef GSC_TARGET_SYSTEM_NUCLEO_F411RE
 	init_rcc_usart2();
 	init_gpio_usart2();
-
 	huart_low.Instance = USART2;
+#endif
+#ifdef GSC_TARGET_SYSTEM_32F469IDISCOVERY
+	init_rcc_usart3();
+	init_gpio_usart3();
+	huart_low.Instance = USART3;
+#endif
+
 	huart_low.Init.BaudRate = 115200;
 	huart_low.Init.WordLength = UART_WORDLENGTH_8B;
 	huart_low.Init.StopBits = UART_STOPBITS_1;
@@ -338,21 +416,11 @@ static int usart_putc_low(struct st_device *dev, unsigned char td)
 	return 1;
 }
 
+#ifdef GSC_TARGET_SYSTEM_NUCLEO_F411RE
 const struct st_device usart2_device = {
 	.name	= DEF_DEV_NAME_UART,
 	.explan	= "STM32F4 USART2",
 	.private_data = (void *)&usart_data[0],
-	.register_dev = usart_init,
-	.getc = usart_getc,
-	.putc = usart_putc,
-	.ioctl = usart_ioctl,
-	.select	= usart_select
-};
-
-const struct st_device usart6_device = {
-	.name	= DEF_DEV_NAME_UART "1",
-	.explan	= "STM32F4 USART6",
-	.private_data = (void *)&usart_data[1],
 	.register_dev = usart_init,
 	.getc = usart_getc,
 	.putc = usart_putc,
@@ -367,4 +435,37 @@ const struct st_device usart2_low_device = {
 	.register_dev = usart_init_low,
 	.getc = usart_getc_low,
 	.putc = usart_putc_low
+};
+#endif
+#ifdef GSC_TARGET_SYSTEM_32F469IDISCOVERY
+const struct st_device usart3_device = {
+	.name	= DEF_DEV_NAME_UART,
+	.explan	= "STM32F4 USART3",
+	.private_data = (void *)&usart_data[0],
+	.register_dev = usart_init,
+	.getc = usart_getc,
+	.putc = usart_putc,
+	.ioctl = usart_ioctl,
+	.select	= usart_select
+};
+
+const struct st_device usart3_low_device = {
+	.name	= DEF_DEV_NAME_DEBUG,
+	.explan	= "Debug/Error Console",
+	.private_data = (void *)&usart_data[2],
+	.register_dev = usart_init_low,
+	.getc = usart_getc_low,
+	.putc = usart_putc_low
+};
+#endif
+
+const struct st_device usart6_device = {
+	.name	= DEF_DEV_NAME_UART "1",
+	.explan	= "STM32F4 USART6",
+	.private_data = (void *)&usart_data[1],
+	.register_dev = usart_init,
+	.getc = usart_getc,
+	.putc = usart_putc,
+	.ioctl = usart_ioctl,
+	.select	= usart_select
 };

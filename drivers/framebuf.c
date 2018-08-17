@@ -36,26 +36,26 @@ static void framebuf_set_backcolor(struct st_framebuf_context *fc, unsigned int 
 
 static void framebuf_draw_point(struct st_framebuf_context *fc, int x, int y)
 {
-	unsigned short *dp;
+	PIXEL_DATA *dp;
 
-	dp = (unsigned short *)fc->fb_ptr[fc->draw_frame] + (y * fc->width) + x;
+	dp = (PIXEL_DATA *)fc->fb_ptr[fc->draw_frame] + (y * fc->width) + x;
 
-	*dp = (unsigned short)fc->fore_color;
+	*dp = (PIXEL_DATA)fc->fore_color;
 }
 
 static inline void framebuf_set_ptr(struct st_framebuf_context *fc)
 {
 	fc->draw_ptr = fc->fb_ptr[fc->draw_frame]
-			+ (fc->pen_y * fc->width * sizeof(short))
-			+ (fc->pen_x * sizeof(unsigned short));
+			+ (fc->pen_y * fc->width * sizeof(PIXEL_DATA))
+			+ (fc->pen_x * sizeof(PIXEL_DATA));
 }
 
 static inline unsigned int framebuf_read_point(struct st_framebuf_context *fc)
 {
-	unsigned int rtn = *(unsigned short *)(fc->draw_ptr);
+	unsigned int rtn = *(PIXEL_DATA *)(fc->draw_ptr);
 
 	fc->pen_x ++;
-	fc->draw_ptr += sizeof(unsigned short);
+	fc->draw_ptr += sizeof(PIXEL_DATA);
 	if(fc->pen_x > fc->clip.right) {
 		fc->pen_x = fc->clip.left;
 		fc->pen_y ++;
@@ -67,10 +67,10 @@ static inline unsigned int framebuf_read_point(struct st_framebuf_context *fc)
 
 static inline void framebuf_write_point(struct st_framebuf_context *fc, unsigned int color)
 {
-	*(unsigned short *)(fc->draw_ptr) = (unsigned short)color;
+	*(PIXEL_DATA *)(fc->draw_ptr) = (PIXEL_DATA)color;
 
 	fc->pen_x ++;
-	fc->draw_ptr += sizeof(unsigned short);
+	fc->draw_ptr += sizeof(PIXEL_DATA);
 	if(fc->pen_x > fc->clip.right) {
 		fc->pen_x = fc->clip.left;
 		fc->pen_y ++;
@@ -88,11 +88,11 @@ static void framebuf_repeat_data(struct st_framebuf_context *fc, int len)
 
 static void framebuf_fill_screen(struct st_framebuf_context *fc, unsigned int data)
 {
-	unsigned int count = (fc->mem_size)/sizeof(unsigned short);
-	unsigned short *dp = (unsigned short *)fc->fb_ptr[fc->draw_frame];
+	unsigned int count = (fc->mem_size)/sizeof(PIXEL_DATA);
+	PIXEL_DATA *dp = (PIXEL_DATA *)fc->fb_ptr[fc->draw_frame];
 
 	while(count) {
-		*dp = (unsigned short)data;
+		*dp = (PIXEL_DATA)data;
 		dp ++;
 		count --;
 	}
@@ -150,12 +150,12 @@ static int framebuf_read(struct st_device *dev, void *data, unsigned int size)
 {
 	struct st_framebuf_context *fc = (struct st_framebuf_context *)(dev->private_data);
 	int i;
-	unsigned short *dp = (unsigned short *)data;
+	PIXEL_DATA *dp = (PIXEL_DATA *)data;
 
 	DKFPRINTF(0x01, "data = %p, size = %ld\n", data, size);
 
 	for(i=0; i<size/2; i++) {
-		//unsigned short tmp = (((unsigned short)(*data)) << 8) + (*(data + 1));
+		//PIXEL_DATA tmp = (((PIXEL_DATA)(*data)) << 8) + (*(data + 1));
 		*dp = framebuf_read_point(fc);
 		dp ++;
 	}
@@ -167,12 +167,12 @@ static int framebuf_write(struct st_device *dev, const void *data, unsigned int 
 {
 	struct st_framebuf_context *fc = (struct st_framebuf_context *)(dev->private_data);
 	int i;
-	unsigned short *dp = (unsigned short *)data;
+	PIXEL_DATA *dp = (PIXEL_DATA *)data;
 
 	DKFPRINTF(0x01, "data = %p, size = %ld\n", data, size);
 
 	for(i=0; i<size/2; i++) {
-		//unsigned short tmp = (((unsigned short)(*data)) << 8) + (*(data + 1));
+		//PIXEL_DATA tmp = (((PIXEL_DATA)(*data)) << 8) + (*(data + 1));
 		framebuf_write_point(fc, *dp);
 		dp ++;
 	}
@@ -311,14 +311,14 @@ static int framebuf_ioctl(struct st_device *dev, unsigned int com, unsigned int 
 	case IOCMD_VIDEO_SCROLL:
 		{
 			int i, j;
-			unsigned short *sp;
-			unsigned short *dp;
+			PIXEL_DATA *sp;
+			PIXEL_DATA *dp;
 			//int x = (short)((arg >>  0) & 0xffff);
 			int y = (short)((arg >> 16) & 0xffff);
 
-			sp = (unsigned short *)fc->fb_ptr[fc->draw_frame]
+			sp = (PIXEL_DATA *)fc->fb_ptr[fc->draw_frame]
 					+ (-y * fc->width);
-			dp = (unsigned short *)fc->fb_ptr[fc->draw_frame];
+			dp = (PIXEL_DATA *)fc->fb_ptr[fc->draw_frame];
 
 			for(j=0; j<(fc->height + y); j++) {
 				for(i=0; i<fc->width; i++) {
