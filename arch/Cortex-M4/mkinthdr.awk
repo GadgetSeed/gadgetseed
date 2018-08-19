@@ -1,19 +1,9 @@
 BEGIN {
-	VECTNUM = 98;
+	VECTNUM = 104;
 
 	printf("\t.syntax unified\n");
 	printf("\t.cpu cortex-m4\n");
-	printf("\t.eabi_attribute 27, 3\n");
 	printf("\t.fpu fpv4-sp-d16\n");
-	printf("\t.eabi_attribute 20, 1\n");
-	printf("\t.eabi_attribute 21, 1\n");
-	printf("\t.eabi_attribute 23, 3\n");
-	printf("\t.eabi_attribute 24, 1\n");
-	printf("\t.eabi_attribute 25, 1\n");
-	printf("\t.eabi_attribute 26, 1\n");
-	printf("\t.eabi_attribute 30, 2\n");
-	printf("\t.eabi_attribute 34, 1\n");
-	printf("\t.eabi_attribute 18, 4\n");
 	printf("\t.thumb\n");
 	printf("\t.text\n");
 	printf("\t.align\t4\n");

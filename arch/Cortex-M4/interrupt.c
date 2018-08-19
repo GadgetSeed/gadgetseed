@@ -199,6 +199,12 @@ void ur_inthdr_094(unsigned int intnum, void *sp){unreg_inthdr(94,sp);}
 void ur_inthdr_095(unsigned int intnum, void *sp){unreg_inthdr(95,sp);}
 void ur_inthdr_096(unsigned int intnum, void *sp){unreg_inthdr(96,sp);}
 void ur_inthdr_097(unsigned int intnum, void *sp){unreg_inthdr(97,sp);}
+void ur_inthdr_098(unsigned int intnum, void *sp){unreg_inthdr(98,sp);}
+void ur_inthdr_099(unsigned int intnum, void *sp){unreg_inthdr(99,sp);}
+void ur_inthdr_100(unsigned int intnum, void *sp){unreg_inthdr(100,sp);}
+void ur_inthdr_101(unsigned int intnum, void *sp){unreg_inthdr(101,sp);}
+void ur_inthdr_102(unsigned int intnum, void *sp){unreg_inthdr(102,sp);}
+void ur_inthdr_103(unsigned int intnum, void *sp){unreg_inthdr(103,sp);}
 
 extern void _endof_stack();
 extern void start(void);
@@ -302,6 +308,12 @@ static const gs_inthdr init_gs_inthdr_table[MAXVECT] = {
 	ur_inthdr_095,
 	ur_inthdr_096,
 	ur_inthdr_097,
+	ur_inthdr_098,
+	ur_inthdr_099,
+	ur_inthdr_100,
+	ur_inthdr_101,
+	ur_inthdr_102,
+	ur_inthdr_103,
 };
 
 extern void int000(void);
@@ -402,6 +414,12 @@ extern void int094(void);
 extern void int095(void);
 extern void int096(void);
 extern void int097(void);
+extern void int098(void);
+extern void int099(void);
+extern void int100(void);
+extern void int101(void);
+extern void int102(void);
+extern void int103(void);
 
 const inthdr init_inthdr_table[MAXVECT] __attribute__ ((section("vect"))) = {
 	_endof_stack,
@@ -502,6 +520,12 @@ const inthdr init_inthdr_table[MAXVECT] __attribute__ ((section("vect"))) = {
 	int095,	// 0x0000017c	95 CRYP
 	int096,	// 0x00000180	96 HASH_RNG
 	int097,	// 0x00000184	97 FPU
+	int098,	// 0x00000188	98
+	int099,	// 0x0000018c	99
+	int100,	// 0x00000190	100
+	int101,	// 0x00000194	101
+	int102,	// 0x00000198	102
+	int103,	// 0x0000019c	103
 };
 
 gs_inthdr inthdr_table[MAXVECT];

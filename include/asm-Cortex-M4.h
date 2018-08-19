@@ -10,7 +10,7 @@
 
 #define ENDIAN_LITTLE
 
-#define MAXVECT	98
+#define MAXVECT	104
 #define IRQ_VECT_OFFSET	(16)
 #define IRQ2VECT(x)	(x + IRQ_VECT_OFFSET)
 

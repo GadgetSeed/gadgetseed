@@ -89,6 +89,22 @@ void MX_RTC_Init(void)
 
 void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc)
 {
+#ifdef GSC_TARGET_SYSTEM_32F469IDISCOVERY
+	RCC_OscInitTypeDef Osc;
+
+	/*##-1- Configue LSE as RTC clock soucre ###################################*/
+	Osc.OscillatorType = RCC_OSCILLATORTYPE_LSE;
+	Osc.LSEState = RCC_LSE_ON;
+	Osc.HSIState = RCC_HSI_OFF;
+	Osc.HSICalibrationValue = 0;
+	Osc.LSIState = RCC_LSI_OFF;
+	Osc.PLL.PLLState = RCC_PLL_NONE;
+	HAL_RCC_OscConfig(&Osc);
+
+	__HAL_RCC_RTC_CLKPRESCALER(RCC_RTCCLKSOURCE_LSE);
+	__HAL_RCC_RTC_CONFIG(RCC_RTCCLKSOURCE_LSE);
+#endif
+
 	if(hrtc->Instance==RTC) {
 		__HAL_RCC_RTC_ENABLE();
 	}

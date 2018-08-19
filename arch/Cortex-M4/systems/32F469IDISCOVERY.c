@@ -175,14 +175,6 @@ void init_system_drivers(void)
 	// USART6
 	register_device(&usart6_device, 0);
 
-#ifdef GSC_DEV_ENABLE_RTC
-	// RTC初期化
-	register_device(&rtc_device, 0);
-	init_time(DEF_DEV_NAME_RTC);
-#else
-	init_time(0);
-#endif
-
 #ifdef GSC_DEV_ENABLE_LED
 	// LED
 	register_device(&led_device, 0);
@@ -234,6 +226,14 @@ void init_system_process(void)
 	init_storage();
 	init_file();
 	register_storage_device(storade_devices);
+#endif
+
+#ifdef GSC_DEV_ENABLE_RTC
+	// RTC初期化
+	register_device(&rtc_device, 0);
+	init_time(DEF_DEV_NAME_RTC);
+#else
+	init_time(0);
 #endif
 
 #ifdef GSC_DEV_ENABLE_NULL
