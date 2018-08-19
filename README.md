@@ -122,7 +122,8 @@ Gadgetseed is a multi-tasking OS for embedded devices.
    ```
 
    Install "Stm32cube MCU Package for stm32f7 Serias Version 1.12.0" for the MCU STM32F7 system.  
-   Install "Stm32cube MCU Package for stm32f4 Serias Version 1.21.0" for the MCU STM32F4 system.
+   Install "Stm32cube MCU Package for stm32f4 Serias Version 1.21.0" for the MCU STM32F4 system.  
+   Install "Stm32cube MCU Package for stm32l1 Serias Version 1.8.1" for the MCU STM32L1 system.
 
 1. ARM-GCC Installation
 
