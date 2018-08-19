@@ -122,7 +122,7 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
    ```
 
    MCU STM32F7用のシステムのために"STM32Cube MCU Package for STM32F7 Serias Version 1.12.0"をインストールしてください。  
-   MCU STM32F4用のシステムのために"STM32Cube MCU Package for STM32F4 Serias Version 1.21.0"をインストールしてください。
+   MCU STM32F4用のシステムのために"STM32Cube MCU Package for STM32F4 Serias Version 1.21.0"をインストールしてください。  
    MCU STM32L1用のシステムのために"STM32Cube MCU Package for STM32L1 Serias Version 1.8.1"をインストールしてください。
 
 1. arm-gccのインストール
