@@ -17,11 +17,13 @@
 
     @ref config_item で生成されるマクロで TCP/IP の以下の項目を設定することができます。
 
-    | マクロ名			| 内容					|
-    |---------------------------|:--------------------------------------|
-    | GSC_TCPIP_DEFAULT_GATEWAY	| TCP/IPデフォルトゲートウェイアドレス	|
-    | GSC_TCPIP_DEFAULT_IPADDR	| TCP/IPデフォルトIPアドレス		|
-    | GSC_TCPIP_DEFAULT_NETMASK	| TCP/IPデフォルトネットマスク		|
+    | マクロ名				| 内容					|
+    |-----------------------------------|:--------------------------------------|
+    | GSC_TCPIP_DEFAULT_GATEWAY		| TCP/IPデフォルトゲートウェイアドレス	|
+    | GSC_TCPIP_DEFAULT_IPADDR		| TCP/IPデフォルトIPアドレス		|
+    | GSC_TCPIP_DEFAULT_NETMASK		| TCP/IPデフォルトネットマスク		|
+    | GSC_TCPIP_DEFAULT_DNSSERVER	| DNS サーバアドレス			|
+    | GSC_TCPIP_DEFAULT_DNSSERVER2	| DNS サーバアドレス2			|
 */
 
 #include "net.h"
@@ -35,6 +37,7 @@
 #include "lwip/udp.h"
 #include "lwip/tcpip.h"
 #include "lwip/dhcp.h"
+#include "lwip/dns.h"
 #include "netif/etharp.h"
 
 #include "tprintf.h"
@@ -48,7 +51,7 @@
 
 
 struct netif netif;
-static ip_addr_t ipaddr, netmask, gateway;
+static ip_addr_t ipaddr, netmask, gateway, dnsserver[DNS_MAX_SERVERS];
 
 static void init_netifs(void)
 {
@@ -71,6 +74,18 @@ static void init_netifs(void)
 				    tcpip_input
 				    )
 			  );
+
+#ifdef GSC_TCPIP_DEFAULT_DNSSERVER	// $gsc DNSサーバアドレス
+	DKPRINTF(0x01, "DNS Address     : %s\n", GSC_TCPIP_DEFAULT_DNSSERVER);
+	ip4addr_aton(GSC_TCPIP_DEFAULT_DNSSERVER, &dnsserver[0]);
+	dns_setserver(0, &dnsserver[0]);
+#endif
+
+#ifdef GSC_TCPIP_DEFAULT_DNSSERVER2	// $gsc DNSサーバアドレス2
+	DKPRINTF(0x01, "DNS Address2    : %s\n", GSC_TCPIP_DEFAULT_DNSSERVER2);
+	ip4addr_aton(GSC_TCPIP_DEFAULT_DNSSERVER2, &dnsserver[1]);
+	dns_setserver(1, &dnsserver[1]);
+#endif
 
 	netif_set_up(&netif);
 }

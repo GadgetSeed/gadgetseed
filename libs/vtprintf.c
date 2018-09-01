@@ -74,11 +74,13 @@ int vtprintf(io_write write, const char *fmt, unsigned int size, va_list args)
 			dec = 1;
 			flong = 0;
 		} else {
+#if 0 // LF = CRLF
 			if(*fmt == '\n') {
 				if(print_write(write, &len, size, (uchar *)"\r", 1) != 0) {
 					return (int)len;
 				}
 			}
+#endif
 			if(print_write(write, &len, size, (uchar *)fmt, 1) != 0) {
 				return (int)len;
 			}

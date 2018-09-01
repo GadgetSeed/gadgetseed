@@ -67,6 +67,7 @@ You can set the following configuration items in the configs/\ * .conf and confi
 | FONTS_ENABLE_KANJI | Enable drawing of Kanji Fonts |
 | GRAPHICS_COLOR_16BIT | Graphics device 16-bit color |
 | GRAPHICS_COLOR_24BIT | Graphics device 24-bit color |
+| GRAPHICS_COLOR_32BIT | Graphics device 32-bit color |
 | GRAPHICS_DISPLAY_HEIGHT | Graphic Device Display Height |
 | GRAPHICS_DISPLAY_WIDTH | Graphics Device Display Width |
 | GRAPHICS_DOTSIZE | 1 dot size of graphics device for emulator |
@@ -107,9 +108,13 @@ You can set the following configuration items in the configs/\ * .conf and confi
 | SHELL_USE_FWTEST | Enable file Write Test command (fwtest) |
 | STM32CUBE_HAL_ARCH | Stm32cube Target Designation |
 | SYSTEM | System name |
+| TARGET_SYSTEM_32F469IDISCOVERY | Target System 32f469idiscovery |
 | TARGET_SYSTEM_EMU | Target System Emulator |
+| TARGET_SYSTEM_NUCLEO_F411RE | Target System Nucleo_f411re |
 | TARGET_SYSTEM_STM32F746GDISCOVERY | Target System 32F746GDISCOVERY |
 | TARGET_SYSTEM_STM32F769IDISCOVERY | Target System 32F769IDISCOVERY |
+| TCPIP_DEFAULT_DNSSERVER | DNS server Address |
+| TCPIP_DEFAULT_DNSSERVER2 | DNS Server Address 2 |
 | TCPIP_DEFAULT_GATEWAY | TCP/IP Default gateway Address |
 | TCPIP_DEFAULT_IPADDR | TCP/IP Default IP Address |
 | TCPIP_DEFAULT_NETMASK | TCP/IP Default Netmask |

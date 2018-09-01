@@ -27,7 +27,7 @@
 
 #include "stm32f4xx_hal.h"
 
-#ifdef GSC_TARGET_SYSTEM_NUCLEO_F411RE
+#ifdef GSC_TARGET_SYSTEM_NUCLEO_F411RE	// $gsc ターゲットシステムはNUCLEO_F411RE
 static void init_rcc_usart2(void)
 {
 	__GPIOA_CLK_ENABLE();
@@ -50,7 +50,7 @@ static void init_gpio_usart2(void)
 const struct st_device usart2_device;
 #endif
 
-#ifdef GSC_TARGET_SYSTEM_32F469IDISCOVERY
+#ifdef GSC_TARGET_SYSTEM_32F469IDISCOVERY	// $gsc ターゲットシステムは32F469IDISCOVERY
 static void init_rcc_usart3(void)
 {
 	__GPIOB_CLK_ENABLE();

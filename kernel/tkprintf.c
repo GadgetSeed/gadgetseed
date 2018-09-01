@@ -36,7 +36,21 @@ static int ksputs(unsigned char *str, unsigned int len)
 
 static int kputs(unsigned char *str, unsigned int len)
 {
+#if 0
 	return write_device(kmess_dev, str, len);
+#else // LF = CRLF
+	int i;
+
+	for(i=0; i<len; i++) {
+		if(*str == '\n') {
+			putc_device(kmess_dev, '\r');
+		}
+		putc_device(kmess_dev, *str);
+		str ++;
+	}
+
+	return i;
+#endif
 }
 
 /**

@@ -136,7 +136,21 @@ void init_console_device(void)
 */
 int cputs(unsigned char *str, unsigned int len)
 {
+#if 0
 	return write_device(run_task->stdout_dev, str, len);
+#else // LF = CRLF
+	int i;
+
+	for(i=0; i<len; i++) {
+		if(*str == '\n') {
+			putc_device(run_task->stdout_dev, '\r');
+		}
+		putc_device(run_task->stdout_dev, *str);
+		str ++;
+	}
+
+	return i;
+#endif
 }
 
 /**
@@ -252,7 +266,21 @@ void register_error_out_dev(const struct st_device *err_dev)
 */
 int eputs(unsigned char *str, unsigned int len)
 {
+#if 0
 	return write_device(run_task->error_dev, str, len);
+#else // LF = CRLF
+	int i;
+
+	for(i=0; i<len; i++) {
+		if(*str == '\n') {
+			putc_device(run_task->error_dev, '\r');
+		}
+		putc_device(run_task->error_dev, *str);
+		str ++;
+	}
+
+	return i;
+#endif
 }
 
 

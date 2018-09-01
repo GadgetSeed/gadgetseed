@@ -67,6 +67,7 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | FONTS_ENABLE_KANJI                 | 漢字フォントの描画を有効にする                                              |
 | GRAPHICS_COLOR_16BIT               | グラフィックデバイスは16ビットカラー                                          |
 | GRAPHICS_COLOR_24BIT               | グラフィックデバイスは24ビットカラー                                          |
+| GRAPHICS_COLOR_32BIT               | グラフィックデバイスは32ビットカラー                                          |
 | GRAPHICS_DISPLAY_HEIGHT            | グラフィックデバイスの表示高さ                                              |
 | GRAPHICS_DISPLAY_WIDTH             | グラフィックデバイスの表示幅                                               |
 | GRAPHICS_DOTSIZE                   | エミュレータ用グラフィックデバイスの1ドットサイズ                                    |
@@ -107,9 +108,13 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | SHELL_USE_FWTEST                   | ファイル書き込みテストコマンド(fwtest)を有効にする                                |
 | STM32CUBE_HAL_ARCH                 | STM32Cubeターゲット指定                                             |
 | SYSTEM                             | システム名                                                        |
+| TARGET_SYSTEM_32F469IDISCOVERY     | ターゲットシステムは32F469IDISCOVERY                                   |
 | TARGET_SYSTEM_EMU                  | ターゲットシステムはエミュレータ                                             |
+| TARGET_SYSTEM_NUCLEO_F411RE        | ターゲットシステムはNUCLEO_F411RE                                      |
 | TARGET_SYSTEM_STM32F746GDISCOVERY  | ターゲットシステムは32F746GDISCOVERY                                   |
 | TARGET_SYSTEM_STM32F769IDISCOVERY  | ターゲットシステムは32F769IDISCOVERY                                   |
+| TCPIP_DEFAULT_DNSSERVER            | DNSサーバアドレス                                                   |
+| TCPIP_DEFAULT_DNSSERVER2           | DNSサーバアドレス2                                                  |
 | TCPIP_DEFAULT_GATEWAY              | TCP/IPデフォルトゲートウェイアドレス                                        |
 | TCPIP_DEFAULT_IPADDR               | TCP/IPデフォルトIPアドレス                                            |
 | TCPIP_DEFAULT_NETMASK              | TCP/IPデフォルトネットマスク                                            |

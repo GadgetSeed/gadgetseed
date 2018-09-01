@@ -608,7 +608,7 @@ static int fdump(int argc, uchar *argv[])
 	int fd;
 	unsigned char fdbuf[16];
 	unsigned int st = 0;
-	unsigned int ed = st + FDSIZE;
+	unsigned int ed = st + FDSIZE - 1;
 	unsigned int dp;
 
 	if(argc < 2) {
@@ -624,43 +624,42 @@ static int fdump(int argc, uchar *argv[])
 		}
 	}
 
+	ed = seek_file(fd, 0, SEEK_END);
+
 	if(argc > 2) {
 		st = hstou(argv[2]);
-		ed = st + FDSIZE;
-	}
-
-	if(argc > 3) {
-		ed = st + hstou(argv[3]);
+		if(argc > 3) {
+			ed = hstou(argv[3]);
+			if(ed <= st) {
+				goto exit;
+			}
+		}
 	}
 
 	(void)seek_file(fd, st, SEEK_SET);
 
-	for(dp=st; dp<ed; dp+=16) {
+	for(dp=st; dp<=ed; dp+=16) {
 		unsigned char *p;
 		int i;
 		int fr;
 		uchar rd;
-		int len;
+		int rlen = 16;
 
-		len = (int)((ed - dp) % 16);
-		if(len == 0) {
-			len = 16;
+		if(((ed+1) - dp) < 16) {
+			rlen = ((ed+1) - dp);
 		}
 
-		fr = read_file(fd, fdbuf, 16);
+		fr = read_file(fd, fdbuf, rlen);
 		if(fr < 0) {
 			tprintf("Cannot read \"%s\"\n", argv[1]);
 			goto close;
-		}
-		if(fr < 16) {
-			ed = ed - 16 + fr;
 		}
 
 		p=fdbuf;
 		tprintf("%08X : ", dp);
 
 		for(i=0; i<8; i++) {
-			if(i < len) {
+			if(i < fr) {
 				tprintf("%02X ", (int)*p);
 			} else {
 				tprintf("   ");
@@ -669,7 +668,7 @@ static int fdump(int argc, uchar *argv[])
 		}
 		tprintf(" ");
 		for(i=0; i<8; i++) {
-			if(i < len) {
+			if(i < (fr-8)) {
 				tprintf("%02X ", (int)*p);
 			} else {
 				tprintf("   ");
@@ -681,7 +680,7 @@ static int fdump(int argc, uchar *argv[])
 		tprintf("  \"");
 
 		for(i=0; i<16; i++) {
-			if(i < len) {
+			if(i < fr) {
 				if(((' ' <= *p) && (*p <= 'Z'))
 				   || (('a' <= *p) && (*p <= 'z'))) {
 					cputc(*p);
@@ -806,6 +805,7 @@ static int fwtest(int argc, uchar *argv[])
 	rt = write_file(fd, wbuf, FWSIZE);
 	if(rt != FWSIZE) {
 		tprintf("File write error(%d)\n", rt);
+		close_file(fd);
 		return -1;
 	}
 	close_file(fd);

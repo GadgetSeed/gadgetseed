@@ -14,7 +14,9 @@
     | ip		| @copybrief com_net_ip		| @ref com_net_ip	|
     | dhcp		| @copybrief com_net_dhcp	| @ref com_net_dhcp	|
     | up		| @copybrief com_net_up		| @ref com_net_up	|
-    | dowm		| @copybrief com_net_down	| @ref com_net_down	|
+    | down		| @copybrief com_net_down	| @ref com_net_down	|
+    | dns		| @copybrief com_net_dns	| @ref com_net_dns	|
+    | httpget		| @copybrief com_net_httpget	| @ref com_net_httpget	|
 */
 
 #include "shell.h"
@@ -22,12 +24,19 @@
 #include "str.h"
 #include "tprintf.h"
 #include "net.h"
+
+#ifdef GSC_COMP_ENABLE_FATFS
+#include "file.h"
+#endif
+
 #include "device/ether_ioctl.h"
 
 #include "lwip/etharp.h"
 #include "lwip/tcpip.h"
 #include "lwip/dhcp.h"
 #include "lwip/netifapi.h"
+#include "lwip/netdb.h"
+#include "lwip/dns.h"
 
 //#define DEBUGTBITS 0x02
 #include "dtprintf.h"
@@ -83,7 +92,7 @@ static int ip(int argc, uchar *argv[]);
 static const struct st_shell_command com_net_ip = {
 	.name		= "ip",
 	.command	= ip,
-	.usage_str	= "[ip_address] [<mask> <mask_address>] [<gw> <gw_address>]",
+	.usage_str	= "[ip_address] [mask <mask_address>] [gw <gw_address>]",
 	.manual_str	= "Set network address",
 };
 
@@ -254,12 +263,212 @@ static int down(int argc, uchar *argv[])
 }
 
 
+static int dns(int argc, uchar *argv[]);
+
+/**
+   @brief	DNSサーバアドレスを設定する
+*/
+static const struct st_shell_command com_net_dns = {
+	.name		= "dns",
+	.command	= dns,
+	.usage_str	= "[[dns_ip_address] dns_ip_address2]",
+	.manual_str	= "Set DNS address",
+};
+
+static int dns(int argc, uchar *argv[])
+{
+	const ip_addr_t *addr;
+	ip_addr_t dnsaddr;
+	char *ipstr;
+	int i;
+
+	if(argc > 1) {
+		if(ipaddr_aton((char *)argv[1], &dnsaddr) == 0) {
+			goto error;
+		}
+		dns_setserver(0, &dnsaddr);
+		if(argc > 2) {
+			if(ipaddr_aton((char *)argv[2], &dnsaddr) == 0) {
+				goto error;
+			}
+			dns_setserver(1, &dnsaddr);
+		}
+	}
+
+	for(i=0; i<DNS_MAX_SERVERS; i++) {
+		addr = dns_getserver(i);
+		ipstr = ip4addr_ntoa(addr);
+		tprintf("%s\n", ipstr);
+	}
+
+	return 0;
+
+error:
+	print_command_usage(&com_net_dns);
+
+	return 0;
+}
+
+
+#ifndef GSC_TARGET_SYSTEM_EMU
+static int httpget(int argc, uchar *argv[]);
+
+/**
+   @brief	指定たURLを表示、またはファイル保存する。
+*/
+static const struct st_shell_command com_net_httpget = {
+	.name		= "httpget",
+	.command	= httpget,
+#ifdef GSC_COMP_ENABLE_FATFS
+	.usage_str	= "<URL> [file]",
+#else
+	.usage_str	= "<URL>",
+#endif
+	.manual_str	= "get from URL",
+};
+
+#define MAX_BUF	255
+
+static int httpget(int argc, uchar *argv[])
+{
+	int rtn = 0;
+	struct addrinfo *ainfo = 0;
+	int sock;
+	char send_buf[MAX_BUF + 1];
+	uchar url[MAX_BUF + 1] = {0};
+	uchar path[MAX_BUF + 1] = {0};
+	uchar *p;
+	int fd = 0;
+	int flg_fw = 0;
+
+	if(argc < 2) {
+		print_command_usage(&com_net_httpget);
+		return 0;
+	}
+
+#ifdef GSC_COMP_ENABLE_FATFS
+	if(argc > 2) {
+		fd = open_file((uchar *)argv[2], FA_WRITE | FA_CREATE_ALWAYS);
+		if(fd < 0) {
+			tprintf("Cannot open file \"%s\"\n", argv[2]);
+			return 0;
+		} else {
+			flg_fw = 1;
+		}
+	}
+#endif
+
+	strncopy(url, argv[1], MAX_BUF);
+	p = strchar(url, (uchar)'/');
+	if(p != 0) {
+		*p = 0;
+		strncopy(path, p+1, MAX_BUF);
+	}
+
+	tprintf("URL  : %s\n", url);
+	tprintf("PATH : %s\n", path);
+	if(flg_fw != 0) {
+		tprintf("FILE : %s\n", argv[2]);
+	}
+
+	rtn = lwip_getaddrinfo((const char *)url, "80", 0, &ainfo);
+
+	if(rtn == 0) {
+		struct sockaddr_in *addr = (struct sockaddr_in *)ainfo->ai_addr;
+		tprintf("%s %d\n", ainfo->ai_canonname, rtn);
+		tprintf("%s\n", inet_ntoa(addr->sin_addr));
+		tprintf("%d %d %d\n", ainfo->ai_family, ainfo->ai_socktype, ainfo->ai_protocol);
+	} else {
+		tprintf("error %d\n", rtn);
+		return 0;
+	}
+
+	sock = lwip_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if(sock < 0) {
+		tprintf("lwip_socket error %d\n", sock);
+		lwip_freeaddrinfo(ainfo);
+		return 0;
+	}
+
+	rtn = lwip_connect(sock, ainfo->ai_addr, ainfo->ai_addrlen);
+	if(rtn != 0) {
+		tprintf("lwip_connect error %d\n", rtn);
+		lwip_freeaddrinfo(ainfo);
+		return 0;
+	}
+
+	tsnprintf(send_buf, MAX_BUF, "GET /%s HTTP/1.1\r\n", path);
+	DTPRINTF(0x04, send_buf);
+	lwip_write(sock, send_buf, strleng((const uchar *)send_buf));
+
+	tsnprintf(send_buf, MAX_BUF, "Host: localhost\r\n");
+	DTPRINTF(0x04, send_buf);
+	lwip_write(sock, send_buf, strleng((const uchar *)send_buf));
+
+	tsnprintf(send_buf, MAX_BUF, "\r\n");
+	DTPRINTF(0x04, send_buf);
+	lwip_write(sock, send_buf, strleng((const uchar *)send_buf));
+
+	while(1) {
+		char buf[MAX_BUF + 1];
+		int read_size;
+		uchar rd;
+
+		if(cgetcnw(&rd) != 0) {
+			if(rd == ASCII_CTRL_C) {
+				tprintf("Abort.\n");
+				goto close;
+			}
+		}
+
+		read_size = lwip_read(sock, buf, MAX_BUF);
+		if(read_size > 0) {
+			buf[read_size] = 0;
+			if(flg_fw != 0) {
+#ifdef GSC_COMP_ENABLE_FATFS
+				int rt = write_file(fd, buf, read_size);
+				tprintf(".");
+				if(rt != read_size) {
+					tprintf("File write error(%d)\n", rt);
+					goto close;
+				}
+#endif
+			} else {
+				tprintf("%s", buf);
+			}
+		} else {
+			break;
+		}
+	}
+
+close:
+
+#ifdef GSC_COMP_ENABLE_FATFS
+	if(flg_fw != 0) {
+		close_file(fd);
+		tprintf("\n");
+	}
+#endif
+
+	lwip_close(sock);
+
+	lwip_freeaddrinfo(ainfo);
+
+	return 0;
+}
+#endif // GSC_TARGET_SYSTEM_EMU
+
+
 static const struct st_shell_command * const com_net_list[] = {
 	&com_net_arp,
 	&com_net_ip,
 	&com_net_dhcp,
 	&com_net_up,
 	&com_net_down,
+	&com_net_dns,
+#ifndef GSC_TARGET_SYSTEM_EMU
+	&com_net_httpget,
+#endif
 	0
 };
 
