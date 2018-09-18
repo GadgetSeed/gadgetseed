@@ -22,33 +22,21 @@
 #include "filelist_view.h"
 #include "filelist_data.h"
 
-//#define DEBUGTBITS 0x02
+//#define DEBUGTBITS 0x03
 #include "dtprintf.h"
 
 
 #define LIST_ITEM_GAP	8
 
-#define MAX_FNAME_LEN	255
-
 // Config
 // #define LONG_TIME_STRING
-// #define LONG_FSIZE_STRING
 
 #ifdef LONG_DATETIME_STRING
 #define DATETIME_STR		"0000/00/00 00:00:00"
 #else
 #define DATETIME_STR		"00/00/00"
 #endif
-#define DATETIME_STR_LEN	(sizeof(DATETIME_STR)-1)
-
-#ifdef LONG_FSIZE_STRING
-#define FSIZE_STR	"000.00"
-#define FSIZE_DIR_STR	"      "
-#else
-#define FSIZE_STR	"0000B"
-#define FSIZE_DIR_STR	"     "
-#endif
-#define FSIZE_STR_LEN	(sizeof(FSIZE_STR)-1)
+#define DATETIME_STR_LENGTH	(sizeof(DATETIME_STR)-1)
 
 #define FNAME_STR_LEN	48
 #define DIR_STR	"-DIR-"
@@ -56,69 +44,40 @@
 
 static short fsize_str_width;
 static short fdate_str_width;
+static short space_str_width;
 
-static uchar *fsize2str(long size)
+static uchar *fsize2str(t_size size)
 {
-	static uchar szstr[FSIZE_STR_LEN + 1];
+	static uchar szstr[SIZE_STR_LEN + 1];
 
-#ifdef LONG_FSIZE_STRING
-	if(size >= 1024L*1024) {
-		int scale = (1024L*1024);
-		tsprintf((char *)szstr, "%3ld.%1ldM", size/scale, (size-((size/scale)*scale))/100);
-	} else
-	if(size >= 1024) {
-		int scale = 1024L;
-		tsprintf((char *)szstr, "%3ld.%1ldK", size/scale, (size-((size/scale)*scale))/100);
-	} else {
-		tsprintf((char *)szstr, "%5ldB", size);
-	}
-
-	return szstr;
-#else
-	if(size >= 1024L*1024) {
-		tsprintf((char *)szstr, "%4ldM", size/(1024L*1024));
-	} else
-	if(size >= 1024) {
-		tsprintf((char *)szstr, "%4ldK", size/1024);
-	} else {
-		tsprintf((char *)szstr, "%4ldB", size);
-	}
-
-	return szstr;
-#endif
+	return (uchar *)size2str((char *)szstr, size);
 }
 
-static uchar *fdate2str(unsigned short date, unsigned short time)
+static uchar *fdate2str(t_time datetime)
 {
-	static uchar dtstr[DATETIME_STR_LEN + 1];
+	static uchar dtstr[DATETIME_STR_LENGTH + 1];
 
-#ifdef LONG_DATETIME_STRING
-	tsprintf((char *)dtstr, "%04d/%02d/%02d %02d:%02d:%02d",
-		 (int)(date >> 9) + 1980,
-		 (int)(date >> 5) & 15,
-		 (int)(date & 31),
-		 (int)(time >> 11),
-		 (int)(time >> 5) & 63,
-		 (int)time & 63);
+	static t_time now_time;
+	struct st_systime unixtime;
+	struct st_datetime dt;
 
-	return dtstr;
-#else
-	static DWORD now_time;
+	unixtime.sec = datetime;
+	unixtime.usec = 0;
+	unixtime_to_datetime(&dt, &unixtime);
 
-	if(date == (now_time >> 16)) {
+	if((datetime/(24*60*60)) == (now_time/(24*60*60))) {
 		tsprintf((char *)dtstr, "%02d:%02d:%02d",
-			 (int)(time >> 11),
-			 (int)(time >> 5) & 63,
-			 (int)time & 63);
+			 dt.hour,
+			 dt.min,
+			 dt.sec);
 	} else {
 		tsprintf((char *)dtstr, "%02d/%02d/%02d",
-			 (int)(date >> 9) + 1980 - 2000,
-			 (int)(date >> 5) & 15,
-			 (int)date & 31);
+			 dt.year - 2000,
+			 dt.month,
+			 dt.day);
 	}
 
 	return dtstr;
-#endif
 }
 
 #ifdef GSC_FONTS_ENABLE_FONT_JISKAN24
@@ -140,7 +99,7 @@ void draw_file_item(struct st_ui_selectlist *selectlist, struct st_box *box, int
 #if 0
 	uchar str[MAX_FNAME_LEN + 1];
 #endif
-	FILINFO *file_info = &(fi[item_num]->file_info);
+	FS_FILEINFO *file_info = &(fi[item_num]->file_info);
 	short fheight = font_height();
 
 	DTPRINTF(0x01, "%3d (%3d,%3d) %3d,%3d %d %s\n",
@@ -158,7 +117,7 @@ void draw_file_item(struct st_ui_selectlist *selectlist, struct st_box *box, int
 #if 0
 		tsprintf((char *)str, fd->file_print_form,
 			 (uchar *)file_info->fname,
-			 fdate2str(file_info->fdate, file_info->ftime),
+			 fdate2str(file_info->fdatetime),
 			 //"  DIR"
 			 "     "
 			 );
@@ -168,7 +127,7 @@ void draw_file_item(struct st_ui_selectlist *selectlist, struct st_box *box, int
 #if 0
 		tsprintf((char *)str, fd->file_print_form,
 			 (uchar *)file_info->fname,
-			 fdate2str(file_info->fdate, file_info->ftime),
+			 fdate2str(file_info->fdatetime),
 			 fsize2str(file_info->fsize));
 #endif
 	}
@@ -180,15 +139,29 @@ void draw_file_item(struct st_ui_selectlist *selectlist, struct st_box *box, int
 			     sj2utf8((uchar *)file_info->fname),
 			     FNAME_WIDTH-fdate_str_width-fsize_str_width);
 
-	draw_fixed_width_str(box->pos.x + ICON_WIDTH + FNAME_WIDTH-fdate_str_width-fsize_str_width,
+	draw_fixed_width_str(box->pos.x + ICON_WIDTH + FNAME_WIDTH-fdate_str_width-fsize_str_width-space_str_width,
 			     box->pos.y,
-			     fdate2str(file_info->fdate, file_info->ftime),
+			     fdate2str(file_info->fdatetime),
 			     fdate_str_width);
 
-	draw_fixed_width_str(box->pos.x + ICON_WIDTH + FNAME_WIDTH-fsize_str_width,
+	draw_fixed_width_str(box->pos.x + ICON_WIDTH + FNAME_WIDTH-fsize_str_width-space_str_width,
 			     box->pos.y,
-			     fsize2str(file_info->fsize),
-			     fsize_str_width);
+			     (uchar *)" ",
+			     space_str_width);
+
+	{
+		uchar *str;
+		static uchar nosize_str[] = "    ";
+		if(file_info->fattrib & AM_DIR) {
+			str = nosize_str;
+		} else {
+			str = fsize2str(file_info->fsize);
+		}
+		draw_fixed_width_str(box->pos.x + ICON_WIDTH + FNAME_WIDTH-fsize_str_width,
+				     box->pos.y,
+				     str,
+				     fsize_str_width);
+	}
 #endif
 }
 
@@ -243,7 +216,7 @@ static int up_path(uchar *path)
 	return 0;
 }
 
-static int file_filter(FILINFO *finfo)
+static int file_filter(FS_FILEINFO *finfo)
 {
 	/*
 	  先頭一文字が'.'は表示しない
@@ -339,7 +312,7 @@ void downdir_filelist_view(struct st_filelist_view *filelist_view)
 {
 	struct st_filelist_view *fv = filelist_view;
 	struct st_fileinfo **fi = fv->filelist_data.fileinfo_index;
-	FILINFO *finfo = &(fi[fv->selectlist.select_item_num]->file_info);
+	FS_FILEINFO *finfo = &(fi[fv->selectlist.select_item_num]->file_info);
 	DTPRINTF(0x01, "%s\n", sj2utf8((uchar *)finfo->fname));
 
 	if(finfo->fattrib & AM_DIR) {
@@ -370,7 +343,7 @@ static int do_select_item(struct st_filelist_view *filelist_view)
 
 	int select_num = fv->selectlist.select_item_num;
 
-	FILINFO *finfo = &(fi[select_num]->file_info);
+	FS_FILEINFO *finfo = &(fi[select_num]->file_info);
 	int rtn = FLV_EVT_NONE;
 
 	DTPRINTF(0x01, "%s\n", sj2utf8((uchar *)finfo->fname));
@@ -451,8 +424,9 @@ void init_filelist_view(struct st_filelist_view *filelist_view)
 	int stlen;
 
 	set_font_by_name(DEFAULT_FONT);
-	fsize_str_width = str_width((uchar *)FSIZE_STR);
+	fsize_str_width = str_width((uchar *)SIZE_STR);
 	fdate_str_width = str_width((uchar *)DATETIME_STR);
+	space_str_width = str_width((uchar *)" ");
 
 	fv->scrollbar.selectlist = &(fv->selectlist);
 	set_font_by_name(fv->font_name);
@@ -461,8 +435,8 @@ void init_filelist_view(struct st_filelist_view *filelist_view)
 
 	tsprintf(fv->filelist_data.dir_print_form, "%%%ds", stlen);
 
-	tsprintf(fv->filelist_data.file_print_form, "%%%ds %%s%%s",
-		 (int)(stlen - 1 - DATETIME_STR_LEN - FSIZE_STR_LEN));
+	tsprintf(fv->filelist_data.file_print_form, "%%%ds %%s %%s",
+		 (int)(stlen - 1 - DATETIME_STR_LENGTH - 1 - SIZE_STR_LEN));
 
 	fv->selectlist.item_height = font_height() + LIST_ITEM_GAP;
 	fv->selectlist.scrollbar = &(fv->scrollbar);
@@ -476,7 +450,7 @@ char *get_filelist_select_fname(struct st_filelist_view *filelist_view, char *fn
 {
 	struct st_filelist_view *fv = filelist_view;
 	struct st_fileinfo **fi = fv->filelist_data.fileinfo_index;
-	FILINFO *finfo = &(fi[fv->selectlist.select_item_num]->file_info);
+	FS_FILEINFO *finfo = &(fi[fv->selectlist.select_item_num]->file_info);
 
 	DTPRINTF(0x01, "FNAME:%s\n", sj2utf8((uchar *)finfo->fname));
 //	tsnprintf(fname, len, "%s/%s", filelist_view->path, finfo->fname); // [TODO]

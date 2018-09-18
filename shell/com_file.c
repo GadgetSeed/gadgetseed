@@ -23,6 +23,7 @@
 #include "sysconfig.h"
 #include "shell.h"
 #include "device.h"
+#include "fs.h"
 #include "str.h"
 #include "tprintf.h"
 #include "tkprintf.h"
@@ -35,38 +36,11 @@
 #include "dtprintf.h"
 
 
-static FILINFO	finfo;
-
-
-static char *fsize2str(unsigned long size)
+static char *fsize2str(t_size size)
 {
-#ifdef SHORT_FSIZE_STR
-#define FSIZE_STR_LEN	5
-	static char szstr[FSIZE_STR_LEN+1];
+	static char szstr[SIZE_STR_LEN+1];
 
-	if(size >= 1024L*1024) {
-		tsnprintf(szstr, FSIZE_STR_LEN+1, "%4ldM", size/(1024L*1024));
-	} else if(size >= 1024) {
-		tsnprintf(szstr, FSIZE_STR_LEN+1, "%4ldK", size/1024);
-	} else {
-		tsnprintf(szstr, FSIZE_STR_LEN+1, "%4ldB", size);
-	}
-
-	return szstr;
-#else
-#define FSIZE_STR_LEN	((unsigned int)sizeof("XXX.XM"))
-	static char szstr[FSIZE_STR_LEN+1];
-
-	if(size >= (1024L*1024)) {
-		tsnprintf(szstr, FSIZE_STR_LEN, "%3ld.%1ldM", size/(1024L*1024), (size-((size/(1024L*1024)*(1024L*1024))))/100);
-	} else if(size >= 1024) {
-		tsnprintf(szstr, FSIZE_STR_LEN, "%3ld.%1ldK", size/1024, (size-((size/1024)*1024))/100);
-	} else {
-		tsnprintf(szstr, FSIZE_STR_LEN, "%5ldB", size);
-	}
-
-	return &szstr[0];
-#endif
+	return size2str(szstr, size);
 }
 
 static char *fsize2lstr(unsigned long size)
@@ -83,38 +57,51 @@ static char *fsize2lstr(unsigned long size)
 
 static unsigned int now_time;
 
-static char *fdate2str(WORD date, WORD time)
+static char *fdate2str(t_time datetime)
 {
 #define FDATA_STR_LEN	((unsigned int)sizeof("HH:MM:DD"))
 	static char dtstr[FDATA_STR_LEN+1];
+	static t_time now_time;
+	struct st_systime unixtime;
+	struct st_datetime dt;
 
-	if(date == (unsigned short)(now_time >> 16)) {
-		tsnprintf(dtstr, FDATA_STR_LEN, "%02d:%02d:%02d",
-			 (int)(time >> 11),
-			 (int)(time >> 5) & 63,
-			 (int)time & 63);
+	unixtime.sec = datetime;
+	unixtime.usec = 0;
+	unixtime_to_datetime(&dt, &unixtime);
+
+	if((datetime/(24*60*60)) == (now_time/(24*60*60))) {
+		tsprintf((char *)dtstr, "%02d:%02d:%02d",
+			 dt.hour,
+			 dt.min,
+			 dt.sec);
 	} else {
-		tsnprintf(dtstr, FDATA_STR_LEN, "%02d/%02d/%02d",
-			 (int)(date >> 9) + 1980 - 2000,
-			 (int)(date >> 5) & 15,
-			 (int)date & 31);
+		tsprintf((char *)dtstr, "%02d/%02d/%02d",
+			 dt.year - 2000,
+			 dt.month,
+			 dt.day);
 	}
 
 	return &dtstr[0];
 }
 
-static char *fdate2lstr(WORD date, WORD time)
+static char *fdate2lstr(t_time datetime)
 {
 #define FDATA_LSTR_LEN	((unsigned int)sizeof("YYYY/MM/DD HH:MM:DD"))
 	static char dtstr[FDATA_LSTR_LEN+1];
+	struct st_systime unixtime;
+	struct st_datetime dt;
+
+	unixtime.sec = datetime;
+	unixtime.usec = 0;
+	unixtime_to_datetime(&dt, &unixtime);
 
 	tsnprintf(dtstr, FDATA_LSTR_LEN, "%04d/%02d/%02d %02d:%02d:%02d",
-		  (int)(date >> 9) + 1980,
-		  (int)(date >> 5) & 15,
-		  (int)date & 31,
-		  (int)(time >> 11),
-		  (int)(time >> 5) & 63,
-		  (int)time & 63);
+		  dt.year,
+		  dt.month,
+		  dt.day,
+		  dt.hour,
+		  dt.min,
+		  dt.sec);
 
 	return &dtstr[0];
 }
@@ -188,25 +175,43 @@ static void print_fresult(char *path, FRESULT fr)
 		tprintf("timeout\n");
 		break;
 
+	case FR_LOCKED:		/* 16 */
+		tprintf("locked\n");
+		break;
+
+	case FR_NOT_ENOUGH_CORE:/* 17 */
+		tprintf("not enough core\n");
+		break;
+
+	case FR_TOO_MANY_OPEN_FILES:/* 18 */
+		tprintf("too many open files\n");
+		break;
+
+	case FR_INVALID_PARAMETER:/* 19 */
+		tprintf("invalid parameter\n");
+		break;
+
 	default:
-		tprintf("undifuned error\n");
+		tprintf("undifined error(%d)\n", fr);
 		break;
 	}
 }
 
-static DWORD	acc_size;
-static WORD	acc_files;
-static WORD	acc_dirs;
+static unsigned long	acc_size;
+static unsigned short	acc_files;
+static unsigned short	acc_dirs;
 
 static int scan_files(unsigned char* path, unsigned int len)
 {
-	DIR *dirs;
+	FS_DIR *dir;
+	FS_FILEINFO finfo;
 	int res = 0;
-	BYTE i;
+	int i;
 
-	if((dirs = opendir_file(path))) {
+	dir = opendir_file(path);
+	if(dir != 0) {
 		i = strleng(path);
-		while(((res = readdir_file(dirs, &finfo)) == FR_OK) &&
+		while(((res = readdir_file(dir, &finfo)) == FR_OK) &&
 		      finfo.fname[0]) {
 			if((finfo.fattrib & AM_DIR) != 0) {
 				acc_dirs++;
@@ -220,6 +225,8 @@ static int scan_files(unsigned char* path, unsigned int len)
 				acc_size += finfo.fsize;
 			}
 		}
+
+		closedir_file(dir);
 	}
 
 	return res;
@@ -235,23 +242,29 @@ static int mount(int argc, uchar *argv[]);
 static const struct st_shell_command com_file_mount = {
 	.name		= "mount",
 	.command	= mount,
-	.usage_str	= "[<drive> <device_name>]"
+	.usage_str	= "[<drive> <device_name> [fsname]]"
 };
 
 static int mount(int argc, uchar *argv[])
 {
-	char *sp;
+	char *devname;
+	char *fsname;
 
-	if(argc > 2) {
+	if(argc > 3) {
 		int drv = dstoi(argv[1]);
-		if(mount_storage(drv, (char *)argv[2]) == 0) {
+		if(mount_storage(drv, (char *)argv[2], (char *)argv[3]) == 0) {
+			tprintf("Drive %d: %s %s\n", drv, argv[2], argv[3]);
+		}
+	} else if(argc > 2) {
+		int drv = dstoi(argv[1]);
+		if(mount_storage(drv, (char *)argv[2], FSNAME_VFAT) == 0) {
 			tprintf("Drive %d: %s\n", drv, argv[2]);
 		}
 	} else {
 		int i;
-		for(i=0; i<FF_VOLUMES; i++) {
-			if(get_storage_device_name(i, &sp) == 0) {
-				tprintf("%d: %s\n", i, sp);
+		for(i=0; i<GSC_FS_VOLUME_NUM; i++) {
+			if(get_storage_device_name(i, &devname, &fsname) == 0) {
+				tprintf("%d: %8s %s\n", i, devname, fsname);
 			}
 		}
 	}
@@ -289,7 +302,7 @@ static int umount(int argc, uchar *argv[])
 
 
 static char defdrive[FF_MAX_LFN+1] = "0:/";
-#define FSECTSIZE	512
+#define FSECTSIZE	FF_MIN_SS
 
 static int diskfree(int argc, uchar *argv[]);
 
@@ -317,7 +330,11 @@ static int diskfree(int argc, uchar *argv[])
 
 	acc_size = acc_files = acc_dirs = 0;
 
-	fr = getfree_file(path, &numcl, &fs);
+	fr = getfree_file(path, &numcl, (void **)&fs);
+	if(fr == -1) {
+		tprintf("Not supported\n");
+		return 0;
+	}
 	if(fr) {
 		print_fresult((char *)path, fr);
 		return 0;
@@ -336,14 +353,14 @@ static int diskfree(int argc, uchar *argv[])
 		"FAT start (lba)         : %ld\n"
 		"DIR start (lba,clustor) : %ld\n"
 		"Data start (lba)        : %ld\n",
-		(DWORD)fs->fs_type,
-		(DWORD)fs->csize * FSECTSIZE,
-		(DWORD)fs->n_fats,
-		(DWORD)fs->n_rootdir,
-		(DWORD)fs->fsize,
-		(DWORD)fs->fatbase,
-		(DWORD)fs->dirbase,
-		(DWORD)fs->database
+		(unsigned long)fs->fs_type,
+		(unsigned long)fs->csize * FSECTSIZE,
+		(unsigned long)fs->n_fats,
+		(unsigned long)fs->n_rootdir,
+		(unsigned long)fs->fsize,
+		(unsigned long)fs->fatbase,
+		(unsigned long)fs->dirbase,
+		(unsigned long)fs->database
 		);
 
 	fr = scan_files(path, FF_MAX_LFN);
@@ -352,12 +369,14 @@ static int diskfree(int argc, uchar *argv[])
 		return 0;
 	}
 
-	tprintf("%d files, %d bytes\n"
+	tprintf("%d files, %lu bytes (%s)\n"
 		"%d folders\n"
 		"%s available\n",
-		(int)acc_files, (int)acc_size,
+		(int)acc_files,
+		acc_size,
+		fsize2str(acc_size),
 		(int)acc_dirs,
-		fsize2str((DWORD)numcl * fs->csize * FSECTSIZE));
+		fsize2str((unsigned long)numcl * fs->csize * FSECTSIZE));
 
 	return 0;
 }
@@ -370,7 +389,7 @@ static int format(int argc, uchar *argv[]);
 */
 static const struct st_shell_command com_format = {
 	.name		= "format",
-	.commadn	= format,
+	.command	= format,
 	.usage_str	= "<drive>"
 };
 
@@ -380,12 +399,12 @@ static int format(int argc, uchar *argv[])
 	char path[4];
 
 	if(argc < 2) {
-		print_fresult(&com_format);
+		print_command_usage(&com_format);
 		return 0;
 	}
 
 	tprintf("Formatting drive %s...", argv[1]);
-	fr = mkfs_file((unsigned char *)argv[1], 0, FSECTSIZE);
+	fr = mkfs_file((unsigned char *)argv[1], FM_FAT32, FSECTSIZE);
 	if(fr) {
 		tprintf("\n");
 		tsnprintf(path, 3, "%s:", argv[1]);
@@ -393,6 +412,38 @@ static int format(int argc, uchar *argv[])
 		return 0;
 	} else {
 		tprintf("\nDone\n");
+	}
+
+	return 0;
+}
+#endif
+
+#if FF_USE_CHMOD != 0
+static int chmod(int argc, uchar *argv[]);
+
+/**
+   @brief	ファイル属性を設定する
+*/
+static const struct st_shell_command com_chmod = {
+	.name		= "chmod",
+	.command	= chmod,
+	.usage_str	= "<file> <mode(0x01=RDO,0x02=HID,0x04=SYS,0x10=DIR,0x20=ARC)>"
+};
+
+static int chmod(int argc, uchar *argv[])
+{
+	int fr;
+	unsigned char mode = 0;
+
+	if(argc < 2) {
+		print_command_usage(&com_chmod);
+		return 0;
+	}
+
+	mode = hstoi(argv[2]);
+	fr = chmod_file(argv[1], mode);
+	if(fr) {
+		print_fresult((char *)argv[1], fr);
 	}
 
 	return 0;
@@ -413,12 +464,13 @@ static const struct st_shell_command com_file_dir = {
 static int dir(int argc, uchar *argv[])
 {
 	int fr;
-	DIR *dir;
-	DWORD p1;
-	WORD s1, s2;
+	FS_DIR *dir;
+	FS_FILEINFO finfo;
+	unsigned long p1;
+	unsigned short s1, s2;
 	FATFS *fs;
 	unsigned char *path = (unsigned char *)defdrive;
-	char *str;
+	uchar *str;
 	unsigned char cstr[FF_MAX_LFN + 1];
 
 	str = finfo.fname;
@@ -456,22 +508,23 @@ static int dir(int argc, uchar *argv[])
 		XDUMP(0x01, (unsigned char *)str, strleng((uchar *)str));
 		XDUMP(0x01, (unsigned char *)cstr, strleng(cstr));
 		tprintf("%c", ((finfo.fattrib & AM_DIR) != 0) ? 'D' : '-');
-		tprintf(" %s %s  %s %s",
-			fdate2str(finfo.fdate, finfo.ftime),
-			((finfo.fattrib & AM_DIR) != 0) ? "      " : fsize2str(finfo.fsize),
-			sj2utf8((uchar *)finfo.altname),
+		tprintf(" %s %s  %s",
+			fdate2str(finfo.fdatetime),
+			((finfo.fattrib & AM_DIR) != 0) ? "    " : fsize2str(finfo.fsize),
 			cstr);
 		tprintf("\n");
 	}
 
 	tprintf("%4d File  %s\n", (int)s1, fsize2str(p1));
 	tprintf("%4d Dir", (int)s2);
-	if(getfree_file(path, &p1, &fs) == FR_OK) {
+	if(getfree_file(path, &p1, (void **)&fs) == FR_OK) {
 		tprintf("   %s free\n",
 			fsize2str((p1 * fs->csize/2)*1024));
 	} else {
 		tprintf("\n");
 	}
+
+	closedir_file(dir);
 
 	return 0;
 }
@@ -491,12 +544,13 @@ static const struct st_shell_command com_file_dirv = {
 static int dirv(int argc, uchar *argv[])
 {
 	int fr;
-	DIR *dir;
-	DWORD p1;
-	WORD s1, s2;
+	FS_DIR *dir;
+	FS_FILEINFO finfo;
+	unsigned long p1;
+	unsigned short s1, s2;
 	FATFS *fs;
 	unsigned char *path = (unsigned char *)defdrive;
-	char *str;
+	uchar *str;
 	unsigned char cstr[FF_MAX_LFN + 1];
 
 	str = finfo.fname;
@@ -539,22 +593,23 @@ static int dirv(int argc, uchar *argv[])
 			((finfo.fattrib & AM_HID) != 0) ? 'H' : '-',
 			((finfo.fattrib & AM_SYS) != 0) ? 'S' : '-',
 			((finfo.fattrib & AM_ARC) != 0) ? 'A' : '-');
-		tprintf(" %s %s %s %s  \"%s\"",
-			fdate2lstr(finfo.fdate, finfo.ftime),
-			((finfo.fattrib & AM_DIR) != 0) ? "      " : fsize2str(finfo.fsize),
+		tprintf(" %s %s %s %s",
+			fdate2lstr(finfo.fdatetime),
+			((finfo.fattrib & AM_DIR) != 0) ? "    " : fsize2str(finfo.fsize),
 			((finfo.fattrib & AM_DIR) != 0) ? "          " : fsize2lstr(finfo.fsize),
-			cstr,
-			sj2utf8((uchar *)finfo.altname));
+			cstr);
 		tprintf("\n");
 	}
 	tprintf("%4d File  %s\n", (int)s1, fsize2str(p1));
 	tprintf("%4d Dir", (int)s2);
-	if(getfree_file(path, &p1, &fs) == FR_OK) {
+	if(getfree_file(path, &p1, (void **)&fs) == FR_OK) {
 		tprintf("   %s free\n",
 			fsize2str((p1 * fs->csize/2)*1024));
 	} else {
 		tprintf("\n");
 	}
+
+	closedir_file(dir);
 
 	return 0;
 }
@@ -799,7 +854,7 @@ static int fwtest(int argc, uchar *argv[])
 
 	fd = open_file(fname, FA_WRITE | FA_CREATE_ALWAYS);
 	if(fd < 0) {
-		tprintf("File open error \"%s\"\n", FWNAME);
+		tprintf("File open error \"%s\"\n", fname);
 		return -1;
 	}
 	rt = write_file(fd, wbuf, FWSIZE);
@@ -821,6 +876,9 @@ static const struct st_shell_command * const com_file_list[] = {
 	&com_file_diskfree,
 #if FF_USE_MKFS != 0
 	&com_format,
+#endif
+#if FF_USE_CHMOD != 0
+	&com_chmod,
 #endif
 	&com_file_dir,
 	&com_file_dirv,

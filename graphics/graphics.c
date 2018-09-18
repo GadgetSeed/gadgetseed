@@ -182,8 +182,8 @@ int register_graphics_dev(struct st_device *dev)
 		 color_dep_str[color_depth]);
 
 	pen_mode = GRP_DRAWMODE_NORMAL;
-	fore_color = RGB(255, 255, 255);
-	back_color = RGB(0, 0, 0);
+	set_forecolor(RGB(255, 255, 255));
+	set_backcolor(RGB(0, 0, 0));
 
 	i_clip_rect.top = 0;
 	i_clip_rect.left = 0;

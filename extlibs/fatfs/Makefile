@@ -4,9 +4,11 @@ FFURL = http://elm-chan.org/fsw/ff/arc
 FFARC = ff13b.zip
 FFSRCDIR = source
 FFSRC  = $(FFSRCDIR)/ff.c
-FFOBJS = $(FFSRCDIR)/ff.o $(FFSRCDIR)/ffunicode.o
+FFOBJS = $(FFSRCDIR)/ff.o $(FFSRCDIR)/ffunicode.o fatfs.o diskio.o fattime.o
 
 LIB	= libfatfs.a
+
+CFLAGS	+= -Isource
 
 OBJS    = $(FFOBJS)
 

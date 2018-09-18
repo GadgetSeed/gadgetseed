@@ -100,7 +100,9 @@ LIBS += $(TASK_LIB)
 # fs
 FATFS_DIR = $(EXTLIBS_DIR)/fatfs
 FATFS_LIB = $(FATFS_DIR)/libfatfs.a
+ifeq ($(COMP_ENABLE_FATFS),YES)
 LIBS_EXT_LIB += $(FATFS_LIB)
+endif
 export FATFS_DIR
 FS_DIR = fs
 FS_LIB = $(FS_DIR)/fs.a
@@ -244,7 +246,7 @@ $(SYSCONFHEADER): $(SYSCONF_DIR)/$(SYSTEM_CONFIG).conf $(CONFIGS_DIR)/$(APPLICAT
 
 main.o: main.c $(ARCHHEADER) $(SYSCONFHEADER)
 
-$(KERNEL_LIB): $(KERNEL_DIR)/*.c $(FS_LIB)
+$(KERNEL_LIB): $(KERNEL_DIR)/*.c
 	make -C $(KERNEL_DIR)
 
 ifeq ($(ARCH),emu)
@@ -313,7 +315,7 @@ $(FONTDATA_LIB): $(FONTDATA_DIR)/*/*.txt $(BDF2FONTSRC) $(TXT2FONTSRC)
 $(UILIB_LIB): $(UILIB_DIR)/*.[ch]
 	make -C $(UILIB_DIR)
 
-$(FS_LIB): $(FS_DIR)/*.c $(FATFS_LIB)
+$(FS_LIB): $(FS_DIR)/*.c
 	make -C $(FS_DIR) all
 
 $(TASK_LIB): $(TASK_DIR)/*.c
@@ -364,7 +366,7 @@ endif
 
 ifeq ($(ARCH),emu)
 $(PROGRAM): $(OBJS) $(SYSCONFHEADER) $(ALIBS) $(LIBS) emu.a
-	$(LD) -o $@ $(OBJS) $(ALIBS) $(LIBS) $(LIBS_LIB) $(ARCH_LIB) emu.a $(FS_LIB) $(LIBS) \
+	$(LD) -o $@ $(OBJS) $(ALIBS) $(LIBS) $(LIBS_LIB) $(ARCH_LIB) emu.a $(LIBS) \
 	-lm -lpthread -lcurses -lasound -lrt `pkg-config --cflags --libs gtk+-2.0`
 	ln -f -s $(PROGRAM) $(PROGLINK)
 

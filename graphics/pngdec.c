@@ -34,7 +34,7 @@ static void png_fileread_func(png_structp png_sp, png_bytep buf, png_size_t size
 {
 	my_png_file *png_file;
 
-	DTFPRINTF(0x02, "size = %ld\n", size);
+	DTFPRINTF(0x02, "size = %d\n", size);
 
 	png_file = (my_png_file *)png_get_io_ptr(png_sp);
 
@@ -95,7 +95,7 @@ int get_png_file_info(int fd, short *png_width, short *png_height)
 	png_read_info(png_ptr, info_ptr);
 	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,&color_type,
 		     &interlace_type, &compression_type, &filter_type);
-	DTPRINTF(0x01, "width = %lu, height = %lu, bpp = %d, color_type = %d\n",
+	DTPRINTF(0x01, "width = %u, height = %u, bpp = %d, color_type = %d\n",
 		 width, height, bit_depth, color_type);
 
 	*png_width = width;
@@ -120,7 +120,7 @@ struct my_png_data {
 
 static void png_dataread_func(png_structp png_ptr, png_bytep buf, png_size_t size)
 {
-	DTFPRINTF(0x02, "size = %ld\n", size);
+	DTFPRINTF(0x02, "size = %d\n", size);
 
 	struct my_png_data *png_data = (struct my_png_data *)png_get_io_ptr(png_ptr);
 
@@ -182,7 +182,7 @@ int get_png_data_info(unsigned char *data, short *png_width, short *png_height)
 	png_read_info(png_ptr, info_ptr);
 	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth,&color_type,
 		     &interlace_type, &compression_type, &filter_type);
-	DTPRINTF(0x01, "width = %lu, height = %lu bpp = %d color_type = %d\n",
+	DTPRINTF(0x01, "width = %u, height = %u bpp = %d color_type = %d\n",
 		 width, height, bit_depth, color_type);
 
 	*png_width = width;

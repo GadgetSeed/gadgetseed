@@ -29,15 +29,14 @@
 */
 
 #include "storage.h"
-#include "ff.h"
+#include "fs.h"
 
 #include "device.h"
 #include "diskio.h"
 #include "tprintf.h"
 #include "tkprintf.h"
 
-static FATFS fatfs[FF_VOLUMES];	///< FATワーク
-struct st_storage_info storage[FF_VOLUMES];	///< ストレージデバイステーブル
+struct st_storage_info storage[GSC_FS_VOLUME_NUM];	///< ストレージデバイステーブル
 
 /**
    @brief	外部記憶装置管理初期化
@@ -46,8 +45,9 @@ void init_storage(void)
 {
 	int i ;
 
-	for(i=0; i<FF_VOLUMES; i++) {
+	for(i=0; i<GSC_FS_VOLUME_NUM; i++) {
 		storage[i].device = 0;
+		storage[i].fs = 0;
 	}
 }
 
@@ -56,82 +56,96 @@ void init_storage(void)
 /**
    @brief	ストレージデバイスをマウントする
 
-   @param[in]	drv	デバイス番号
+   @param[in]	drvno	デバイス番号
    @param[in]	devname	デバイス名文字列ポインタ
 
    @return	エラーコード
 */
-int mount_storage(int drv, const char *devname)
+int mount_storage(int drvno, const char *devname, const char *fsname)
 {
-	FRESULT result;
-	char dev_name[DEVNAME_LEN+1];
+	int rtn;
+	struct st_filesystem *fs = 0;
+	struct st_device *dev = 0;
 
-	if(drv >= FF_VOLUMES) {
-		SYSERR_PRINT("Storage number %d too large.\n", drv);
+	if(drvno >= GSC_FS_VOLUME_NUM) {
+		SYSERR_PRINT("Storage number %d too large.\n", drvno);
 		return -1;
 	}
 
-	if(storage[drv].device != 0) {
-		SYSERR_PRINT("Storage %d: already mounted.\n", drv);
+	if(storage[drvno].device != 0) {
+		SYSERR_PRINT("Storage %d: already mounted.\n", drvno);
 		return -1;
 	}
 
-	storage[drv].device = open_device((char *)devname);
-
-	if(storage[drv].device == 0) {
-		//SYSERR_PRINT("Cannot open Device \"%s\" (Storage %d:).\n", devname, (int)drv);
+	fs = search_filesystem(fsname);
+	if(fs == 0) {
+		SYSERR_PRINT("Invalid file system \"%s\".\n", fsname);
 		return -1;
 	}
+	storage[drvno].fs = fs;
 
-	tsnprintf(dev_name, DEVNAME_LEN, "%1d:", drv);
-	result = f_mount(&fatfs[drv], dev_name, 1);
-
-	if(result != FR_OK) {
-		SYSERR_PRINT("Device \"%s\" (Storage %d:) mount error.\n",
-			     devname, drv);
-		return -1;
-	} else {
-		return 0;
+	if(devname != 0) {
+		dev = open_device((char *)devname);
+		if(dev != 0) {
+			storage[drvno].device = dev;
+		} else {
+			SYSERR_PRINT("Cannot open Device \"%s\" (Storage %d:).\n", devname, drvno);
+			return -1;
+		}
 	}
+
+	if(fs->mount != 0) {
+		rtn = fs->mount(drvno, dev);
+		if(rtn != 0) {
+			SYSERR_PRINT("Device \"%s\" (Storage %d:) mount error.\n", devname, drvno);
+			storage[drvno].device = 0;
+			storage[drvno].fs = 0;
+			return -1;
+		} else {
+			return 0;
+		}
+	}
+
+	return 0;
 }
 
 /**
    @brief	ストレージデバイスをアンマウントする
 
-   @param[in]	drv	デバイス番号
+   @param[in]	drvno	デバイス番号
 
    @return	エラーコード
 */
-int unmount_storage(int drv)
+int unmount_storage(int drvno)
 {
-	FRESULT result;
-	char dev_name[DEVNAME_LEN+1];
+	int rtn;
 
-	if(drv >= FF_VOLUMES) {
-		SYSERR_PRINT("Storage number %d too large.\n", drv);
+	if(drvno >= GSC_FS_VOLUME_NUM) {
+		SYSERR_PRINT("Storage number %d too large.\n", drvno);
 		return -1;
 	}
 
-	if(storage[drv].device == 0) {
-		SYSERR_PRINT("Storage %d: not mounted.\n", drv);
+	if(storage[drvno].fs == 0) {
+		SYSERR_PRINT("Storage %d: not mounted.\n", drvno);
 		return -1;
 	}
 
-	sync_device(storage[drv].device);
+	if(storage[drvno].device != 0) {
+		sync_device(storage[drvno].device);
+	}
 
-	close_device(storage[drv].device);
-
-	storage[drv].device = 0;
-
-	tsnprintf(dev_name, DEVNAME_LEN, "%d:", drv);
-
-	result = f_mount(&fatfs[drv], dev_name, 0);
-
-	if(result != FR_OK) {
-		SYSERR_PRINT("Device \"%s\" (Storage %d:) unmount error.\n",
-			     dev_name, drv);
+	rtn = storage[drvno].fs->unmount(drvno, storage[drvno].device);
+	if(rtn != 0) {
+		SYSERR_PRINT("Device (Storage %d:) unmount error.\n", drvno);
 		return -1;
 	} else {
+		if(storage[drvno].device != 0) {
+			close_device(storage[drvno].device);
+		}
+
+		storage[drvno].device = 0;
+		storage[drvno].fs = 0;
+
 		return 0;
 	}
 }
@@ -150,8 +164,8 @@ int register_storage_device(const char * const device_name[])
 
 	i = 0;
 	while(drvname) {
-		if(i < FF_VOLUMES) {
-			if(mount_storage(i, drvname) == 0) {
+		if(i < GSC_FS_VOLUME_NUM) {
+			if(mount_storage(i, drvname, FSNAME_VFAT) == 0) {
 				tprintf("Storage %d: \"%s\"\n", i, drvname);
 			} else {
 				tprintf("Storage %d: \"%s\" mount failed.\n",
@@ -172,19 +186,21 @@ int register_storage_device(const char * const device_name[])
 /** 
     @brief	マウントされているデバイス名を取得する
 
-    @param num	デバイス番号
-    @param neme	デバイス名
+    @param num		デバイス番号
+    @param devneme	デバイス名
+    @param fsneme	ファイルシステム名
 
     @return	0:成功, !=0:マウントされていないデバイス番号
 */
-int get_storage_device_name(int drv, char **name)
+int get_storage_device_name(int drv, char **devname, char **fsname)
 {
-	if(drv >= FF_VOLUMES) {
+	if(drv >= GSC_FS_VOLUME_NUM) {
 		return -1;
 	}
 
 	if(storage[drv].device != 0) {
-		*name = storage[drv].device->name;
+		*devname = storage[drv].device->name;
+		*fsname = storage[drv].fs->name;
 		return 0;
 	} else {
 		return -1;

@@ -63,6 +63,7 @@ static int read_tag_data(int tag_size, id3tag_read_func tag_read, id3tag_read_fu
 	return size;
 }
 
+#if defined(GSC_LIB_ENABLE_PICOJPEG) || defined(GSC_LIB_ENABLE_LIBPNG)
 static unsigned char *malloc_ptr;
 
 static int malloc_read_tag_data(int tag_size, id3tag_read_func tag_read, id3tag_read_func tag_seek)
@@ -86,6 +87,7 @@ static int malloc_read_tag_data(int tag_size, id3tag_read_func tag_read, id3tag_
 
 	return size;
 }
+#endif
 
 static int calc_frame_size(unsigned char *tag)
 {
@@ -283,6 +285,7 @@ void set_id3_decode_artwork(int flg_env)
 
 static int decode_APIC(struct st_music_info *info, int size, id3tag_read_func tag_read, id3tag_read_func tag_seek)
 {
+#if defined(GSC_LIB_ENABLE_PICOJPEG) || defined(GSC_LIB_ENABLE_LIBPNG)
 	int rt;
 
 	static const char apic_jpeg_str[] = "image/jpeg";
@@ -338,6 +341,9 @@ static int decode_APIC(struct st_music_info *info, int size, id3tag_read_func ta
 	}
 
 	return rt;
+#else
+	return 0;
+#endif
 }
 
 static int decode_Txxx(struct st_music_info *info, int size, id3tag_read_func tag_read, id3tag_read_func tag_seek)

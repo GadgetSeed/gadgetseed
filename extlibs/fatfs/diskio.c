@@ -18,8 +18,8 @@
 #include "diskio.h"
 #include "device.h"
 #include "device/sd_ioctl.h"
-#include "storage.h"
 #include "tkprintf.h"
+#include "fatfs.h"
 
 //#define DEBUG
 #ifdef DEBUG
@@ -33,7 +33,7 @@
 /* Note that Tiny-FatFs supports only single drive and always            */
 /* accesses drive number 0.                                              */
 
-extern struct st_storage_info storage[FF_VOLUMES];
+extern struct st_fatfs fatfs[FF_VOLUMES];
 
 /*-----------------------------------------------------------------------*/
 /* Inidialize a Drive                                                    */
@@ -48,11 +48,11 @@ DSTATUS disk_initialize (
 		return STA_NODISK;
 	}
 
-	if(storage[drv].device == 0) {
+	if(fatfs[drv].device == 0) {
 		return STA_NOINIT;
 	}
 
-	(void)open_device((char *)storage[drv].device->name);
+	//(void)open_device((char *)fatfs[drv].device->name);
 
 	return 0;
 }
@@ -72,7 +72,7 @@ DSTATUS disk_status (
 		return STA_NODISK;
 	}
 
-	if(storage[drv].device == 0) {
+	if(fatfs[drv].device == 0) {
 		DBG("STA_NOINIT\n");
 		return STA_NOINIT;
 	}
@@ -100,7 +100,7 @@ DRESULT disk_read (
 		return RES_PARERR;
 	}
 
-	rt = block_read_device(storage[pdrv].device, buff, sector, count);
+	rt = block_read_device(fatfs[pdrv].device, buff, sector, count);
 	if(rt != count) {
 		return RES_ERROR;
 	}
@@ -128,7 +128,7 @@ DRESULT disk_write (
 		return RES_PARERR;
 	}
 
-	rt = block_write_device(storage[pdrv].device, (unsigned char *)buff, sector, count);
+	rt = block_write_device(fatfs[pdrv].device, (unsigned char *)buff, sector, count);
 	if(rt != count) {
 		DBG("disk_write(%d) write error.\n", pdrv);
 		return RES_ERROR;
@@ -160,13 +160,13 @@ DRESULT disk_ioctl (
 	switch(ctrl) {
 	case CTRL_SYNC:
 		DBG("sync(%d)\n", drv);
-		if(sync_device(storage[drv].device)) {
+		if(sync_device(fatfs[drv].device)) {
 			return RES_ERROR;
 		}
 		break;
 
 	case GET_SECTOR_COUNT:
-		rt = ioctl_device(storage[drv].device, IOCMD_SD_GET_SECTOR_COUNT, 0, 0);
+		rt = ioctl_device(fatfs[drv].device, IOCMD_SD_GET_SECTOR_COUNT, 0, 0);
 		if(rt == 0) {
 			return RES_ERROR;
 		}
@@ -175,7 +175,7 @@ DRESULT disk_ioctl (
 		break;
 
 	case GET_BLOCK_SIZE:
-		rt = ioctl_device(storage[drv].device, IOCMD_SD_GET_BLOCK_SIZE, 0, 0);
+		rt = ioctl_device(fatfs[drv].device, IOCMD_SD_GET_BLOCK_SIZE, 0, 0);
 		if(rt == 0) {
 			return RES_ERROR;
 		}

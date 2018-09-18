@@ -5,7 +5,6 @@
     @author	Takashi SHUDO
 */
 
-#include "ff.h"
 #include "str.h"
 #include "shell.h"
 #include "tprintf.h"

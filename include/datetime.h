@@ -18,6 +18,8 @@
 #define GSC_DIFF_FROM_LOCAL_TIME_SEC	(9*60*60)	///< $gsc UTCと日本時間(+9時間)との時差(秒)
 #endif
 
+typedef long long int	t_time;
+
 #define DATE_STR_LEN	((unsigned int)sizeof("YYYY/MM/DD WWW"))
 #define TIME_STR_LEN	((unsigned int)sizeof("HH/MM/SS"))
 #define MSEC_STR_LEN	((unsigned int)sizeof(".mmm"))
@@ -36,8 +38,8 @@ struct st_datetime {
 };	///< 時刻構造体
 
 struct st_systime {
-	int sec;	///< 秒
-	int usec;	///< マイクロ秒(0〜999999)
+	t_time	sec;	///< 秒
+	int	usec;	///< マイクロ秒(0〜999999)
 };	///< システム時間
 
 extern struct st_systime system_time;
@@ -57,10 +59,10 @@ extern int is_leap_year(int year);
 extern int num_of_day_in_month(int year, int month);
 extern void unixtime_to_datetime(struct st_datetime *datetime, struct st_systime *unixtime);
 extern void systime_to_datetime(struct st_datetime * datetime, struct st_systime *stime);
-extern int datetime_to_utc(struct st_datetime * datetime);
+extern t_time datetime_to_utc(struct st_datetime * datetime);
 extern void datetime_to_systime(struct st_systime *systime, struct st_datetime *time);
 extern void set_systime(struct st_systime *systime);
-extern int get_systime_sec(void);
+extern t_time get_systime_sec(void);
 extern unsigned int fattime(void);
 extern void get_systime(struct st_systime *systime);
 extern void register_sec_timer_func(timer_func func);

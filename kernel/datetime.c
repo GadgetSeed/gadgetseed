@@ -657,8 +657,8 @@ int num_of_day_in_month(int year, int month)
 */
 void unixtime_to_datetime(struct st_datetime *datetime, struct st_systime *unixtime)
 {
-	int sec = unixtime->sec;
-	int jday = (sec/((int)24*60*60)) + 2440588; // ユリウス日へ
+	t_time sec = unixtime->sec;
+	t_time jday = (sec/((int)24*60*60)) + 2440588; // ユリウス日へ
 
 	DKPRINTF(0x02, "jday = %d\n", jday);
 
@@ -701,11 +701,11 @@ void systime_to_datetime(struct st_datetime *datetime, struct st_systime *stime)
 
    @return	UTC時間
 */
-int datetime_to_utc(struct st_datetime *datetime)
+t_time datetime_to_utc(struct st_datetime *datetime)
 {
 	int year = datetime->year;
 	int month = datetime->month;
-	int utc;
+	t_time utc;
 
 	if((month -= 2) < 1) {
 		year --;
@@ -762,7 +762,7 @@ void set_systime(struct st_systime *systime)
 
    @return	現在UTC時刻
 */
-int get_systime_sec(void)
+t_time get_systime_sec(void)
 {
 	return (volatile int)system_time.sec;
 }
@@ -779,6 +779,10 @@ unsigned int fattime(void)
 
 	get_systime(&systime);
 	systime_to_datetime(&time, &systime);
+
+	if(time.year < 1980) {
+		time.year = 1980;
+	}
 
 	return		((unsigned int)(time.year-1980) << 25) +
 			((unsigned int)(time.month) << 21) +

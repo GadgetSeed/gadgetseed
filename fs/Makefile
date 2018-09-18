@@ -5,11 +5,14 @@ CFLAGS += -I$(PRJ_DIR)/$(FATFS_DIR)/source
 LIB	= fs.a
 
 OBJS	= \
+	  fs.o \
 	  file.o \
-	  diskio.o \
-	  fattime.o \
 	  storage.o \
 	  batch.o
+
+ifdef COMP_ENABLE_PIPEFS
+OBJS	+= pipefs.o
+endif
 
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@

@@ -5,4 +5,4 @@ if [ "$1" = "m" ]; then
     echo "|------------------------|------|"
 fi
 
-awk -f tools/configlist.awk ARG=$1 Makefile common.mk apps/*/*.[ch] arch/*/*.[ch] arch/*/Makefile arch/*/*/*.[ch] drivers/*.[ch] font/*.[ch] fs/*.[ch] graphics/*.[ch] include/*.h include/*/*.h kernel/*.[ch] kernel/*/*.[ch] libs/*.[ch] main.c net/*.[ch] shell/*.[ch] uilib/*.[ch] | sort
+awk -f tools/configlist.awk ARG=$1 Makefile common.mk apps/*/*.[ch] arch/*/*.[ch] arch/*/Makefile arch/*/*/*.[ch] drivers/*.[ch] font/*.[ch] fs/*.[ch] graphics/*.[ch] include/*.h include/*/*.h kernel/*.[ch] kernel/*/*.[ch] libs/*.[ch] main.c net/*.[ch] shell/*.[ch] uilib/*.[ch] extlibs/fatfs/*.[ch] | sort

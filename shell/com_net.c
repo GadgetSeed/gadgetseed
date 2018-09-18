@@ -314,7 +314,7 @@ error:
 static int httpget(int argc, uchar *argv[]);
 
 /**
-   @brief	指定たURLを表示、またはファイル保存する。
+   @brief	指定したURLを表示、またはファイル保存する。
 */
 static const struct st_shell_command com_net_httpget = {
 	.name		= "httpget",

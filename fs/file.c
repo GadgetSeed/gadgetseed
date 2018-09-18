@@ -5,6 +5,7 @@
 
     参考 : http://elm-chan.org/fsw/ff/00index_e.html
 
+    @date	2018.09.15
     @date	2008.03.20
     @author	Takashi SHUDO
 
@@ -31,6 +32,7 @@
     | close_file()		| @copybrief close_file		|
     | opendir_file()		| @copybrief opendir_file	|
     | readdir_file()		| @copybrief readdir_file	|
+    | closedir_file()		| @copybrief closedir_file	|
     | stat_file()		| @copybrief stat_file		|
     | getfree_file()		| @copybrief getfree_file	|
     | sync_file()		| @copybrief sync_file		|
@@ -53,19 +55,28 @@
 */
 
 #include "file.h"
+#include "device.h"
+#include "storage.h"
 #include "str.h"
 #include "tkprintf.h"
+#include "fs.h"
 
-//#define DEBUGTBITS 0x01
+//#define DEBUGTBITS 0x03
 #include "dtprintf.h"
 
 // ファイルディスクリプタはスタティックに確保
-#ifndef GSC_FATFS_MAX_FILE_NUM
-#define GSC_FATFS_MAX_FILE_NUM	2	///< $gsc FATFS最大ファイル数
+#ifndef GSC_FS_MAX_FILE_NUM
+#define GSC_FS_MAX_FILE_NUM	2	///< $gsc オープンできる最大ファイル数
 #endif
 
-static unsigned char flg_file[GSC_FATFS_MAX_FILE_NUM]; ///< ファイルディスクリプタフラグ
-static FIL file[GSC_FATFS_MAX_FILE_NUM];	///< ファイルディスクリプタ
+extern struct st_filesystem *filesystems[];
+extern struct st_storage_info storage[GSC_FS_VOLUME_NUM];	///< ストレージデバイステーブル
+
+static struct st_file_desc {
+	int flg_used; 		///< ファイルディスクリプタ使用フラグ
+	struct st_filesystem *fs;	///< ファイルシステム
+	void *fs_desc;			///< ファイルシステム用ディスクリプタ
+} file_desc[GSC_FS_MAX_FILE_NUM];
 
 /**
    @brief	全てのファイルディスクリプタを初期化する
@@ -74,9 +85,52 @@ void init_file(void)
 {
 	int i;
 
-	for(i=0; i<GSC_FATFS_MAX_FILE_NUM; i++) {
-		flg_file[i] = 0;
+	for(i=0; i<GSC_FS_MAX_FILE_NUM; i++) {
+		file_desc[i].flg_used = 0;
 	}
+}
+
+/**
+   @brief	ファイル名からストレージ番号を調べる
+
+   @param	path	ファイル名
+
+   @return	ストレージ番号
+*/
+int get_diskno(const uchar *path)
+{
+	int devno = 0;
+
+	if(path[1] == ':') {
+		if(('0' <= path[0]) && (path[0] <= '9')) {
+			devno = path[0] - '0';
+		}
+	}
+
+	return devno;
+}
+
+/**
+   @brief	ファイル名からファイルシステムを調べる
+
+   @param	path	ファイル名
+
+   @return	ファイルシステム
+*/
+struct st_filesystem * get_filesystem(const uchar *path)
+{
+	int devno;
+	struct st_filesystem *fs = 0;
+
+	devno = get_diskno(path);
+
+	if(devno >= GSC_FS_VOLUME_NUM) {
+		fs = 0;	// デバイス無し
+	} else {
+		fs = filesystems[devno];
+	}
+
+	return fs;
 }
 
 /**
@@ -85,29 +139,37 @@ void init_file(void)
    @param	path	ファイル名
    @param	flags	属性フラグ
 
-   @return	ファイルディスクリプタ
+   @return	ファイルディスクリプタ(0:エラー)
 */
 int open_file(const uchar *path, int flags)
 {
 	int i;
-	FRESULT res;
+	struct st_filesystem *fs;
+	void *fdesc;
 
 	DTFPRINTF(0x01, "path = %s, flgas = %08X\n", path, flags);
 
-	for(i=0; i<GSC_FATFS_MAX_FILE_NUM; i++) {
-		if(flg_file[i] == 0) {
-			res = f_open(&file[i], (char *)path, flags);
-			if(res == FR_OK) {
-				flg_file[i] = 1;
+	fs = get_filesystem(path);
+	if(fs == 0) {
+		return -1;
+	}
+
+	for(i=0; i<GSC_FS_MAX_FILE_NUM; i++) {
+		if(file_desc[i].flg_used == 0) {
+			file_desc[i].fs = fs;
+			fdesc = fs->open(path, flags);
+			if(fdesc != 0) {
+				file_desc[i].fs_desc = fdesc;
+				file_desc[i].flg_used = 1;
 				return i;
 			} else {
 				//SYSERR_PRINT("cannot open file \"%s\" (%d)", path, res);
-				return 0 - res;
+				return -1;
 			}
 		}
 	}
 
-	SYSERR_PRINT("cannot open file \"%s\" (GSC_FATFS_MAX_FILE_NUM)\n", path);
+	SYSERR_PRINT("cannot open file \"%s\" (GSC_FS_MAX_FILE_NUM)\n", path);
 
 	return -1;
 }
@@ -123,33 +185,23 @@ int open_file(const uchar *path, int flags)
 
    @return	読み出しバイト数(<0:エラー)
 */
-int read_file(int fd, void *buf, unsigned int count)
+t_ssize read_file(int fd, void *buf, t_size count)
 {
-	unsigned int i, rcount = count;
-	FRESULT res;
-	int rt = 0;
-	UINT size;
-	unsigned char *rp = buf;
+	struct st_filesystem *fs;
+	int rtn = 0;
 
-	DTFPRINTF(0x02, "fd = %d, buf = %p, count = %ld\n", fd, buf, count);
+	DTFPRINTF(0x02, "fd = %d, buf = %p, count = %d\n", fd, buf, count);
 
-	for(i=0; i<count; i+=ACCESS_SIZE) {
-		//eprintf("read = %d\n", rcount > ACCESS_SIZE ? ACCESS_SIZE : rcount);
-		//eprintf("p = %p\n", rp);
-		res = f_read(&file[fd], rp, rcount > ACCESS_SIZE ? ACCESS_SIZE : rcount, &size);
-		if(res == FR_OK) {
-			//eprintf("size = %d\n", size);
-			rcount -= size;
-			rp += size;
-			rt += size;
-		} else {
-			//eprintf("read_file error(size = %d, result = %d)\n",
-			//	  size, res);
-			return 0 - res;
-		}
+	fs = file_desc[fd].fs;
+	if(fs == 0) {
+		return -1;
 	}
 
-	return rt;
+	if(fs->read != 0) {
+		rtn = fs->read(file_desc[fd].fs_desc, buf, count);
+	}
+
+	return rtn;
 }
 
 /**
@@ -161,28 +213,23 @@ int read_file(int fd, void *buf, unsigned int count)
 
    @return	書き込みバイト数(<0:エラー)
 */
-int write_file(int fd, const void *buf, unsigned int count)
+t_ssize write_file(int fd, const void *buf, t_size count)
 {
-	unsigned int i, rcount = count;
-	int rt = 0;
-	UINT size;
-	unsigned char *wp = (unsigned char *)buf;
+	struct st_filesystem *fs;
+	int rtn = 0;
 
-	DTFPRINTF(0x02, "fd = %d, buf = %p, count = %ld\n", fd, buf, count);
+	DTFPRINTF(0x02, "fd = %d, buf = %p, count = %d\n", fd, buf, count);
 
-	for(i=0; i<count; i+=ACCESS_SIZE) {
-		if(f_write(&file[fd], wp,
-			   rcount > ACCESS_SIZE ? ACCESS_SIZE : rcount,
-			   &size) == FR_OK) {
-			rcount -= size;
-			wp += size;
-			rt += size;
-		} else {
-			return -1;
-		}
+	fs = file_desc[fd].fs;
+	if(fs == 0) {
+		return -1;
 	}
 
-	return rt;
+	if(fs->write != 0) {
+		rtn = fs->write(file_desc[fd].fs_desc, buf, count);
+	}
+
+	return rtn;
 }
 
 /**
@@ -194,31 +241,23 @@ int write_file(int fd, const void *buf, unsigned int count)
 
    @return	先頭からのオフセット位置バイト数
 */
-int seek_file(int fd, unsigned int offset, int whence)
+t_ssize seek_file(int fd, t_ssize offset, int whence)
 {
-	DTFPRINTF(0x02, "fd = %d, offset = %ld, whence = %d\n", fd, offset, whence);
+	struct st_filesystem *fs;
+	int rtn = 0;
 
-	switch(whence) {
-	case SEEK_SET:
-		if(f_lseek(&file[fd], offset) == FR_OK) {
-			return file[fd].fptr;
-		}
-		break;
+	DTFPRINTF(0x02, "fd = %d, offset = %d, whence = %d\n", fd, offset, whence);
 
-	case SEEK_CUR:
-		if(f_lseek(&file[fd], file[fd].fptr + offset) == FR_OK) {
-			return file[fd].fptr;
-		}
-		break;
-
-	case SEEK_END:
-		if(f_lseek(&file[fd], f_size(&file[fd]) + offset) == FR_OK) {
-			return file[fd].fptr;
-		}
-		break;
+	fs = file_desc[fd].fs;
+	if(fs == 0) {
+		return -1;
 	}
 
-	return -1;
+	if(fs->seek != 0) {
+		rtn = fs->seek(file_desc[fd].fs_desc, offset, whence);
+	}
+
+	return rtn;
 }
 
 /**
@@ -228,12 +267,25 @@ int seek_file(int fd, unsigned int offset, int whence)
 
    @return	先頭からのオフセット位置バイト数
 */
-int tell_file(int fd)
+t_size tell_file(int fd)
 {
+	struct st_filesystem *fs;
+	int rtn = 0;
+
 	DTFPRINTF(0x01, "fd = %d\n", fd);
 
-	return file[fd].fptr;
+	fs = file_desc[fd].fs;
+	if(fs == 0) {
+		return -1;
+	}
+
+	if(fs->tell != 0) {
+		rtn = fs->tell(file_desc[fd].fs_desc);
+	}
+
+	return rtn;
 }
+
 
 /**
    @brief	ファイルを閉じる
@@ -244,18 +296,27 @@ int tell_file(int fd)
 */
 int close_file(int fd)
 {
+	struct st_filesystem *fs;
+	int rtn = 0;
+
 	DTFPRINTF(0x01, "fd = %d\n", fd);
 
-	if((0 <= fd) && (fd < GSC_FATFS_MAX_FILE_NUM)) {
-		if(flg_file[fd] != 0) {
-			flg_file[fd] = 0;
-			return f_close(&file[fd]);
-		}
+	fs = file_desc[fd].fs;
+	if(fs == 0) {
+		return -1;
 	}
 
-	SYSERR_PRINT("cannot close file (%d)\n", fd);
+	if(fs->close != 0) {
+		rtn = fs->close(file_desc[fd].fs_desc);
+	}
 
-	return -1;
+	file_desc[fd].flg_used = 0;
+
+	if(rtn != 0) {
+		SYSERR_PRINT("cannot close file (%d)\n", fd);
+	}
+
+	return rtn;
 }
 
 /**
@@ -263,27 +324,25 @@ int close_file(int fd)
 
    @param[in]	name	ディレクトリ名
 
-   @return	ディレクトリ
+   @return	ディレクトリ(0:エラー)
 */
-DIR * opendir_file(const uchar *name)
+FS_DIR * opendir_file(const uchar *name)
 {
-	FRESULT res;
-	static DIR dir;
+	struct st_filesystem *fs;
+	FS_DIR *dir = 0;
 
-	DTFPRINTF(0x01, "name = %s\n", name);
+	DTFPRINTF(0x01, "dir = %p, name = %s\n", dir, name);
 
-	/**
-	 * 取り敢えず dir は固定で確保
-	 * 複数の opendir_file() はコールできない
-	 */
-
-	res = f_opendir(&dir, (char *)name);
-	if(res != FR_OK) {
-		//SYSERR_PRINT("res = %d\n", res);
+	fs = get_filesystem(name);
+	if(fs == 0) {
 		return 0;
 	}
 
-	return &dir;
+	if(fs->opendir != 0) {
+		dir = fs->opendir(name);
+	}
+
+	return dir;
 }
 
 /**
@@ -294,11 +353,49 @@ DIR * opendir_file(const uchar *name)
 
    @return	エラーコード
 */
-int readdir_file(DIR *dir, FILINFO *info)
+int readdir_file(FS_DIR *dir, FS_FILEINFO *finfo)
 {
-	DTFPRINTF(0x02, "dir = %p, info = %p\n", dir, info);
+	struct st_filesystem *fs;
+	int rtn = 0;
 
-	return f_readdir(dir, info);
+	DTFPRINTF(0x02, "dir = %p, info = %p\n", dir, finfo);
+
+	fs = dir->fs;
+	if(fs == 0) {
+		return -1;
+	}
+
+	if(fs->readdir != 0) {
+		rtn = fs->readdir(dir, finfo);
+	}
+
+	return rtn;
+}
+
+/**
+   @brief	ディレクトリを閉じる
+
+   @param[in]	dir	ディレクトリ
+
+   @return	エラーコード
+*/
+int closedir_file(FS_DIR *dir)
+{
+	struct st_filesystem *fs;
+	int rtn = 0;
+
+	DTFPRINTF(0x01, "dir = %p\n", dir);
+
+	fs = dir->fs;
+	if(fs == 0) {
+		return -1;
+	}
+
+	if(fs->closedir != 0) {
+		rtn = fs->closedir(dir);
+	}
+
+	return rtn;
 }
 
 /**
@@ -309,11 +406,23 @@ int readdir_file(DIR *dir, FILINFO *info)
 
    @return	エラーコード
 */
-int stat_file(const uchar *path, FILINFO *info)
+int stat_file(const uchar *path, FS_FILEINFO *finfo)
 {
-	DTFPRINTF(0x02, "path = %s, info = %p\n", path, info);
+	struct st_filesystem *fs;
+	int rtn = 0;
 
-	return f_stat((char *)path, info);
+	DTFPRINTF(0x02, "path = %s, info = %p\n", path, finfo);
+
+	fs = get_filesystem(path);
+	if(fs == 0) {
+		return -1;
+	}
+
+	if(fs->stat != 0) {
+		rtn = fs->stat(path, finfo);
+	}
+
+	return rtn;
 }
 
 /**
@@ -325,11 +434,23 @@ int stat_file(const uchar *path, FILINFO *info)
 
    @return	エラーコード
 */
-int getfree_file(const uchar *path, unsigned long *sect, FATFS **fs)
+int getfree_file(const uchar *path, unsigned long *sect, void **fso)
 {
-	DTFPRINTF(0x02, "path = %s, sect = %p, fs = %p\n", path, sect, fs);
+	struct st_filesystem *fs;
+	int rtn = -1;
 
-	return f_getfree((char *)path, sect, fs);
+	DTFPRINTF(0x02, "path = %s, sect = %p, fs = %p\n", path, sect, fso);
+
+	fs = get_filesystem(path);
+	if(fs == 0) {
+		return -1;
+	}
+
+	if(fs->getfree != 0) {
+		rtn = fs->getfree(path, sect, fso);
+	}
+
+	return rtn;
 }
 
 /**
@@ -341,9 +462,21 @@ int getfree_file(const uchar *path, unsigned long *sect, FATFS **fs)
 */
 int sync_file(int fd)
 {
-	DTFPRINTF(0x02, "fd = %d\n", fd);
+	struct st_filesystem *fs;
+	int rtn = 0;
 
-	return f_sync(&file[fd]);
+	DTFPRINTF(0x01, "fd = %d\n", fd);
+
+	fs = file_desc[fd].fs;
+	if(fs == 0) {
+		return -1;
+	}
+
+	if(fs->sync != 0) {
+		rtn = fs->sync(file_desc[fd].fs_desc);
+	}
+
+	return rtn;
 }
 
 /**
@@ -355,9 +488,21 @@ int sync_file(int fd)
 */
 int unlink_file(const uchar *path)
 {
+	struct st_filesystem *fs;
+	int rtn = 0;
+
 	DTFPRINTF(0x02, "path = %s\n", path);
 
-	return f_unlink((char *)path);
+	fs = get_filesystem(path);
+	if(fs == 0) {
+		return -1;
+	}
+
+	if(fs->unlink != 0) {
+		rtn = fs->unlink(path);
+	}
+
+	return rtn;
 }
 
 /**
@@ -369,9 +514,21 @@ int unlink_file(const uchar *path)
 */
 int mkdir_file(const uchar *path)
 {
+	struct st_filesystem *fs;
+	int rtn = 0;
+
 	DTFPRINTF(0x02, "path = %s\n", path);
 
-	return f_mkdir((char *)path);
+	fs = get_filesystem(path);
+	if(fs == 0) {
+		return -1;
+	}
+
+	if(fs->mkdir != 0) {
+		rtn = fs->mkdir(path);
+	}
+
+	return rtn;
 }
 
 #if FF_USE_CHMOD != 0
@@ -385,9 +542,21 @@ int mkdir_file(const uchar *path)
 */
 int chmod_file(const uchar *path, unsigned char flag)
 {
+	struct st_filesystem *fs;
+	int rtn = 0;
+
 	DTFPRINTF(0x02, "path = %s, flag = %d\n", path, flag);
 
-	return f_chmod((char *)path, flag, flag);
+	fs = get_filesystem(path);
+	if(fs == 0) {
+		return -1;
+	}
+
+	if(fs->chmod != 0) {
+		rtn = fs->chmod(path, flag);
+	}
+
+	return rtn;
 }
 #endif
 
@@ -398,12 +567,26 @@ int chmod_file(const uchar *path, unsigned char flag)
    @param[in]	newpath	変更後のファイル名
 
    @return	エラーコード
+
+   @info	異なるデバイスへの名前変更はできない
 */
 int rename_file(const uchar *oldpath, const uchar *newpath)
 {
+	struct st_filesystem *fs;
+	int rtn = 0;
+
 	DTFPRINTF(0x02, "oldpath = %s, newpath = %s\n", oldpath, newpath);
 
-	return f_rename((char *)oldpath, (char *)newpath);
+	fs = get_filesystem(oldpath);
+	if(fs == 0) {
+		return -1;
+	}
+
+	if(fs->rename != 0) {
+		rtn = fs->rename(oldpath, newpath);
+	}
+
+	return rtn;
 }
 
 #if FF_USE_MKFS != 0
@@ -420,9 +603,21 @@ int rename_file(const uchar *oldpath, const uchar *newpath)
 */
 int mkfs_file(const uchar *path, unsigned char part, unsigned short alloc)
 {
+	struct st_filesystem *fs;
+	int rtn = 0;
+
 	DTFPRINTF(0x02, "path = %s, part = %d, alloc = %d\n", ath, part, alloc);
 
-	return f_mkfs((char *)path, part, alloc);
+	fs = get_filesystem(path);
+	if(fs == 0) {
+		return -1;
+	}
+
+	if(fs->mkfs != 0) {
+		rtn = fs->mkfs(path, part, alloc);
+	}
+
+	return rtn;
 }
 #endif
 
@@ -505,4 +700,35 @@ uchar * get_filename_extension(uchar *ext, const uchar *filename, unsigned int l
 	}
 
 	return 0;
+}
+
+char * size2str(char *str, t_size size)
+{
+	t_size size_g = (1024L*1024*1024L);
+	t_size size_m = (1024L*1024);
+	t_size size_k = 1024L;
+
+	if(size >= size_g) {
+		if((size/size_g) < 10) {
+			tsnprintf(str, SIZE_STR_LEN, "%1d.%1dG", (int)(size/size_g), (int)((size-((size/size_g))*size_g))/1024/1024/100);
+		} else {
+			tsnprintf(str, SIZE_STR_LEN, "%3dG", (int)(size/size_g));
+		}
+	} else if(size >= size_m) {
+		if((size/size_m) < 10) {
+			tsnprintf(str, SIZE_STR_LEN, "%1d.%1dM", (int)(size/size_m), (int)((size-((size/size_m))*size_m))/1024/100);
+		} else {
+			tsnprintf(str, SIZE_STR_LEN, "%3dM", (int)(size/size_m));
+		}
+	} else if(size >= size_k) {
+		if((size/size_k) < 10) {
+			tsnprintf(str, SIZE_STR_LEN, "%1d.%1dK", (int)(size/size_k), (int)((size-((size/size_k))*size_k))/100);
+		} else {
+			tsnprintf(str, SIZE_STR_LEN, "%3dK", (int)(size/size_k));
+		}
+	} else {
+		tsnprintf(str, SIZE_STR_LEN, "%3dB", (int)size);
+	}
+
+	return &str[0];
 }

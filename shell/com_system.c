@@ -189,7 +189,7 @@ static int datetime(int argc, uchar *argv[])
 	datemtime_to_str(str, &datetime);
 
 	tprintf("%s %s\n", str, GSC_TIMEZONE_STR);
-	tprintf("UNIX time : %d.%03d (sec)\n", systime.sec, systime.usec/1000);
+	tprintf("UNIX time : %lld.%03d (sec)\n", systime.sec, systime.usec/1000);
 
 	return 0;
 }
@@ -309,7 +309,7 @@ loop:
 	systime_to_datetime(&rtctime, &systime);
 	datemtime_to_str(str, &rtctime);
 
-	tprintf("SYS(%s) : %s\nUNIX time : %11d.%06d (sec)\n", GSC_TIMEZONE_STR, str,
+	tprintf("SYS(%s) : %s\nUNIX time : %11lld.%06d (sec)\n", GSC_TIMEZONE_STR, str,
 		systime.sec, systime.usec);
 
 	stime = (((long long)systime.sec) * 1000) + (systime.usec / 1000);

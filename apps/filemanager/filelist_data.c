@@ -14,7 +14,7 @@
 #include "dtprintf.h"
 
 
-static void print_finfo(FILINFO *fi)
+static void print_finfo(FS_FILEINFO *fi)
 {
 	DTPRINTF(0x01, "%c", (fi->fattrib & AM_DIR) ? 'D' : '-');
 	DTPRINTF(0x01, "%c", (fi->fattrib & AM_RDO) ? 'R' : '-');
@@ -35,9 +35,9 @@ static void print_finfo(FILINFO *fi)
 	DTPRINTF(0x01, " %s\n", sj2utf8((uchar *)fi->fname));
 }
 
-int create_filelist_data(struct st_fileinfo *fileinfo, const unsigned char *path, int (* filter)(FILINFO *finfo))
+int create_filelist_data(struct st_fileinfo *fileinfo, const unsigned char *path, int (* filter)(FS_FILEINFO *finfo))
 {
-	DIR *dir;
+	FS_DIR *dir;
 	int res;
 	int filecount = 0;
 	struct st_fileinfo *tmp_filist, *filist = fileinfo;
@@ -81,10 +81,13 @@ int create_filelist_data(struct st_fileinfo *fileinfo, const unsigned char *path
 				}
 			}
 		} else {
+			closedir_file(dir);
 			return -1;
 			break;
 		}
 	}
+
+	closedir_file(dir);
 
 	return filecount;
 }

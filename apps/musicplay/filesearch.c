@@ -101,7 +101,7 @@ static int search_dir(unsigned char *path, struct file_ext *ext, fileadd_func fu
 		unsigned char tmp[MAX_PATHNAME_LEN];
 		int len;
 
-		res = readdir_file(&dir, &file_info);
+		res = f_readdir(&dir, &file_info);
 		if(res != FR_OK) {
 			eprintf("Cannot read \"%s\".\n", path);
 			return -1;
