@@ -310,7 +310,6 @@ error:
 }
 
 
-#ifndef GSC_TARGET_SYSTEM_EMU
 static int httpget(int argc, uchar *argv[]);
 
 /**
@@ -456,7 +455,6 @@ close:
 
 	return 0;
 }
-#endif // GSC_TARGET_SYSTEM_EMU
 
 
 static const struct st_shell_command * const com_net_list[] = {
@@ -466,9 +464,7 @@ static const struct st_shell_command * const com_net_list[] = {
 	&com_net_up,
 	&com_net_down,
 	&com_net_dns,
-#ifndef GSC_TARGET_SYSTEM_EMU
 	&com_net_httpget,
-#endif
 	0
 };
 

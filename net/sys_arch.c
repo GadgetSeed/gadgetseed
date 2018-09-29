@@ -528,3 +528,10 @@ uint32_t sys_now(void)
 
 	return ntime;
 }
+
+int lwip_errno = 0;
+
+void lwip_set_errno(int err)
+{
+	lwip_errno = err;
+}

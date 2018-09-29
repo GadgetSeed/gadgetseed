@@ -972,8 +972,10 @@ void event_wakeup_ISR(void *sp, struct st_event *evtque, void *arg)
 		wakeup_task(task);
 	} else {
 		// イベントFIFOに追加
-		if(write_fifo(&evtque->event, arg, evtque->size) != evtque->size) {
-			DKFPRINTF(0x01, "event fifo full\n");
+		if(arg != 0) {
+			if(write_fifo(&evtque->event, arg, evtque->size) != evtque->size) {
+				DKFPRINTF(0x01, "event fifo full\n");
+			}
 		}
 		record_calltrace(SYSCALL_EVTQUE_WAKEUP, 0, evtque, 0, fifo_size(&evtque->event), sp);
 	}

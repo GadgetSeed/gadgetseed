@@ -66,6 +66,10 @@
 #define CHECKSUM_GEN_ICMP		0
 #endif
 
+#define LWIP_SOCKET_SET_ERRNO		1
+#define set_errno	lwip_set_errno
+extern void lwip_set_errno(int err);
+
 //#define LWIP_DEBUG_ON
 #ifdef LWIP_DEBUG_ON
 #define LWIP_DEBUG	1
