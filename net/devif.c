@@ -55,7 +55,7 @@
 #include "device/ether_ioctl.h"
 #include "str.h"
 
-//#define DEBUGKBITS 0x03
+//#define DEBUGKBITS 0x10
 #include "dkprintf.h"
 
 
@@ -72,7 +72,6 @@ struct devif {
 };
 
 /* Forward declarations. */
-static void devif_input(struct netif *netif);
 
 static void devif_thread(void *data);
 
@@ -93,7 +92,7 @@ static int low_level_init(struct netif *netif)
 	devif->dev = open_device(DEVNAME);
 	DKPRINTF(0x01, "%s: fd %08lx\n", __FUNCTION__, (unsigned long)devif->dev);
 	if(devif->dev == 0) {
-		SYSERR_PRINT("%s: cannot open " DEVNAME "\n", __FUNCTION__);
+		SYSERR_PRINT("cannot open " DEVNAME "\n");
 		return -1;
 	}
 
@@ -157,7 +156,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 
 	/* signal that packet should be sent(); */
 	if(write_device(devif->dev, (unsigned char *)obuf, p->tot_len) == -1) {
-		SYSERR_PRINT("devif: write error\n");
+		SYSERR_PRINT("write_device error\n");
 	}
 	return ERR_OK;
 }
@@ -181,10 +180,14 @@ static struct pbuf * low_level_input(struct devif *devif)
 
 	DKPRINTF(0x01, "##D %s\n", __FUNCTION__);
 
+	/* Handle incoming packet. */
 	/* Obtain the size of the packet and put it into the "len"
 	   variable. */
 	len = read_device(devif->dev, (unsigned char *)ibuf, sizeof(ibuf));
 	DKPRINTF(0x01, "len = %ld\n", len);
+	if(len == 0) {
+		return 0;
+	}
 
 #ifdef DEBUG
 #if 1
@@ -215,8 +218,10 @@ static struct pbuf * low_level_input(struct devif *devif)
 
 	/* We allocate a pbuf chain of pbufs from the pool. */
 	p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
+	DKPRINTF(0x10, "alloc %p %d\n", p, len);
 
 	if(p != NULL) {
+		DKPRINTF(0x08, "p->len= %d\n", p->len);
 		/* We iterate over the pbuf chain until we have read the entire
 		   packet into the pbuf. */
 		bufptr = &ibuf[0];
@@ -236,80 +241,36 @@ static struct pbuf * low_level_input(struct devif *devif)
 	return p;
 }
 /*---------------------------------------------------------------------------*/
-static struct netif *netif;
+static struct netif *netifp;
 static struct devif *devif;
 static struct devif lwip_dev;
 
 static void devif_thread(void *arg)
 {
-	netif = (struct netif *)arg;
-	devif = (struct devif *)netif->state;
+	netifp = (struct netif *)arg;
+	devif = (struct devif *)netifp->state;
+	struct pbuf *p;
+	int ret;
 
 	DKPRINTF(0x01, "##D %s start\n", __FUNCTION__);
 
-	while(1) {
-		int ret;
+	for(;;) {
 		/* Wait for a packet to arrive. */
 		DKPRINTF(0x01, "##D %s select in\n", __FUNCTION__);
-		ret = select_device(devif->dev, 0);
+		ret = select_device(devif->dev, 100);
 		DKPRINTF(0x01, "##D %s select out\n", __FUNCTION__);
 
 		if(ret >= 0) {
-			/* Handle incoming packet. */
-			devif_input(netif);
-		} else if(ret == -1) {
-			SYSERR_PRINT("devif_thread: select error\n");
+			do {
+				p = low_level_input(devif);
+				if(p != NULL) {
+					if(netifp->input(p, netifp) != ERR_OK) {
+						pbuf_free(p);
+						DKPRINTF(0x10, "free %p\n", p);
+					}
+				}
+			} while(p != NULL);
 		}
-	}
-}
-/*---------------------------------------------------------------------------*/
-/*
- * devif_input():
- *
- * This function should be called when a packet is ready to be read
- * from the interface. It uses the function low_level_input() that
- * should handle the actual reception of bytes from the network
- * interface.
- *
- */
-/*---------------------------------------------------------------------------*/
-static void devif_input(struct netif *netif)
-{
-	struct devif *devif;
-	struct eth_hdr *ethhdr;
-	struct pbuf *p;
-
-	DKPRINTF(0x01, "##D %s\n", __FUNCTION__);
-
-	devif = (struct devif *)netif->state;
-
-	p = low_level_input(devif);
-
-	if(p == NULL) {
-		SYSERR_PRINT("devif_input: low_level_input returned NULL\n");
-		return;
-	}
-	ethhdr = (struct eth_hdr *)p->payload;
-
-	switch(htons(ethhdr->type)) {
-		/* IP or ARP packet? */
-	case ETHTYPE_IP:
-	case ETHTYPE_ARP:
-#if PPPOE_SUPPORT
-		/* PPPoE packet? */
-	case ETHTYPE_PPPOEDISC:
-	case ETHTYPE_PPPOE:
-#endif /* PPPOE_SUPPORT */
-		/* full packet send to tcpip_thread to process */
-		if (netif->input(p, netif) != ERR_OK) {
-			LWIP_DEBUGF(NETIF_DEBUG, ("ethernetif_input: IP input error\n"));
-			pbuf_free(p);
-			p = NULL;
-		}
-		break;
-	default:
-		pbuf_free(p);
-		break;
 	}
 }
 
@@ -346,7 +307,7 @@ err_t devif_init(struct netif *netif)
 
 	devif->ethaddr = (struct eth_addr *)&(netif->hwaddr[0]);
 
-	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
+	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
 
 	if(low_level_init(netif) != 0) {
 		rtn = ERR_IF;
@@ -362,7 +323,7 @@ int link_up_net(void)
 {
 	struct devif *devif;
 
-	devif = (struct devif *)netif->state;
+	devif = (struct devif *)netifp->state;
 
 	ioctl_device(devif->dev, IOCMD_ETHER_LINK_UP, 0, 0);
 
@@ -373,7 +334,7 @@ int link_down_net(void)
 {
 	struct devif *devif;
 
-	devif = (struct devif *)netif->state;
+	devif = (struct devif *)netifp->state;
 
 	ioctl_device(devif->dev, IOCMD_ETHER_LINK_DOWN, 0, 0);
 
@@ -384,7 +345,7 @@ int net_status(void)
 {
 	struct devif *devif;
 
-	devif = (struct devif *)netif->state;
+	devif = (struct devif *)netifp->state;
 
 	return ioctl_device(devif->dev, IOCMD_ETHER_GET_LINK_STATUS, 0, 0);
 }

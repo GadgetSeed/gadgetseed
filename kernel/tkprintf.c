@@ -119,3 +119,14 @@ void kxdump(unsigned char *data, unsigned int len)
 {
 	vxdump(0, data, len, XDUMP_ADDR_DATA_ADDR, XDUMP_DATA_LONG, tkprintf);
 }
+
+/**
+   @brief	非タスクコンテキスト実行用メモリダンプメッセージ出力
+
+   @param[in]	data	ダンプ出力メモリ
+   @param[in]	len	ダンプ出力メモリサイズ
+*/
+void kxbdump(unsigned char *data, unsigned int len)
+{
+	vxdump(0, data, len, XDUMP_ADDR_ANY_WORD, XDUMP_DATA_BYTE, tkprintf);
+}

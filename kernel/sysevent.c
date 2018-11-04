@@ -198,7 +198,7 @@ int get_event(struct st_sysevent *event, unsigned int timeout)
 
 	rtn = event_wait(&evtque, event, timeout);
 
-	if(rtn != 0) {
+	if(rtn >= 0) {
 		if((event->when + GSC_KERNEL_SYSTEMEVENT_LIFE_TIME) > get_kernel_time()) {
 			DKPRINTF(0x01, "get_event what = %d arg = %d\n",
 				 event->what, event->arg);

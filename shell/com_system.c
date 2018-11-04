@@ -102,7 +102,7 @@ static int timer_check_time(int argc, uchar *argv[])
 		tprintf("System = %16lld.%03lld ", utime/1000, utime%1000);
 		tprintf("diff = %8d %8lld\n", (int)(ktime - lktime), utime/1000 - ktime);
 
-		if(cwait(1000) != 0) {
+		if(cwait(1000) >= 0) {
 			unsigned char rd;
 			if(cgetcnw(&rd) != 0) {
 				return 0;
@@ -330,7 +330,7 @@ loop:
 	tprintf("%12d.%03d (sec)\n", (int)dsec, (int)dmsec);
 
 	if(flg_repeat != 0) {
-		if(cwait(rpt_cnt) != 0) {
+		if(cwait(rpt_cnt) >= 0) {
 			unsigned char rd;
 			if(cgetcnw(&rd) != 0) {
 				return 0;

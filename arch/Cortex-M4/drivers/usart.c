@@ -304,7 +304,7 @@ static int usart_putc(struct st_device *dev, unsigned char td)
 #if 1	// 送信完了割り込み使用
 	usart->CR1 |= USART_CR1_TXEIE;	// 送信データエンプティ割り込み許可
 
-	if(event_wait(&(((st_usart_data *)(dev->private_data))->tx_evq), 0, USART_TE_TIMEOUT) == 0) {
+	if(event_wait(&(((st_usart_data *)(dev->private_data))->tx_evq), 0, USART_TE_TIMEOUT) < 0) {
 		if(USART_TE_TIMEOUT != 0) {
 			SYSERR_PRINT("USART TXE timeout\n");
 		}

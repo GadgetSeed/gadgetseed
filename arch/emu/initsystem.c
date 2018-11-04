@@ -40,6 +40,7 @@ extern const struct st_device vether_device;
 extern const struct st_device powerkey_device;
 extern const struct st_device gbkey_device;
 extern const struct st_device led_device;
+extern const struct st_device null_device;
 
 // デバイスドライバリスト
 static const struct st_device * const dev_list[] = {

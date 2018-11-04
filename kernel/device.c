@@ -305,7 +305,7 @@ int close_device(struct st_device *dev)
    @param[in]	dev	デバイスドライバ
    @param[in]	timeout	タイムアウト時間(msec)
 
-   @return	!=0:エラー
+   @return	=-1:ロックタイムアウト、=-2:エラー
 */
 int lock_device(struct st_device *dev, unsigned int timeout)
 {
@@ -326,7 +326,7 @@ int lock_device(struct st_device *dev, unsigned int timeout)
 			DKPRINTF(0x02, "DEV %s LOCK\n", dev->name);
 			return mutex_lock(dev->mutex, timeout);
 		} else {
-			return -1;
+			return -2;
 		}
 	}
 
@@ -577,7 +577,7 @@ int sync_device(struct st_device *dev)
    @param[in]	dev	デバイスドライバ
    @param[in]	timeout	タイムアウト時間
 
-   @return	<0:エラー
+   @return	=-1:タイムアウト、=-2:エラー
 */
 int select_device(struct st_device *dev, unsigned int timeout)
 {
@@ -587,7 +587,7 @@ int select_device(struct st_device *dev, unsigned int timeout)
 		}
 	}
 
-	return -1;
+	return -2;
 }
 
 /**

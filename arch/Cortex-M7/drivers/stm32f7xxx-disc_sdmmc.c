@@ -210,7 +210,7 @@ static int sdmmc_block_read(struct st_device *dev, void *data, unsigned int sect
 			}
 
 			tout = event_wait(&dma_rx_evt, 0, SD_TIMEOUT);
-			if(tout == 0) {
+			if(tout < 0) {
 				SYSERR_PRINT("event_wait dma_rx_evt timeout(res = %d)\n", res);
 			}
 
@@ -238,7 +238,7 @@ static int sdmmc_block_read(struct st_device *dev, void *data, unsigned int sect
 		}
 
 		tout = event_wait(&dma_rx_evt, 0, SD_TIMEOUT);
-		if(tout == 0) {
+		if(tout < 0) {
 			SYSERR_PRINT("event_wait dma_rx_evt timeout(res = %d)\n", res);
 		}
 
@@ -283,7 +283,7 @@ static int sdmmc_block_write(struct st_device *dev, const void *data, unsigned i
 	res = BSP_SD_WriteBlocks_DMA((uint32_t *)data, sector, blkcount);
 
 	tout = event_wait(&dma_tx_evt, 0, SD_TIMEOUT);
-	if(tout == 0) {
+	if(tout < 0) {
 		SYSERR_PRINT("event_wait dma_tx_evt timeout(res = %d)\n", res);
 	}
 

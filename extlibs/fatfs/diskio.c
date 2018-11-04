@@ -215,7 +215,7 @@ int ff_cre_syncobj(BYTE volume, FF_SYNC_t *mutex)
 /* Lock sync object */
 int ff_req_grant(FF_SYNC_t mutex)
 {
-	if(mutex_lock(mutex, 1000) == 0) {
+	if(mutex_lock(mutex, 1000) < 0) {
 		SYSERR_PRINT("ff lock timeout\n");
 	}
 

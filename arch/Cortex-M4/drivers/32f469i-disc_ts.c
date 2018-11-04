@@ -58,7 +58,7 @@ static int ts_task(char *arg)
 	struct st_sysevent ev;
 
 	while(1) {
-		if(event_wait(&ts_evq, 0, 50) == 0) {
+		if(event_wait(&ts_evq, 0, 50) < 0) {
 			continue;
 		}
 

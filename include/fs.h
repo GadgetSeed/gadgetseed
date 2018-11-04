@@ -63,6 +63,7 @@ struct st_filesystem {
 	t_ssize (* write)(void *fd, const void *buf, t_size count);
 	t_ssize (* seek)(void *fd, t_ssize offset, int whence);
 	t_size (* tell)(void *fd);
+	t_ssize (* size)(void *fd);
 	int (* close)(void *fd);
 	FS_DIR * (* opendir)(const uchar *name);
 	int (* readdir)(FS_DIR *dir, FS_FILEINFO *finfo);

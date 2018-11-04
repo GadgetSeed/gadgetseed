@@ -19,7 +19,7 @@
 #include "task/syscall.h"
 #include "charcode.h"
 
-//#define DEBUGTBITS 0x02
+//#define DEBUGTBITS 0x04
 #include "dtprintf.h"
 
 
@@ -28,6 +28,8 @@ extern struct st_music_info music_info;
 #define MP3BUF_MARGINE	8
 
 static int flg_abort = 0;
+static int flg_stream = 0;
+static int flg_audioset = 0;
 
 static enum mad_flow input(void *data,
 			   struct mad_stream *stream)
@@ -48,6 +50,7 @@ static enum mad_flow input(void *data,
 		break;
 
 	case SOUND_STOP:
+		DTPRINTF(0x07, "mad input stop\n");
 		next_soundplay_status = -1;
 		flg_abort = 1;
 		soundplay_status = SOUND_STOP;
@@ -70,17 +73,22 @@ static enum mad_flow input(void *data,
 
 	if(audio_frame_count == 0) {
 		rtn = soundplay_readfile(file_buf, MPEG_FRAME_HEADER_SIZE);
+		if(rtn != MPEG_FRAME_HEADER_SIZE) {
+			DTPRINTF(0x07, "Frame header read error(%d)\n", rtn);
+		}
+		XDUMP(0x07, file_buf, MPEG_FRAME_HEADER_SIZE);
 		rtn = mpeg_frame_header_decode(&music_info, file_buf);
 		if(rtn != 0) {
-			DTPRINTF(0x01, "Frame Lost\n");
+			DTPRINTF(0x07, "Frame Lost\n");
 			XDUMP(0x02, file_buf, 16);
 			//while(1);
 		}
-		DTPRINTF(0x01, "%4d : Frame Size : %d\n", audio_frame_count, music_info.frame_length);
+		DTPRINTF(0x07, "%4d : Frame Size : %d\n", audio_frame_count, music_info.frame_length);
 		rtn = soundplay_readfile(&file_buf[MPEG_FRAME_HEADER_SIZE],
 					 music_info.frame_length - MPEG_FRAME_HEADER_SIZE + MP3BUF_MARGINE);
 		XDUMP(0x02, file_buf, 16/*music_info.frame_length*/);
 		if(rtn <= 0) {
+			DTPRINTF(0x07, "soundplay_readfile rtn = %d\n",rtn);
 			soundplay_status = SOUND_STOP;
 			return MAD_FLOW_STOP;
 		}
@@ -98,26 +106,36 @@ static enum mad_flow input(void *data,
 		for(i=0; i<MP3BUF_MARGINE; i++) {
 			file_buf[i] = file_buf[music_info.frame_length + i];
 		}
+		XDUMP(0x01, file_buf, MPEG_FRAME_HEADER_SIZE);
 		rtn = mpeg_frame_header_decode(&music_info, file_buf);
 		if(rtn != 0) {
-			DTPRINTF(0x01, "Frame Lost\n");
-			XDUMP(0x02, file_buf, 16);
-			soundplay_status = SOUND_STOP;
-			return MAD_FLOW_STOP;
+			DTPRINTF(0x07, "mpeg_frame_header_decode rtn = %d\n",rtn);
+			DTPRINTF(0x07, "Frame Lost\n");
+			XDUMP(0x07, file_buf, music_info.frame_length + MP3BUF_MARGINE);
+			if(flg_stream == 0) {
+				soundplay_status = SOUND_STOP;
+				DTPRINTF(0x07, "stop flg_stream = %d\n", flg_stream);
+				return MAD_FLOW_STOP;
+			}
 		}
 		DTPRINTF(0x01, "%4d : Frame Size : %d\n", audio_frame_count, music_info.frame_length);
 		rtn = soundplay_readfile(&file_buf[MP3BUF_MARGINE], music_info.frame_length);
 		XDUMP(0x02, file_buf, 16/*music_info.frame_length*/);
 		if(rtn <= 0) {
+			DTPRINTF(0x07, "soundplay_readfile rtn = %d\n", rtn);
 			soundplay_status = SOUND_STOP;
 			return MAD_FLOW_STOP;
 		}
 
-		// 最終フレームチェック
-		trtn = mpeg_frame_header_check(&file_buf[music_info.frame_length]);
-		if(trtn != 0) {
-			DTPRINTF(0x01, "Last Frame(%d).\n", audio_frame_count);
-			stsize = rtn;
+		if(flg_stream == 0) {
+			// 最終フレームチェック
+			trtn = mpeg_frame_header_check(&file_buf[music_info.frame_length]);
+			if(trtn != 0) {
+				DTPRINTF(0x07, "Last Frame(%d).\n", audio_frame_count);
+				stsize = rtn;
+			} else {
+				stsize = rtn + MP3BUF_MARGINE;
+			}
 		} else {
 			stsize = rtn + MP3BUF_MARGINE;
 		}
@@ -162,6 +180,7 @@ static enum mad_flow output(void *data,
 
 	if(soundplay_status == SOUND_STOP) {
 		flg_abort = 1;
+		DTFPRINTF(0x07, "stop\n");
 		return MAD_FLOW_STOP;
 	}
 
@@ -203,15 +222,21 @@ static enum mad_flow output(void *data,
 		}
 	}
 
-	if(audio_frame_count == 1) {
-		soundplay_set_audiobuf_size(nsamples * 2 * 2 * 2);
-		soundplay_set_smprate(music_info.sampling_rate);
+	if(audio_frame_count >= 1) {
+		if(flg_audioset == 0) {
+			soundplay_set_audiobuf_size(nsamples * 2 * 2 * 2);
+			soundplay_set_smprate(music_info.sampling_rate);
+			flg_audioset = 1;
+		}
 	}
 
 	soundplay_write_audiobuf((unsigned char *)audio_buf, nsamples * 2 * 2);
 
-	if(audio_frame_count == 2) {
-		soundplay_start_sound();
+	if(audio_frame_count >= 2) {
+		if(flg_audioset == 1) {
+			soundplay_start_sound();
+			flg_audioset = 2;
+		}
 	}
 
 	audio_play_time = calc_play_time(&music_info, audio_frame_count);
@@ -234,12 +259,15 @@ static enum mad_flow error(void *data,
 			   struct mad_stream *stream,
 			   struct mad_frame *frame)
 {
-	tprintf("Frame %d : decoding error 0x%04x (%s) at byte offset %lX\n",
-		audio_frame_count,
-		stream->error, mad_stream_errorstr(stream),
-		(unsigned long)stream->this_frame);
+	if(stream->error != MAD_ERROR_BADDATAPTR) {
+		tprintf("Frame %d : decoding error 0x%04x (%s) at byte offset %lX\n",
+			audio_frame_count,
+			stream->error, mad_stream_errorstr(stream),
+			(unsigned long)stream->this_frame);
+		xdump(data, 16/*music_info.frame_length*/);
+	}
 
-	xdump(data, 16/*music_info.frame_length*/);
+	audio_frame_count ++;
 
 	return MAD_FLOW_CONTINUE;
 }
@@ -248,9 +276,12 @@ static int mp3_play_proc(void)
 {
 	int rtn = 0;
 
+#if MP3LOOP
+loop:
+#endif
 	audio_frame_count = 0;
 	rtn = mad_decoder_run(&mad_dec, MAD_DECODER_MODE_SYNC);
-	DTPRINTF(0x01, "mad_decoder_run = %d\n", rtn);
+	DTPRINTF(0x07, "mad_decoder_run = %d\n", rtn);
 	(void)rtn;
 	mad_decoder_finish(&mad_dec);
 
@@ -258,6 +289,15 @@ static int mp3_play_proc(void)
 		soundplay_stop_sound();
 	} else {
 		soundplay_end_sound();
+#if MP3LOOP
+		if(flg_stream != 0) {
+			DTPRINTF(0x07, "mad_decoder_run loop\n");
+			mad_decoder_init(&mad_dec, file_buf,
+					 input, 0 /* header */, 0 /* filter */, output,
+					 error, 0 /* message */);
+			goto loop;
+		}
+#endif
 	}
 
 	return 1;
@@ -306,6 +346,7 @@ static int mp3_play(int argc, uchar *argv[])
 {
 	unsigned char *fname;
 	int rtn = 0;
+	int bit_rate = 128;
 
 	if(argc < 2) {
 		tprintf("Usage: mp3 <filename>\n");
@@ -317,17 +358,37 @@ static int mp3_play(int argc, uchar *argv[])
 	}
 
 	flg_abort = 0;
+	flg_audioset = 0;
 	soundplay_init_time();
 
 	fname = (unsigned char *)argv[1];
 	sjisstr_to_utf8str(cname, fname, FF_MAX_LFN);
+
+	if(argc > 2) {
+		flg_stream = 1;
+		bit_rate = dstoi(argv[2]);
+	} else {
+		flg_stream = 0;
+	}
+
 	rtn = soundplay_openfile(fname);
 	if(rtn < 0) {
 		tprintf("Cannot open \"%s\"\n", (char *)cname);
 		return 0;
 	}
 
-	id3tag_decode(&music_info, soundplay_readfile, soundplay_seekfile);
+	init_music_info(&music_info);
+	if(flg_stream != 0) {
+		music_info.format = MUSIC_FMT_MP3;
+		music_info.frame_size = 1152;	// 取り敢えず固定[TODO]
+		music_info.bit_rate = bit_rate;
+		music_info.sampling_rate = 44100;
+		music_info.mpeg_padding = 1;
+		music_info.channel = 1;
+		music_info.frame_length = ((144 * music_info.bit_rate * 1000)/(music_info.sampling_rate)) + music_info.mpeg_padding;
+	} else {
+		id3tag_decode(&music_info, soundplay_readfile, soundplay_seekfile);
+	}
 	disp_music_info(&music_info);
 
 	//set_draw_mode(GRP_DRAWMODE_NORMAL);

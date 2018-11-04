@@ -63,7 +63,7 @@ static int task_top(int argc, uchar *argv[])
 			ti ++;
 		}
 
-		if(cwait(1000) != 0) {
+		if(cwait(1000) >= 0) {
 			unsigned char rd;
 			if(cgetcnw(&rd) != 0) {
 				return 0;

@@ -679,7 +679,7 @@ static int fdump(int argc, uchar *argv[])
 		}
 	}
 
-	ed = seek_file(fd, 0, SEEK_END);
+	//ed = seek_file(fd, 0, SEEK_END);
 
 	if(argc > 2) {
 		st = hstou(argv[2]);
@@ -691,7 +691,9 @@ static int fdump(int argc, uchar *argv[])
 		}
 	}
 
-	(void)seek_file(fd, st, SEEK_SET);
+	if(st != 0) {
+		(void)seek_file(fd, st, SEEK_SET);
+	}
 
 	for(dp=st; dp<=ed; dp+=16) {
 		unsigned char *p;
@@ -758,6 +760,42 @@ static int fdump(int argc, uchar *argv[])
 	}
 
 close:
+	close_file(fd);
+exit:
+	return 0;
+}
+
+
+static int fsize(int argc, uchar *argv[]);
+
+/**
+   @brief	ファイルのサイズを表示する
+*/
+static const struct st_shell_command com_file_fsize = {
+	.name		= "fsize",
+	.command	= fsize,
+	.usage_str	= "<file_name>"
+};
+
+static int fsize(int argc, uchar *argv[])
+{
+	int fd;
+	int filesize;
+
+	if(argc < 2) {
+		print_command_usage(&com_file_fdump);
+		return 0;
+	}
+
+	fd = open_file((unsigned char *)argv[1], FA_READ);
+	if(fd < 0) {
+		tprintf("Cannot open \"%s\"\n", argv[1]);
+		goto exit;
+	}
+
+	filesize = size_file(fd);
+	tprintf("%d\n", filesize);
+
 	close_file(fd);
 exit:
 	return 0;
@@ -884,6 +922,7 @@ static const struct st_shell_command * const com_file_list[] = {
 	&com_file_dirv,
 	&com_file_delete,
 	&com_file_fdump,
+	&com_file_fsize,
 	&com_file_operation,
 	&com_file_batch,
 #ifdef GSC_SHELL_USE_FWTEST

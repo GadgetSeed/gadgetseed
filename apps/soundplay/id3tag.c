@@ -383,8 +383,6 @@ int id3tag_decode(struct st_music_info *info, id3tag_read_func tag_read, id3tag_
 
 	read_size = 0;
 
-	init_music_info(info);
-
 	// ID3TAG Header
 	rt = tag_read(tag_header_buf, ID3TAG_HEADER_SIZE);
 	if(rt < ID3TAG_HEADER_SIZE) {

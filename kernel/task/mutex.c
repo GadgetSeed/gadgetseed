@@ -16,6 +16,8 @@
 //#define DEBUGKBITS 0x03
 #include "dkprintf.h"
 
+//#define CHECK_MULTI_LOCK_MUTEX
+
 
 struct st_mutex mutex_queue_list;		///< MUTEXキュー
 

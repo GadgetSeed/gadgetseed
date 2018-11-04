@@ -61,7 +61,7 @@
 #include "tkprintf.h"
 #include "fs.h"
 
-//#define DEBUGTBITS 0x03
+//#define DEBUGTBITS 0x01
 #include "dtprintf.h"
 
 // ファイルディスクリプタはスタティックに確保
@@ -161,9 +161,10 @@ int open_file(const uchar *path, int flags)
 			if(fdesc != 0) {
 				file_desc[i].fs_desc = fdesc;
 				file_desc[i].flg_used = 1;
+				DTFPRINTF(0x01, "fdesc = %p, fd_num = %d\n", fdesc, i);
 				return i;
 			} else {
-				//SYSERR_PRINT("cannot open file \"%s\" (%d)", path, res);
+				DTFPRINTF(0x01, "open error \"%s\" fdesc = %p\n", (char *)path, fdesc);
 				return -1;
 			}
 		}
@@ -190,7 +191,7 @@ t_ssize read_file(int fd, void *buf, t_size count)
 	struct st_filesystem *fs;
 	int rtn = 0;
 
-	DTFPRINTF(0x02, "fd = %d, buf = %p, count = %d\n", fd, buf, count);
+	DTFPRINTF(0x02, "fd = %d, buf = %p, count = %lld\n", fd, buf, count);
 
 	fs = file_desc[fd].fs;
 	if(fs == 0) {
@@ -218,7 +219,7 @@ t_ssize write_file(int fd, const void *buf, t_size count)
 	struct st_filesystem *fs;
 	int rtn = 0;
 
-	DTFPRINTF(0x02, "fd = %d, buf = %p, count = %d\n", fd, buf, count);
+	DTFPRINTF(0x02, "fd = %d, buf = %p, count = %lld\n", fd, buf, count);
 
 	fs = file_desc[fd].fs;
 	if(fs == 0) {
@@ -246,7 +247,7 @@ t_ssize seek_file(int fd, t_ssize offset, int whence)
 	struct st_filesystem *fs;
 	int rtn = 0;
 
-	DTFPRINTF(0x02, "fd = %d, offset = %d, whence = %d\n", fd, offset, whence);
+	DTFPRINTF(0x02, "fd = %d, offset = %lld, whence = %d\n", fd, offset, whence);
 
 	fs = file_desc[fd].fs;
 	if(fs == 0) {
@@ -272,7 +273,7 @@ t_size tell_file(int fd)
 	struct st_filesystem *fs;
 	int rtn = 0;
 
-	DTFPRINTF(0x01, "fd = %d\n", fd);
+	DTFPRINTF(0x02, "fd = %d\n", fd);
 
 	fs = file_desc[fd].fs;
 	if(fs == 0) {
@@ -281,6 +282,32 @@ t_size tell_file(int fd)
 
 	if(fs->tell != 0) {
 		rtn = fs->tell(file_desc[fd].fs_desc);
+	}
+
+	return rtn;
+}
+
+/**
+   @brief	ファイルアクセス位置の取得
+
+   @param[in]	fd	ファイルディスクリプタ
+
+   @return	先頭からのオフセット位置バイト数
+*/
+t_ssize size_file(int fd)
+{
+	struct st_filesystem *fs;
+	int rtn = 0;
+
+	DTFPRINTF(0x02, "fd = %d\n", fd);
+
+	fs = file_desc[fd].fs;
+	if(fs == 0) {
+		return -1;
+	}
+
+	if(fs->size != 0) {
+		rtn = fs->size(file_desc[fd].fs_desc);
 	}
 
 	return rtn;
@@ -465,7 +492,7 @@ int sync_file(int fd)
 	struct st_filesystem *fs;
 	int rtn = 0;
 
-	DTFPRINTF(0x01, "fd = %d\n", fd);
+	DTFPRINTF(0x02, "fd = %d\n", fd);
 
 	fs = file_desc[fd].fs;
 	if(fs == 0) {
@@ -606,7 +633,7 @@ int mkfs_file(const uchar *path, unsigned char part, unsigned short alloc)
 	struct st_filesystem *fs;
 	int rtn = 0;
 
-	DTFPRINTF(0x02, "path = %s, part = %d, alloc = %d\n", ath, part, alloc);
+	DTFPRINTF(0x02, "path = %s, part = %d, alloc = %d\n", path, part, alloc);
 
 	fs = get_filesystem(path);
 	if(fs == 0) {

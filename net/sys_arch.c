@@ -19,7 +19,7 @@
 #include "task/mutex.h"
 #include "lwipopts.h"
 
-//#define DEBUGKBITS 0x02
+//#define DEBUGKBITS 0x04
 #include "dkprintf.h"
 
 
@@ -55,8 +55,8 @@ err_t sys_mutex_new(sys_mutex_t *mutex)
 			mutex_register(&net_sys_mutex[i].mutex,
 				       net_sys_mutex[i].name);
 			*mutex = &net_sys_mutex[i];
-			DKFPRINTF(0x01, "\"%s\"(%08lx)\n",
-				  (*mutex)->mutex.name, (unsigned long)mutex);
+			DKFPRINTF(0x01, "\"%s\"(%p)\n",
+				  (*mutex)->mutex.name, mutex);
 			errcode = ERR_OK;
 			break;
 		}
@@ -114,10 +114,10 @@ static struct st_mutex lwip_semapho_mtx;
 
 err_t sys_sem_new(sys_sem_t *sem, u8_t count)
 {
-	DKFPRINTF(0x02, "(%p) %d\n", sem, count);
-
 	int i;
 	err_t errcode = ERR_MEM;
+
+	DKFPRINTF(0x02, "(%p) %d\n", sem, count);
 
 	mutex_lock(&lwip_semapho_mtx, 0);
 
@@ -159,9 +159,18 @@ void sys_sem_signal(sys_sem_t *sem)
 u32_t sys_arch_sem_wait(sys_sem_t *sem, u32_t timeout)
 {
 	char tmp;
+	int tout = 0;
+
 	DKFPRINTF(0x02, "\"%s\"(%p) timeout=%u\n", (*sem)->event.name, sem, timeout);
 
-	return event_wait(&((*sem)->event), &tmp, timeout);
+	tout = event_wait(&((*sem)->event), &tmp, timeout);
+	DKFPRINTF(0x04, "\"%s\"(%p) tout=%d\n", (*sem)->event.name, sem, tout);
+
+	if(tout < 0) {
+		tout = SYS_ARCH_TIMEOUT;
+	}
+
+	return tout;
 }
 
 void sys_sem_free(sys_sem_t *sem)
@@ -226,7 +235,7 @@ struct sys_mbox {
 	char name[RESOURCE_NAME_LEN];
 	int use;
 	int valid;
-	void *msg[MBOX_QUEUE_COUNT + 1];	// キュー出来るMBOXは最大1
+	void *msg[MBOX_QUEUE_COUNT + 1];	// キュー出来るMBOXは最大MBOX_QUEUE_COUNT
 };
 
 static struct sys_mbox net_sys_mbox[MAX_NET_MBOX];
@@ -243,10 +252,10 @@ static struct st_mutex lwip_mbox_mtx;
 */
 err_t sys_mbox_new(sys_mbox_t *mbox, int size)
 {
-	DKFPRINTF(0x04, "(%p) %d\n", mbox, size);
-
 	int i;
 	err_t errcode = ERR_MEM;
+
+	DKFPRINTF(0x04, "(%p) %d\n", mbox, size);
 
 	mutex_lock(&lwip_mbox_mtx, 0);
 
@@ -280,9 +289,10 @@ err_t sys_mbox_new(sys_mbox_t *mbox, int size)
 */
 void sys_mbox_post(sys_mbox_t *mbox, void *msg)
 {
+	void *arg;
+
 	DKFPRINTF(0x04, "\"%s\"(%p) %p\n", (*mbox)->event.name, mbox, msg);
 
-	static void *arg;
 	arg = msg;
 	event_wakeup(&((*mbox)->event), &arg);
 }
@@ -294,18 +304,24 @@ void sys_mbox_post(sys_mbox_t *mbox, void *msg)
 */
 err_t sys_mbox_trypost(sys_mbox_t *mbox, void *msg)
 {
+	void *arg;
+
 	DKFPRINTF(0x04, "\"%s\"(%p) %p\n", (*mbox)->event.name, mbox, msg);
 
 	if(event_check(&((*mbox)->event)) >= MBOX_QUEUE_COUNT) {
-		DKFPRINTF(0x04, "%s: %s full\n", __FUNCTION__, (*mbox)->event.name);
+		DKFPRINTF(0x14, "%s full\n", (*mbox)->event.name);
 		return ERR_MEM;
 	}
 
-	static void *arg;
 	arg = msg;
 	event_wakeup(&((*mbox)->event), &arg);
 
 	return ERR_OK;
+}
+
+err_t sys_mbox_trypost_fromisr(sys_mbox_t *mbox, void *msg)
+{
+	return sys_mbox_trypost(mbox, msg);
 }
 
 /*
@@ -325,19 +341,22 @@ err_t sys_mbox_trypost(sys_mbox_t *mbox, void *msg)
 */
 u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
 {
+	int tout = -1;
+
 	DKFPRINTF(0x04, "\"%s\"(%p) %p timeout=%u\n", (*mbox)->event.name, mbox, msg, timeout);
 
 	if(msg == 0) {
 		SYSERR_PRINT("msg = 0\n");
 	}
 
-	long tout = event_wait(&((*mbox)->event), msg, timeout);
-	DKFPRINTF(0x04, "\"%s\"(%p) %p\n", (*mbox)->event.name, mbox, msg);
+	tout = event_wait(&((*mbox)->event), msg, timeout);
+	DKFPRINTF(0x04, "\"%s\"(%p) tout=%d\n", (*mbox)->event.name, mbox, tout);
 
-	if((timeout != 0) && (tout == 0)) {
+	if(tout < 0) {
 		tout = SYS_ARCH_TIMEOUT;
 	}
 
+	DKFPRINTF(0x04, "\"%s\" rtn=%d\n", (*mbox)->event.name, tout);
 	return tout;
 }
 
@@ -357,9 +376,9 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t *mbox, void **msg, u32_t timeout)
 */
 u32_t sys_arch_mbox_tryfetch(sys_mbox_t *mbox, void **msg)
 {
-	DKFPRINTF(0x04, "\"%s\"(%p) %p\n", (*mbox)->event.name, mbox, msg);
+	int rtn = ERR_OK;
 
-	long rtn = ERR_OK;
+	DKFPRINTF(0x04, "\"%s\"(%p) %p\n", (*mbox)->event.name, mbox, msg);
 
 	if(event_check(&((*mbox)->event)) == 0) {
 		rtn = SYS_MBOX_EMPTY;
@@ -367,6 +386,7 @@ u32_t sys_arch_mbox_tryfetch(sys_mbox_t *mbox, void **msg)
 		event_wait(&((*mbox)->event), msg, 0);
 	}
 
+	DKFPRINTF(0x04, "%s rtn = d\n", (*mbox)->name, rtn);
 	return rtn;
 }
 
@@ -393,17 +413,18 @@ void sys_mbox_free(sys_mbox_t *mbox)
 */
 int sys_mbox_valid(sys_mbox_t *mbox)
 {
+	int valid = 0;
+
 	DKFPRINTF(0x04, "(%p)\n", mbox);
 
 	if(((mbox) != NULL) && (*(mbox) != NULL)) {
 		if((*mbox)->valid != 0) {
-			DKFPRINTF(0x04, "%s valid = 1\n", (*mbox)->name);
-			return 1;
+			valid = 1;
 		}
 	}
 
-	DKFPRINTF(0x04, "valid = 0\n");
-	return 0;
+	DKFPRINTF(0x04, "%s valid = %d\n", (*mbox)->name, valid);
+	return valid;
 }
 
 /*
@@ -465,7 +486,7 @@ static int lwip_thread(char *arg)
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread,
 			    void *arg, int stacksize, int prio)
 {
-	DKFPRINTF(0x10, "arg=%p stacksize=%d prio=%d\n", arg, stacksize, prio);
+	DKFPRINTF(0x01, "arg=%p stacksize=%d prio=%d\n", arg, stacksize, prio);
 
 	mutex_lock(&lwip_thread_mtx, 0);
 
@@ -496,9 +517,9 @@ end:
 
 void sys_init(void)
 {
-	DKFPRINTF(0x10, "\n");
-
 	int i;
+
+	DKFPRINTF(0x10, "\n");
 
 	mutex_register(&lwip_mutex_mtx, "lwip_mutex");
 	mutex_register(&lwip_semapho_mtx, "lwip_semapho");
@@ -520,9 +541,11 @@ void sys_init(void)
 
 uint32_t sys_now(void)
 {
+	uint32_t ntime;
+
 	DKFPRINTF(0x20, "");
 
-	uint32_t ntime = get_kernel_time();
+	ntime = get_kernel_time();
 
 	DKPRINTF(0x20, " %u \n", ntime);
 

@@ -894,8 +894,11 @@ void event_set_ISR(void *sp, struct st_event *evtque)
 		if(task->wup_time != 0) {
 			// タイムアウト時間指定有り
 			// タイムアウトを戻り値に設定
-			((struct evtque_param *)task->syscall.param)->ret =
-					task->wup_time - systime;
+			int ret = task->wup_time - systime;
+			if(ret < 0) {
+				ret = 0;
+			}
+			((struct evtque_param *)task->syscall.param)->ret = ret;
 			// タイムアウト待ちキューから削除
 			del_queue(&(task->timer_list.queue));
 		} else {
@@ -959,8 +962,11 @@ void event_wakeup_ISR(void *sp, struct st_event *evtque, void *arg)
 		if(task->wup_time != 0) {
 			// タイムアウト時間指定有り
 			// タイムアウトを戻り値に設定
-			((struct evtque_param *)task->syscall.param)->ret =
-					task->wup_time - systime;
+			int ret = task->wup_time - systime;
+			if(ret < 0) {
+				ret = 0;
+			}
+			((struct evtque_param *)task->syscall.param)->ret = ret;
 			// タイムアウト待ちキューから削除
 			del_queue(&(task->timer_list.queue));
 		} else {
@@ -1024,8 +1030,8 @@ void mutex_lock_ISR(void *sp, struct st_mutex *mutex, unsigned int timeout)
 		DKPRINTF(0x01, "mutex locked wait %s\n", run_task->name);
 		_mutex_wait(mutex, run_task);
 
-		// タイムアウトした場合のために戻り値は 0 にしておく
-		((struct mutex_param *)run_task->syscall.param)->ret = 0;
+		// タイムアウトした場合のために戻り値は -1 にしておく
+		((struct mutex_param *)run_task->syscall.param)->ret = -1;
 
 		// タイムアウト時間指定の場合はタイムアウト待ちキューに追加
 		if(timeout != 0) {

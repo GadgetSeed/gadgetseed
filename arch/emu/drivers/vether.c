@@ -5,6 +5,8 @@
     @authoer	Takashi SHUDO
 */
 
+#include "sysconfig.h"
+
 #include "device.h"
 #include "device/ether_ioctl.h"
 #include "interrupt.h"
@@ -24,6 +26,8 @@
 #include <linux/if.h>
 #include <linux/if_tun.h>
 
+#include "dkprintf.h"
+
 //#define DEBUG
 #ifdef DEBUG
 #define VEPRINTF	printf
@@ -33,9 +37,18 @@
 
 #define DEVTAP "/dev/net/tun"
 
+#ifndef GSC_ETHERDEV_DEFAULT_MACADDRESS	// $gsc EtherデバイスデフォルトMACアドレス
+static unsigned char macaddress[6] = { 0x02, 0x00, 0x00, 0x00, 0x00, 0x01 };
+#else
 static const unsigned char macaddr[6] = {
-	0x01, 0x02, 0x03, 0x04, 0x05, 0x06
+	(GSC_ETHERDEV_DEFAULT_MACADDRESS >> 40) & 0xff,
+	(GSC_ETHERDEV_DEFAULT_MACADDRESS >> 32) & 0xff,
+	(GSC_ETHERDEV_DEFAULT_MACADDRESS >> 24) & 0xff,
+	(GSC_ETHERDEV_DEFAULT_MACADDRESS >> 16) & 0xff,
+	(GSC_ETHERDEV_DEFAULT_MACADDRESS >>  8) & 0xff,
+	(GSC_ETHERDEV_DEFAULT_MACADDRESS >>  0) & 0xff
 };
+#endif
 
 #define ETH_FRM_LEN	1536
 
@@ -143,11 +156,20 @@ static int vether_open(struct st_device *dev)
 
 	VEPRINTF("vether_open\r\n");
 
+#if 1
+	ret = system("ifconfig tap0 0.0.0.0 promisc up");
+	ret = system("brctl addif br0 tap0");
+	if(ret != 0) {
+		printf("%s brctl addif error %d\n", DEVTAP, ret);
+		printf("Bridge device \"br0\" is required.\n");
+	}
+#else
 	ret = system("ifconfig tap0 inet 10.0.0.254");
 	if(ret != 0) {
 		SYSERR_PRINT("%s ifconfig error %d\r\n", DEVTAP, ret);
 		return -1;
 	}
+#endif
 
 	flg_open = 1;
 
@@ -207,11 +229,16 @@ static int vether_ioctl(struct st_device *dev, unsigned int com, unsigned int ar
 	switch(com) {
 	case IOCMD_ETHER_GET_MACADDR:	// MACアドレス取得
 	{
+		unsigned char *mac = (unsigned char *)param;
 		int i;
 
 		for(i=0; i<6; i++) {
-			((unsigned char *)param)[i] = macaddr[i];
+			mac[i] = macaddr[i];
 		}
+
+		DKPRINTF(0x01, "MAC Addr %02X:%02X:%02X:%02X:%02X:%02X\n",
+			 (int)mac[0], (int)mac[1], (int)mac[2],
+			 (int)mac[3], (int)mac[4], (int)mac[5]);
 	}
 	break;
 

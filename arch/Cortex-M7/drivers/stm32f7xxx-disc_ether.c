@@ -16,8 +16,9 @@
 
 #include "stm32f7xx_hal_conf.h"
 #include "stm32f7xx_hal_eth.h"
+#include "stm32f7xx_hal.h"
 
-//#define DEBUGKBITS 0x01
+//#define DEBUGKBITS 0x1000
 #include "dkprintf.h"
 
 
@@ -61,15 +62,37 @@ static unsigned char ether_event[ETH_RXBUFNB + 1];
 static struct st_event interrupt_evtque;
 static ETH_HandleTypeDef EthHandle;
 static void *int_sp;
+static int flgs_int = 0;
+#define FLG_RX	0x01
+#define FLG_TX	0x02
+#define FLG_ER	0x04
 
 ETH_DMADescTypeDef  DMARxDscrTab[ETH_RXBUFNB] __attribute__((section(".RxDescripSection")));/* Ethernet Rx MA Descriptor */
 ETH_DMADescTypeDef  DMATxDscrTab[ETH_TXBUFNB] __attribute__((section(".TxDescripSection")));/* Ethernet Tx DMA Descriptor */
 uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE] __attribute__((section(".RxBUF")));/* Ethernet Receive Buffer */
 uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE] __attribute__((section(".TxBUF")));/* Ethernet Transmit Buffer */
 
+
 void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
 {
-	event_wakeup_ISR(int_sp, &interrupt_evtque, 0);
+	DKFPRINTF(0x01, "\n");
+
+	flgs_int |= FLG_RX;
+}
+
+void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth)
+{
+	DKFPRINTF(0x10, "\n");
+
+	flgs_int |= FLG_TX;
+}
+
+void HAL_ETH_ErrorCallback(ETH_HandleTypeDef *heth)
+{
+	DKFPRINTF(0xff, "\n");
+	SYSERR_PRINT("error?\n");
+
+	flgs_int |= FLG_ER;
 }
 
 static void inthdr_ether(unsigned int intnum, void *sp)
@@ -77,8 +100,17 @@ static void inthdr_ether(unsigned int intnum, void *sp)
 	DKFPRINTF(0x01, "\n");
 
 	int_sp = sp;
+	flgs_int = 0;
 
 	HAL_ETH_IRQHandler(&EthHandle);
+
+	DKFPRINTF(0x01, "flgs_int = %02x\n", flgs_int);
+
+	if(flgs_int & FLG_RX) {
+		DKPRINTF(0x04, "*");
+		DKFPRINTF(0x01, "wakeup\n");
+		event_wakeup_ISR(int_sp, &interrupt_evtque, 0);
+	}
 }
 
 void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
@@ -114,6 +146,34 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
 	}
 }
 
+#define SIZEOFSTACK	(1024*1)
+static struct st_tcb tcb;
+static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)];
+
+static int rmii_task(char *arg)
+{
+	(void)arg;
+
+	for(;;) {
+		/* some unicast good packets are received */
+		if(EthHandle.Instance->MMCRGUFCR > 0U) {
+			/* RMII Init is OK: Delete the Thread */
+			task_exit();
+		} else if(EthHandle.Instance->MMCRFCECR > 10U) {
+			/* ETH received too many packets with CRC errors, resetting RMII */
+			SYSCFG->PMC &= ~SYSCFG_PMC_MII_RMII_SEL;
+			SYSCFG->PMC |= SYSCFG_PMC_MII_RMII_SEL;
+
+			EthHandle.Instance->MMCCR |= ETH_MMCCR_CR;
+		} else {
+			/* Delay 200 ms */
+			task_sleep(200);
+		}
+	}
+
+	return 0;
+}
+
 static int ether_register(struct st_device *dev, char *param)
 {
 	eventqueue_register(&interrupt_evtque, "ether_int",
@@ -146,6 +206,11 @@ static int ether_register(struct st_device *dev, char *param)
 	/* Initialize Rx Descriptors list: Chain Mode  */
 	HAL_ETH_DMARxDescListInit(&EthHandle, DMARxDscrTab, &Rx_Buff[0][0], ETH_RXBUFNB);
 
+	if(HAL_GetREVID() == 0x1000) {
+		tkprintf("RMII configuration Hardware Bug Version(0x1000)\n");
+		task_add(rmii_task, "ether_rmii", 1, &tcb, stack, SIZEOFSTACK, 0);
+	}
+
 	return 0;
 }
 
@@ -172,15 +237,15 @@ static int ether_close(struct st_device *dev)
 
 static int ether_read(struct st_device *dev, void *data, unsigned int size)
 {
-	DKFPRINTF(0x01, "size = %d\n", size);
-
 	int i;
 	unsigned short len = 0;
 	unsigned char *buffer;
 	volatile ETH_DMADescTypeDef *dmarxdesc;
 
+	DKFPRINTF(0x81, "size = %d\n", size);
+
 	if(HAL_ETH_GetReceivedFrame_IT(&EthHandle) != HAL_OK) {
-		DKPRINTF(0x01, "ETH Receive Error?\n");
+		DKPRINTF(0x07, "ETH no Receive data\n");
 		goto readend;
 	} else {
 		DKPRINTF(0x01, "ETH Receive OK\n");
@@ -193,7 +258,9 @@ static int ether_read(struct st_device *dev, void *data, unsigned int size)
 	len = EthHandle.RxFrameInfos.length;
 	buffer = (uint8_t *)EthHandle.RxFrameInfos.buffer;
 
+	DKPRINTF(0x01, "RxFrameInfos.length = %d\n", len);
 	memorycopy(data, buffer, len);
+	KXBDUMP(0x02, data, len);
 
 	/* Release descriptors to DMA */
 	/* Point to first descriptor */
@@ -221,15 +288,27 @@ readend:
 
 static int ether_write(struct st_device *dev, const void *data, unsigned int size)
 {
-	DKFPRINTF(0x01, "size = %d\n", size);
-
 	unsigned char *buffer = (unsigned char *)(EthHandle.TxDesc->Buffer1Addr);
 	int rtn = size;
+	HAL_StatusTypeDef res;
+	__IO ETH_DMADescTypeDef *DmaTxDesc;
+
+	DKFPRINTF(0x08, "size = %d\n", size);
+
+	DmaTxDesc = EthHandle.TxDesc;
+	if((DmaTxDesc->Status & ETH_DMATXDESC_OWN) != (uint32_t)RESET) {
+		SYSERR_PRINT("DmaTxDesc use\n");
+		return -1;
+	}
 
 	memorycopy(buffer, data, size);
+	KXBDUMP(0x02, buffer, size);
 
 	/* Prepare transmit descriptors to give to DMA */
-	HAL_ETH_TransmitFrame(&EthHandle, size);
+	res = HAL_ETH_TransmitFrame(&EthHandle, size);
+	if(res != HAL_OK) {
+		SYSERR_PRINT("HAL_ETH_TransmitFrame error %d\n", res);
+	}
 
 	/* When Transmit Underflow flag is set, clear it and issue a Transmit Poll Demand to resume transmission */
 	if((EthHandle.Instance->DMASR & ETH_DMASR_TUS) != (uint32_t)RESET) {
@@ -271,7 +350,7 @@ static int ether_ioctl(struct st_device *dev, unsigned int com, unsigned int arg
 		break;
 
 	case IOCMD_ETHER_LINK_UP:
-		HAL_ETH_Start(&EthHandle);
+		HAL_ETH_DMARxDescListInit(&EthHandle, DMARxDscrTab, &Rx_Buff[0][0], ETH_RXBUFNB);
 		break;
 
 	case IOCMD_ETHER_LINK_DOWN:
@@ -325,13 +404,13 @@ static int ether_ioctl(struct st_device *dev, unsigned int com, unsigned int arg
 
 static int ether_select(struct st_device *dev, unsigned int timeout)
 {
-	DKFPRINTF(0x01, "timeout = %d\n", timeout);
+	DKFPRINTF(0x08, "timeout = %d\n", timeout);
 
 	int rtn = 0;
 
 	rtn = event_wait(&interrupt_evtque, 0, timeout);
 
-	DKPRINTF(0x01, "%s return=%ld\n", __FUNCTION__, rtn);
+	DKFPRINTF(0x08, "return=%d\n", rtn);
 
 	return rtn;
 }

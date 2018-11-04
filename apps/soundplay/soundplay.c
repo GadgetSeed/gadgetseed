@@ -137,8 +137,8 @@ int soundplay_write_audiobuf(unsigned char *buf, int size)
 	int rtn;
 
 	rtn = select_device(audio_dev, SPIO_TIMEOUT);
-	if(rtn == 0) {
-		tprintf("Audio Decode & Play time too int(%d).\n", rtn);
+	if(rtn < 0) {
+		tprintf("Audio Decode & Play time too long(%d).\n", rtn);
 	}
 
 	if(lock_device(audio_dev, SPIO_TIMEOUT) == 0) {
@@ -597,6 +597,6 @@ void startup_soundplay(void)
 	}
 	tprintf("AUDIO Buffer Size : %d\n", audio_buf_size);
 
-	task_exec(soundplay_task, "soundplay", 1, &tcb,
+	task_exec(soundplay_task, "soundplay", 2, &tcb,
 		  stack, SIZEOFAPPTS, 0);
 }

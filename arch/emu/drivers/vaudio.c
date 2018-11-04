@@ -287,6 +287,11 @@ static int vaudio_ioctl(struct st_device *dev, unsigned int com, unsigned int ar
 	return 0;
 }
 
+static int vaudio_select(struct st_device *dev, unsigned int timeout)
+{
+	return 0;
+}
+
 const struct st_device vaudio_device = {
 	.name		= DEF_DEV_NAME_AUDIO,
 	.explan		= "EMU audio",
@@ -296,4 +301,5 @@ const struct st_device vaudio_device = {
 	.close		= vaudio_close,
 	.write		= vaudio_write,
 	.ioctl		= vaudio_ioctl,
+	.select		= vaudio_select,
 };

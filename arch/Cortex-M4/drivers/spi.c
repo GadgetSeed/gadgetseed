@@ -313,7 +313,7 @@ const struct st_device spi2_device;
 void lock_spi(struct st_device *dev)
 {
 	if(mutex_lock(&(((struct st_spi_data *)(dev->private_data))->spimutex),
-		      MUTEX_LOCK_TIMEOUT) == 0) {
+		      MUTEX_LOCK_TIMEOUT) < 0) {
 		SYSERR_PRINT("%s lock timeout\n", dev->name);
 	}
 }

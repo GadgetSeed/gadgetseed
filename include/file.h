@@ -18,6 +18,7 @@ extern t_ssize read_file(int fd, void *buf, t_size count);
 extern t_ssize write_file(int fd, const void *buf, t_size count);
 extern t_ssize seek_file(int fd, t_ssize offset, int whence);
 extern t_size tell_file(int fd);
+extern t_ssize size_file(int fd);
 extern int close_file(int fd);
 extern FS_DIR * opendir_file(const uchar *name);
 extern int readdir_file(FS_DIR *dir, FS_FILEINFO *finfo);

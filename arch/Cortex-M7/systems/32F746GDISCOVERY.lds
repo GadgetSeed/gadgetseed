@@ -4,9 +4,8 @@
 MEMORY {
 	vectors(r)	: ORIGIN = 0x08000000, LENGTH = 0x200
 	rom(xwr)	: ORIGIN = 0x08000200, LENGTH = 1024k-0x200
-	stack(xwr)	: ORIGIN = 0x20000000, LENGTH =   32k-16k
-/*	ram(xwr)	: ORIGIN = 0x20008000, LENGTH =  240k*/
-	ram(xwr)	: ORIGIN = 0x20004000, LENGTH =  240k+32k
+	stack(xwr)	: ORIGIN = 0x20000000, LENGTH =   16k
+	ram(xwr)	: ORIGIN = 0x20004000, LENGTH =  304k-16k
 	mem(xwr)	: ORIGIN = 0x2004C000, LENGTH =   16k
 	nvram(wr)	: ORIGIN = 0x40024000, LENGTH =    4k
 	sdram(xrw)	: ORIGIN = 0xC0000000, LENGTH =    8M

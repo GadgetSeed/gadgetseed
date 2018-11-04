@@ -359,7 +359,7 @@ void eventqueue_register(struct st_event *evtque, const char *name, void *args, 
    @param[out]	args		イベント引数ポインタ
    @param[in]	timeout		イベントタイムアウト待ち時間(msec)
 
-   @return	待ちタイムアウト残り時間(msec)(=0:タイムアウト)
+   @return	待ちタイムアウト残り時間(msec)(<0:タイムアウト)
 */
 int event_wait(struct st_event *evtque, void *arg, unsigned int timeout)
 {
@@ -371,7 +371,7 @@ int event_wait(struct st_event *evtque, void *arg, unsigned int timeout)
 	param.evtque = evtque;
 	param.timeout = timeout;
 	param.arg = arg;
-	param.ret = 0;	// タイムアウト時は0を返す為
+	param.ret = -1;	// タイムアウト時は-1を返す為
 
 	DKPRINTF(0x01, "exec param = %p\n", &param);
 	DKPRINTF(0x01, "evtque = %p\n", param.evtque);
@@ -512,7 +512,7 @@ void mutex_register(struct st_mutex *mutex, const char *name)
    @param[in]	mutex		MUTEXポインタ
    @param[in]	timeout		タイムアウト時間(msec)(=0:タイムアウト無し)
 
-   @return	待ちタイムアウト残り時間(msec)(=0:タイムアウト)
+   @return	待ちタイムアウト残り時間(msec)(<0:タイムアウト)
 */
 int mutex_lock(struct st_mutex *mutex, unsigned int timeout)
 {

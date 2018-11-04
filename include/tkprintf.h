@@ -14,6 +14,7 @@ int register_kmess_out_dev(struct st_device *dev);
 unsigned int set_kernel_message_out_mem(unsigned char *mp, unsigned int size);
 int tkprintf(const char *fmt, ...);
 void kxdump(unsigned char *data, unsigned int len);
+void kxbdump(unsigned char *data, unsigned int len);
 
 #define SYSERR_COLOR	"\033[31m"	// RED
 #define NORMAL_COLOR	"\033[m"	// default color

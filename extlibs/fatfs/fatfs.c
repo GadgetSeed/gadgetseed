@@ -260,6 +260,23 @@ t_size tell_fatfs(void *fd)
 
 
 /**
+   @brief	ファイルサイズの取得
+
+   @param[in]	fd	ファイルディスクリプタ
+
+   @return	ファイルサイズ
+*/
+t_ssize size_fatfs(void *fd)
+{
+	struct st_fatfs_file_desc *fatfs = fd;
+
+	DTFPRINTF(0x01, "fd = %p\n", fd);
+
+	return f_size(&(fatfs->fat));
+}
+
+
+/**
    @brief	ファイルを閉じる
 
    @param[in]	fd	ファイルディスクリプタ
@@ -532,6 +549,7 @@ const struct st_filesystem fatfs_fs = {
 	.readdir	= readdir_fatfs,
 	.closedir	= closedir_fatfs,
 	.stat		= stat_fatfs,
+	.size		= size_fatfs,
 	.getfree	= getfree_fatfs,
 	.sync		= sync_fatfs,
 	.unlink		= unlink_fatfs,
