@@ -89,13 +89,21 @@ BMP2TXT = $(TOOLS_DIR)/bmp2txt
 TXT2BITMAP = $(TOOLS_DIR)/txt2bitmap
 
 
-LIBS	+= $(KERNEL_LIB) \
-	   $(ARCH_LIB) \
-	   $(DRIVERS_LIB) \
-	   $(LIBS_LIB)
+# shell
+SHELL_DIR = shell
+SHELL_LIB = $(SHELL_DIR)/shell.a
+ifeq ($(COMP_ENABLE_SHELL),YES)
+	LIBS += $(SHELL_LIB)
+endif
 
-HEADERS += $(HEADERS_DIR)/task/*.h
-LIBS += $(TASK_LIB)
+# uilib
+UILIB_DIR = uilib
+export UILIB_DIR
+UILIB_LIB= $(UILIB_DIR)/uilib.a
+ifeq ($(ENABLE_UILIB),YES)	# $gsc ユーザインタフェースライブラリを有効にする
+	LIBS += $(UILIB_LIB)
+endif
+
 
 # fs
 FATFS_DIR = $(EXTLIBS_DIR)/fatfs
@@ -109,14 +117,7 @@ FS_LIB = $(FS_DIR)/fs.a
 ifeq ($(COMP_ENABLE_FATFS),YES)
 	LIBS += $(FATFS_LIB)
 	LIBS += $(FS_LIB)
-endif
-
-# uilib
-UILIB_DIR = uilib
-export UILIB_DIR
-UILIB_LIB= $(UILIB_DIR)/uilib.a
-ifeq ($(ENABLE_UILIB),YES)	# $gsc ユーザインタフェースライブラリを有効にする
-	LIBS += $(UILIB_LIB)
+	SHELL_EXT_LIB += $(FATFS_LIB)
 endif
 
 # random.o
@@ -155,13 +156,6 @@ ifeq ($(COMP_ENABLE_TCPIP),YES)
 	HEADERS += $(HEADERS_DIR)/net/*.h
 	LIBS += $(LWIP_LIB)
 	LIBS += $(NET_LIB)
-endif
-
-# shell
-SHELL_DIR = shell
-SHELL_LIB = $(SHELL_DIR)/shell.a
-ifeq ($(COMP_ENABLE_SHELL),YES)
-	LIBS += $(SHELL_LIB)
 endif
 
 # libmad
@@ -204,6 +198,16 @@ ifeq ($(LIB_ENABLE_ZLIB),YES)	# $gsc zlibライブラリを有効にする
 	LIBS += $(LIBZLIB_LIB)
 	SHELL_EXT_LIB += $(LIBZLIB_LIB)
 endif
+
+
+LIBS	+= $(KERNEL_LIB) \
+	   $(ARCH_LIB) \
+	   $(DRIVERS_LIB) \
+	   $(LIBS_LIB)
+
+HEADERS += $(HEADERS_DIR)/task/*.h
+LIBS += $(TASK_LIB)
+
 
 ifdef APPLICATION	# $gsc アプリケーションディレクトリ
 	APP_LIB = $(APPS_DIR)/$(APPLICATION)/$(APPLICATION).a
@@ -365,7 +369,7 @@ $(LOGOSRC): $(LOGOTXT) $(TXT2BITMAP)
 endif
 
 ifeq ($(ARCH),emu)
-$(PROGRAM): $(OBJS) $(SYSCONFHEADER) $(ALIBS) $(LIBS) emu.a
+$(PROGRAM): $(OBJS) $(SYSCONFHEADER) $(ALIBS) $(LIBS) $(LIBS_LIB) emu.a
 	$(LD) -o $@ $(OBJS) $(ALIBS) $(LIBS) $(LIBS_LIB) $(ARCH_LIB) emu.a $(LIBS) \
 	-lm -lpthread -lcurses -lasound -lrt `pkg-config --cflags --libs gtk+-2.0`
 	ln -f -s $(PROGRAM) $(PROGLINK)
