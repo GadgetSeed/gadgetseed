@@ -16,19 +16,17 @@
 
 #define WAV_FRAME_SIZE	(1024*4)
 
-extern int soundplay_status;
-
 static int wav_play_proc(void)
 {
 	long rsize = 0;
 
-	while(soundplay_status != SOUND_STOP) {
-		rsize = soundplay_readfile(file_buf, WAV_FRAME_SIZE);
+	while(soundplay_status != SOUND_STAT_READY) {
+		rsize = soundplay_readfile(comp_audio_data, WAV_FRAME_SIZE);
 		//tprintf("\nR:%ld\n",rsize);
 		if(rsize == 0) {
 			goto end;
 		} else {
-			soundplay_write_audiobuf(file_buf, rsize);
+			soundplay_write_audiobuf(comp_audio_data, rsize);
 		}
 	}
 end:
@@ -69,31 +67,31 @@ static int wav_play(int argc, uchar *argv[])
 	soundplay_init_time();
 
 	fname = (unsigned char *)argv[1];
-	sjisstr_to_utf8str(cname, fname, FF_MAX_LFN);
+	sjisstr_to_utf8str(comp_audio_file_name, fname, FF_MAX_LFN);
 	rtn = soundplay_openfile(fname);
 	if(rtn < 0) {
-		tprintf("Cannot open \"%s\"\n", cname);
+		tprintf("Cannot open \"%s\"\n", comp_audio_file_name);
 		return 0;
 	}
 
 	// 適当なWAVヘッダデコード
-	rsize = soundplay_readfile(file_buf, 44);	// WAVのヘッダ分
+	rsize = soundplay_readfile(comp_audio_data, 44);	// WAVのヘッダ分
 	if(rsize < 44) {
 		tprintf("Header Read Error(size: %ld)\n", rsize);
 	}
-	rate = ((long)file_buf[24] << 0) +
-			((long)file_buf[25] <<  8) +
-			((long)file_buf[26] << 16) +
-			((long)file_buf[27] << 24);
+	rate = ((long)comp_audio_data[24] << 0) +
+			((long)comp_audio_data[25] <<  8) +
+			((long)comp_audio_data[26] << 16) +
+			((long)comp_audio_data[27] << 24);
 	tprintf("Sampling Rate : %ld\n", rate);
 
 	soundplay_set_audiobuf_size(WAV_FRAME_SIZE * 2);
 	soundplay_set_smprate(rate);
 
-	rsize = soundplay_readfile(file_buf, WAV_FRAME_SIZE);
-	soundplay_write_audiobuf(file_buf, rsize);
+	rsize = soundplay_readfile(comp_audio_data, WAV_FRAME_SIZE);
+	soundplay_write_audiobuf(comp_audio_data, rsize);
 
-	tprintf("Start Play \"%s\"\n", cname);
+	tprintf("Start Play \"%s\"\n", comp_audio_file_name);
 	soundplay_start_sound();
 	soundplay_start_proc(wav_play_proc);
 

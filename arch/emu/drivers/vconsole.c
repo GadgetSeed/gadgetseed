@@ -165,7 +165,7 @@ static int verror_putc(struct st_device *dev, unsigned char ch)
 }
 
 const struct st_device verror_device = {
-	.name		= "tty_low",
+	.name		= "debug",
 	.explan		= "EMU Error out",
 	.register_dev	= verror_register,
 	.putc		= verror_putc,

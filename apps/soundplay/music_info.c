@@ -17,7 +17,10 @@ void init_music_info(struct st_music_info *info)
 	info->title[0] = 0;
 	info->artist[0] = 0;
 	info->album[0] = 0;
+	info->genre[0] = 0;
+	info->url[0] = 0;
 	info->format = MUSIC_FMT_UNKNOWN;
+	info->vbr = 0;
 	info->track = 0;
 	info->last_track = 0;
 	info->bit_rate = 0;
@@ -31,6 +34,7 @@ void init_music_info(struct st_music_info *info)
 		free_memory(info->sample_size_data);
 		info->sample_size_data = 0;
 	}
+	info->metaint = 0;
 	info->flg_have_artwork = 0;
 }
 
@@ -53,7 +57,7 @@ void disp_music_info(struct st_music_info *info)
 
 unsigned int calc_play_time(struct st_music_info *info, unsigned int frame_count)
 {
-	return (unsigned int)(((unsigned long long)frame_count * info->frame_size * 1000) / info->sampling_rate);
+	return (unsigned int)(((unsigned long long)frame_count * 1152/*info->frame_size*/ * 1000) / info->sampling_rate);
 }
 
 void disp_play_time(unsigned int play_time)

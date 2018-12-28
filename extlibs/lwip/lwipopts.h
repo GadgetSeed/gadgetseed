@@ -11,6 +11,9 @@
 #include "sysconfig.h"
 #include "random.h"
 #include "tkprintf.h"
+#include "task/task.h"
+
+#define TCPIP_THREAD_PRIO	TASK_PRIORITY_NETWORK
 
 /**
  * NO_SYS==1: Provides VERY minimal functionality. Otherwise,
@@ -79,7 +82,8 @@ a lot of data that needs to be copied, this should be set high. */
 #define TCP_SND_QUEUELEN        (2* TCP_SND_BUF/TCP_MSS)
 
 /* TCP receive window. */
-#define TCP_WND                 (2*TCP_MSS)
+//#define TCP_WND                 (2*TCP_MSS)
+#define TCP_WND                 (3*TCP_MSS)
 
 
 /* ---------- ICMP options ---------- */
@@ -212,7 +216,11 @@ extern void lwip_set_errno(int err);
 #define HTTPD_DEBUG	LWIP_DBG_ON
 #endif
 
+#ifndef GSC_KERNEL_MESSAGEOUT_LOG
 #define LWIP_PLATFORM_DIAG(x)	do {tkprintf x;} while(0)
+#else
+#define LWIP_PLATFORM_DIAG(x)	do {gslogn x;} while(0)
+#endif
 #define LWIP_PLATFORM_ASSERT(x) do {tkprintf("Assertion \"%s\" failed at line %d in %s\n", \
 					     x, __LINE__, __FILE__);} while(0)
 

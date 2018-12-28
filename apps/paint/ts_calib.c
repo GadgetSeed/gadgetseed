@@ -152,7 +152,7 @@ static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)];
 void startup_ts_calib(void)
 {
 #ifdef TS_CALIB_TASK
-	task_exec(ts_calib_task, "ts_calib", 2, &tcb,
+	task_exec(ts_calib_task, "ts_calib", TASK_PRIORITY_APP_HIGH, &tcb,
 		  stack, SIZEOFSTACK, 0);
 #else
 	while(1) {

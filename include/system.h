@@ -10,6 +10,7 @@
 
 void init_sect(void);
 void init_system(int *argc, char ***argv);
+void init_system2(void);
 void init_system_drivers(void);
 void init_system_process(void);
 void reset_system(void);

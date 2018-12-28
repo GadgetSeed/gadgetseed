@@ -52,7 +52,7 @@ static void inthdr_exti15_10(unsigned int intnum, void *sp)
 
 #define SIZEOFSTACK	(1024*4)
 static struct st_tcb tcb;
-static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)] ATTR_STACK;
 
 extern const struct st_device ts_device;
 
@@ -138,7 +138,7 @@ static int ts_register(struct st_device *dev, char *param)
 
 	register_interrupt(IRQ2VECT(EXTI15_10_IRQn), inthdr_exti15_10);
 
-	task_add(ts_task, "touch_sensor", 1, &tcb,
+	task_add(ts_task, "touch_sensor", TASK_PRIORITY_DEVICE_DRIVER, &tcb,
 		 stack, SIZEOFSTACK, 0);
 
 	BSP_TS_Init(LCD_WIDTH, LCD_HEIGHT);

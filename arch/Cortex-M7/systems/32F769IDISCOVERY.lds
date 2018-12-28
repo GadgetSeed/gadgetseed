@@ -4,8 +4,8 @@
 MEMORY {
 	vectors(r)	: ORIGIN = 0x08000000, LENGTH = 0x200
 	rom(xwr)	: ORIGIN = 0x08000200, LENGTH = 2048k-0x200
-	stack(xwr)	: ORIGIN = 0x20000000, LENGTH =  128k
-	ram(xwr)	: ORIGIN = 0x20020000, LENGTH =  368k
+	stack(xwr)	: ORIGIN = 0x20000000, LENGTH =   64k
+	ram(xwr)	: ORIGIN = 0x20010000, LENGTH =  368k+64k
 	mem(xwr)	: ORIGIN = 0x2007C000, LENGTH =   16k
 	nvram(wr)	: ORIGIN = 0x40024000, LENGTH =    4k
 	sdram(xrw)	: ORIGIN = 0xC0000000, LENGTH =   16M
@@ -89,10 +89,16 @@ SECTIONS {
 		_enonvolatile = .;
 	} >nvram
 
-	.RxDescripSection     0x20000000 (NOLOAD) : { *(.RxDescripSection)     } >stack
+
+/*	.RxDescripSection     0x20000000 (NOLOAD) : { *(.RxDescripSection)     } >stack
 	.TxDescripSection     0x200000A0 (NOLOAD) : { *(.TxDescripSection)     } >stack
 	.RxBUF                0x20000140 (NOLOAD) : { *(.RxBUF)                } >stack
 	.TxBUF                0x20001F04 (NOLOAD) : { *(.TxBUF)                } >stack
+*/
+	.RxDescripSection     0x20000000 (NOLOAD) : { *(.RxDescripSection)     } >stack
+	.TxDescripSection     0x20000140 (NOLOAD) : { *(.TxDescripSection)     } >stack
+	.RxBUF                0x20000280 (NOLOAD) : { *(.RxBUF)                } >stack
+	.TxBUF                0x20004000 (NOLOAD) : { *(.TxBUF)                } >stack
 
 	.stack (NOLOAD) : ALIGN(8) {
 		*(.stack)

@@ -1,12 +1,12 @@
 # Gadgetseed Command shell
 
-Gadgetseed has a command shell that is primarily intended for debugging systems and applications.
+Gadgetseed has a command shell that is primarily designed to debug systems and applications.
 
 ## How to use
 
-Command shells are usually available from the serial interface.
-From the PC, please connect via serial terminal software.
-The following is an example of launching a command shell for Stm32f746ngh6:
+The command shell is usually available from the serial interface.
+Please connect via serial terminal software from PC.
+The following is an example of launching the STM32F746NGH6 command shell:
 
 ```
 GadgetSeed Ver. 0.9.5
@@ -31,15 +31,15 @@ AUDIO Buffer Size : 9216
 
 The command prompt is ":".
 
-## Basic operations
+## Basic operation
 
-Enter a command from the keyboard and run the command with enter key.
+Enter the command from the keyboard and run the command with enter key.
 
-You can enter the command you entered in the past by typing the cursor key up or down.
+You can enter the command you entered in the past again by typing the cursor key up or down.
 
-The executable command string can be complemented by the TAB key.
+You can use the TAB key to complete an executable command string.
 
-## The main commands
+## Main commands
 
 ### help
 
@@ -109,7 +109,7 @@ audio     : STM32F769I-Disc Audio Out
 
 ### task list
 
-Displays a list of the task information that is running.
+Displays a list of running task information.
 
 ```
 : task list 
@@ -124,7 +124,7 @@ PID Name       Pri Status Entry    PC       Stack(size)    SP       SleepTime
 
 ### task top
 
-Continues to display the CPU utilization of the running task at one second interval.
+Continues to display the CPU usage of the running task at a one-second interval.
 
 ```
 PID TASK-NAME       PRI RUN-TIME(us)   %CPU
@@ -164,7 +164,7 @@ D 18/01/06         MOUNTA~1 Mountain Dance
 D 14/08/17         RIDEON~1 RIDE ON TIME (Remaster)
 D 17/01/22         SAYITW~1 Say It with Silence
 D 18/07/30         YELLOW~1.) Yellow Magic Orchestra(US Ver.)
-D 10/05/15 ______ ~ 1 synchronized Western teen
+D 10/05/15 ______ ~ 1 synchronicity Teen
 0:/ OK
    5 File  331.5K
   16 Dir   493.2M free

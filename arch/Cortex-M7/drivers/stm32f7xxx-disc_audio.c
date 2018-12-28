@@ -67,7 +67,24 @@ void BSP_AUDIO_OUT_Error_CallBack(void)
 
 static void inthdr_audio(unsigned int intnum, void *sp)
 {
+	int i;
+	unsigned char *dp = &audio_buf[0];;
+
 	HAL_DMA_IRQHandler(haudio_out_sai.hdmatx);
+
+	if(flg_buf_half != 1) {
+		dp = &audio_buf[bufsize/2];
+	} else {
+		dp = &audio_buf[0];
+	}
+
+	for(i=0; i<(bufsize/2); i++) {
+		if(dp >= &audio_buf[MAX_AUDIOBUF]) {
+			break;
+		}
+		*dp = 0;
+		dp ++;
+	}
 
 	event_wakeup_ISR(sp, &tx_evq, 0);
 }
@@ -161,7 +178,7 @@ static int audio_write(struct st_device *dev, const void *data, unsigned int siz
 
 	for(i=0; i<len; i++) {
 		if(dp >= &audio_buf[MAX_AUDIOBUF]) {
-			SYSERR_PRINT("Write buffer over %d %ld\n", bufsize, size);
+			SYSERR_PRINT("Write buffer over %d %u\n", bufsize, size);
 			break;
 		}
 		*dp = *sp;
@@ -325,7 +342,7 @@ static int audio_ioctl(struct st_device *dev, unsigned int com, unsigned int arg
 		break;
 
 	default:
-		SYSERR_PRINT("Unknow command %08lX arg %08lX\n", com, arg);
+		SYSERR_PRINT("Unknow command %08X arg %08X\n", com, arg);
 		break;
 	}
 

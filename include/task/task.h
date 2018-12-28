@@ -15,8 +15,32 @@
 #include "tcb.h"
 
 #ifndef GSC_KERNEL_MAX_TASK_PRIORITY
-#define GSC_KERNEL_MAX_TASK_PRIORITY		4	///< $gsc カーネルタスクプライオリティ段階数
+#define GSC_KERNEL_MAX_TASK_PRIORITY	6	///< $gsc カーネルタスクプライオリティ段階数
+#else
+#if GSC_KERNEL_MAX_TASK_PRIORITY < 6
+#error "KERNEL_MAX_TASK_PRIORITY must begreater then 6"
 #endif
+#endif
+
+/*
+  タスクプライリティ
+
+  高
+  0: shell
+  1: デバイスドライバ
+  2: ネットワーク
+  3: アプリケーション(高プライオリティ)
+  4: アプリケーション(低プライオリティ)
+  5: IDLEタスク
+  低
+ */
+
+#define TASK_PRIORITY_SHELL		0
+#define TASK_PRIORITY_DEVICE_DRIVER	1
+#define TASK_PRIORITY_NETWORK		2
+#define TASK_PRIORITY_APP_HIGH		3
+#define TASK_PRIORITY_APP_LOW		4
+#define TASK_PRIORITY_IDLE		(GSC_KERNEL_MAX_TASK_PRIORITY - 1)
 
 // プロセッサ依存関数
 void setup_task(void *sp, int stack_size, void (* task)(void), struct st_tcb *tcb);

@@ -89,6 +89,9 @@
 struct st_device *con_in_dev;	///< デフォルト標準入力デバイス
 struct st_device *con_out_dev;	///< デフォルト標準出力デバイス
 struct st_device *con_err_dev;	///< デフォルトエラー出力デバイス
+#ifdef GSC_KERNEL_MESSAGEOUT_LOG
+struct st_device *con_log_dev;	///< デフォルトログ出力デバイス
+#endif
 
 extern struct st_tcb *run_task;
 
@@ -257,7 +260,6 @@ void register_error_out_dev(const struct st_device *err_dev)
 	con_err_dev = (struct st_device *)err_dev;
 }
 
-
 /**
    @brief	エラー出力より文字列を出力する
 
@@ -282,6 +284,44 @@ int eputs(unsigned char *str, unsigned int len)
 	return i;
 #endif
 }
+
+
+#ifdef GSC_KERNEL_MESSAGEOUT_LOG
+/**
+   @brief	システムのログ出力デバイスを登録する
+
+   @param[in]	err_dev	ログ出力デバイス
+*/
+void register_log_out_dev(const struct st_device *log_dev)
+{
+	con_log_dev = (struct st_device *)log_dev;
+}
+
+/**
+   @brief	ログ出力より文字列を出力する
+
+   @param[in]	str	文字列ポインタ
+   @param[in]	len	文字列のバイト数
+*/
+int lputs(unsigned char *str, unsigned int len)
+{
+#if 0
+	return write_device(run_task->error_dev, str, len);
+#else // LF = CRLF
+	int i;
+
+	for(i=0; i<len; i++) {
+		if(*str == '\n') {
+			putc_device(con_log_dev, '\r');
+		}
+		putc_device(con_log_dev, *str);
+		str ++;
+	}
+
+	return i;
+#endif
+}
+#endif
 
 
 /**

@@ -5,11 +5,20 @@
     @author	Takashi SHUDO
 */
 
+#include "sysconfig.h"
 #include "vtprintf.h"
+#include "tprintf.h"
 #include "tkprintf.h"
+#include "timer.h"
 
 static struct st_device *kmess_dev;
-static io_write kmess_out;
+io_write kmess_out_func;
+
+#ifdef GSC_KERNEL_MESSAGEOUT_LOG
+extern struct st_device *kmess_log_dev;
+extern io_write kmess_log_func;
+extern int flg_disp_logtimestamp;
+#endif
 
 static unsigned char *kmess_sp;
 static unsigned int kmess_size, kmess_count;
@@ -34,7 +43,7 @@ static int ksputs(unsigned char *str, unsigned int len)
 	return count;
 }
 
-static int kputs(unsigned char *str, unsigned int len)
+int kputs(unsigned char *str, unsigned int len)
 {
 #if 0
 	return write_device(kmess_dev, str, len);
@@ -63,7 +72,7 @@ static int kputs(unsigned char *str, unsigned int len)
 int register_kmess_out_dev(struct st_device *dev)
 {
 	kmess_dev = dev;
-	kmess_out = kputs;
+	kmess_out_func = kputs;
 
 	return 0;
 }
@@ -79,12 +88,12 @@ int register_kmess_out_dev(struct st_device *dev)
 unsigned int set_kernel_message_out_mem(unsigned char *mp, unsigned int size)
 {
 	if(mp == 0) {
-		kmess_out = kputs;
+		kmess_out_func = kputs;
 	} else {
 		kmess_sp = mp;
 		kmess_size = size; 
 		kmess_count = 0; 
-		kmess_out = ksputs;
+		kmess_out_func = ksputs;
 	}
 
 	return kmess_count;
@@ -101,13 +110,55 @@ int tkprintf(const char *fmt, ...)
 {
 	va_list	args;
 	int len = 0;
-	
-	va_start(args, fmt);	
-	len += vtprintf(kmess_out, fmt, 0, args);
+
+#ifdef GSC_KERNEL_MESSAGEOUT_LOG
+	char str[MAXFORMATSTR];	// フォーマットデコードバッファ
+
+	len = str_timestamp(str);
+	if(flg_disp_logtimestamp != 0) {
+		kmess_out_func((unsigned char *)str, len);
+		kmess_out_func((unsigned char *)"(K) ", 4);
+	} else {
+		kmess_log_func((unsigned char *)str, len);
+		kmess_log_func((unsigned char *)"(K) ", 4);
+	}
+#endif
+
+	va_start(args, fmt);
+	len += vtprintf(kmess_out_func, fmt, 0, args);
 	va_end(args);
 
 	return len;
 }
+
+#ifndef GSC_KERNEL_MESSAGEOUT_LOG
+#include "log.h"
+
+/**
+   @brief	ログメッセージ記録
+
+   @param[in]	pri	優先順位
+   @param[in]	fmt	メッセージフォーマット
+
+   @return	出力メッセージサイズ
+*/
+int gslog(int pri, const char *fmt, ...)
+{
+	va_list	args;
+	int len = 0;
+
+	if(pri > 0) {
+		return 0;
+	}
+
+	va_start(args, fmt);
+	len += vtprintf(kmess_out_func, fmt, 0, args);
+	va_end(args);
+
+	return len;
+}
+#endif
+
 
 /**
    @brief	非タスクコンテキスト実行用メモリダンプメッセージ出力

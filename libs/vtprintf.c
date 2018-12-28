@@ -152,9 +152,6 @@ int vtprintf(io_write write, const char *fmt, unsigned int size, va_list args)
 						(void)itods(str, MAXFORMATSTR-1, val);
 					} else if(flong == 2) {
 						long long val = va_arg(args, long long);
-#ifdef LONGLONGSWAP
-						val = (val >> 32) | (val << 32);
-#endif
 						(void)lltods(str, MAXFORMATSTR-1, val);
 					} else {
 						int val = va_arg(args, int);
@@ -181,9 +178,6 @@ int vtprintf(io_write write, const char *fmt, unsigned int size, va_list args)
 							(void)itodsz(str, strlen, val);
 						} else if(flong == 2) {
 							long long val = va_arg(args, long long);
-#ifdef LONGLONGSWAP
-							val = (val >> 32) | (val << 32);
-#endif
 							(void)lltodsz(str, strlen, val);
 						} else {
 							int val = va_arg(args, int);
@@ -195,9 +189,6 @@ int vtprintf(io_write write, const char *fmt, unsigned int size, va_list args)
 							(void)itods(str, strlen, val);
 						} else if(flong == 2) {
 							long long val = va_arg(args, long long);
-#ifdef LONGLONGSWAP
-							val = (val >> 32) | (val << 32);
-#endif
 							(void)lltods(str, strlen, val);
 						} else {
 							int val = va_arg(args, int);
@@ -223,9 +214,6 @@ int vtprintf(io_write write, const char *fmt, unsigned int size, va_list args)
 						(void)uitods(str, MAXFORMATSTR-1, (unsigned int)val);
 					} else if(flong == 2) {
 						unsigned long long val = va_arg(args, unsigned long long);
-#ifdef LONGLONGSWAP
-						val = (val >> 32) | (val << 32);
-#endif
 						(void)ulltods(str, MAXFORMATSTR-1, val);
 					} else {
 						unsigned int val = va_arg(args, unsigned int);
@@ -253,9 +241,6 @@ int vtprintf(io_write write, const char *fmt, unsigned int size, va_list args)
 							(void)uitodsz(str, strlen, (unsigned int)val);
 						} else if(flong == 2) {
 							unsigned long long val = va_arg(args, unsigned long long);
-#ifdef LONGLONGSWAP
-							val = (val >> 32) | (val << 32);
-#endif
 							(void)ulltodsz(str, strlen, val);
 						} else {
 							unsigned int val = va_arg(args, unsigned int);
@@ -267,9 +252,6 @@ int vtprintf(io_write write, const char *fmt, unsigned int size, va_list args)
 							(void)uitods(str, strlen, (unsigned int)val);
 						} else if(flong == 2) {
 							unsigned long long val = va_arg(args, unsigned long long);
-#ifdef LONGLONGSWAP
-							val = (val >> 32) | (val << 32);
-#endif
 							(void)ulltods(str, strlen, val);
 						} else {
 							unsigned int val = va_arg(args, unsigned int);
@@ -292,17 +274,22 @@ int vtprintf(io_write write, const char *fmt, unsigned int size, va_list args)
 				if(flong == 1) {
 					long val = va_arg(args, long);
 					if(strlen == 0) {
+#ifdef __x86_64__
+						strlen = (unsigned int)sizeof(int)*2;
+#else
 						strlen = (unsigned int)sizeof(long)*2;
+#endif
 					}
 					(void)itohs(str, strlen, val);
 				} else if(flong == 2) {
-					long long val = va_arg(args, long long);
+					unsigned long long val = va_arg(args, unsigned long long);
 					if(strlen == 0) {
+#ifdef __x86_64__
+						strlen = (unsigned int)sizeof(int)*4;
+#else
 						strlen = (unsigned int)sizeof(long)*4;
-					}
-#ifdef LONGLONGSWAP
-					val = (val >> 32) | (val << 32);
 #endif
+					}
 					(void)lltohs(str, strlen, val);
 				} else {
 					int val = va_arg(args, int);

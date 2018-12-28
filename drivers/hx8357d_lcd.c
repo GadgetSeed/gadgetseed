@@ -396,7 +396,7 @@ static int hx8357d_lcd_ioctl(struct st_device *dev, unsigned int com, unsigned i
 		break;
 
 	default:
-		SYSERR_PRINT("Unknow command %08lX arg %08lX\n", com, arg);
+		SYSERR_PRINT("Unknow command %08X arg %08X\n", com, arg);
 		return -1;
 	}
 

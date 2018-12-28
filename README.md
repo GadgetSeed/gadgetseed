@@ -4,20 +4,20 @@
 
 ![GadgetSeed](gadgetseed_logo.png)
 
-Gadgetseed is a multi-tasking OS for embedded devices.
+Gadgetseed is a multitasking OS for embedded devices.
 
 ## Features
 
-* Multi-tasking kernel
+* Multitasking kernel
 * Shell commands to help debug
-* Standardized device Driver API
-* [FatFS](http://elm-chan.org/fsw/ff/00index_e.html) file system support
-* [LwIP](https://savannah.nongnu.org/projects/lwip/) TCP/IP protocol stack supported
+* Standardized device driver APIs
+* [Fatfs](http://elm-chan.org/fsw/ff/00index_e.html) file system supported
+* [lwIP](https://savannah.nongnu.org/projects/lwip/) TCP/IP protocol stack supported
 * Graphics drawing, character font drawing
 
 ## Support MCU architecture
 
-   Gadgetseed can work with less architecture.
+   Gadgetseed can operate in the following architectures:
 
 * ARM Cortex-M7
 * ARM Cortex-M4
@@ -25,7 +25,7 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 
 ## Support Hardware
 
-   Gadgetseed can work with less hardware.
+   Gadgetseed can operate on the following hardware:
 
 | Hardware | MCU | Architecture |
 |---------------------------------------|---------------|----------------|
@@ -92,7 +92,7 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 
    [apps/APPLICATIONS.md](apps/APPLICATIONS.md)
 
-## Building a development environment
+## Building the development environment
 
 ### Operating Environment configuration
 
@@ -100,56 +100,56 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 
 ### For Ubuntu 18.04
 
-1. STM32CUBEMX Installation
+1. Install Stm32cubemx
 
    <https://www.st.com/en/development-tools/stm32cubemx.html>[English]  
    <https://www.st.com/ja/development-tools/stm32cubemx.html>[Japanese]
 
-   Download Stm32cubemx from the above site and unzip "En.stm32cubemx.zip".
-   Use "Setupstm32cubemx-4.26.1.linux" from the unzipped "En.stm32cubemx.zip".
+   Download stm32cubemx. exe from the site above and unzip "En.stm32cubemx.zip".
+   Use "SetupSTM32CubeMX-4.26.1.linux" from the unzipped "En.stm32cubemx.zip".
 
    ```sh
    sudo apt install -y libc6-i386 default-jre openjfx
-   sudo ./SetupSTM32CubeMX-4.26.1.linux
+   sudo ./SetupSTM32CubeMX-5.0.0.linux
    ```
 
 1. Install STM32 HAL and LL drivers
 
-   Start the STM32CUBEMX and install the HAL driver and the LL driver.
+   Start Stm32cubemx and install the HAL driver and the LL driver.
 
    ```sh
    /usr/local/STMicroelectronics/STM32Cube/STM32CubeMX/STM32CubeMX &
    ```
 
-   Install "Stm32cube MCU Package for stm32f7 Serias Version 1.12.0" for the MCU STM32F7 system.  
-   Install "Stm32cube MCU Package for stm32f4 Serias Version 1.21.0" for the MCU STM32F4 system.  
-   Install "Stm32cube MCU Package for stm32l1 Serias Version 1.8.1" for the MCU STM32L1 system.
+   Install "STM32Cube MCU Package for STM32F7 Serias Version 1.14.0" for the MCU STM32F7 system.  
+   Install "STM32Cube MCU Package for STM32F4 Serias Version 1.23.0" for the MCU STM32F4 system.  
+   Install "STM32Cube MCU Package for STM32L1 Serias Version 1.8.1" for the MCU STM32L1 system.
 
-1. ARM-GCC Installation
+1. Install ARM-GCC
 
    <https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads>
 
-   Download the GNU Arm Embedded Toolchain ("gcc-arm-none-eabi-7-2017-q4-major-linux.tar.bz2") from the above site.
+   Download the GNU Arm Embedded toolchain ("Gcc-arm-none-eabi-8-2018-q4-major-linux.tar.bz2") from the site above.
 
    Install
    ```sh
-   sudo tar xvfj gcc-arm-none-eabi-7-2017-q4-major-linux.tar.bz2 -C /opt
+   sudo tar xvfj gcc-arm-none-eabi-8-2018-q4-major-linux.tar.bz2 -C /opt
    ```
 
-   Setting the execution path
+   Set execution path
    ```sh
-   PATH=$PATH:/opt/gcc-arm-none-eabi-7-2017-q4-major/bin
+   PATH=$PATH:/opt/gcc-arm-none-eabi-8-2018-q4-major/bin
    ```
-   It is recommended to append the above to .bash_aliases.
+   It is recommended that the above be appended to the. Bash_aalies, etc.
 
-1. Install the Make GCC openocd picocom tool
+1. Install the make GCC openocd picocom and other tools
 
    ```sh
    sudo apt install -y git make gcc unzip openocd picocom otf2bdf p7zip-full
    ```
 
 <!--
-1. ARM-GCC Installation
+1. Install ARM-GCC
    <http://marksolters.com/programming/2016/06/22/arm-toolchain-16-04.html>
 
    ```sh
@@ -166,7 +166,7 @@ Gadgetseed is a multi-tasking OS for embedded devices.
    <http://www.st.com/en/development-tools/stm32cubeprog.html>[English]  
    <http://www.st.com/ja/development-tools/stm32cubeprog.html>[Japanese]
 
-   Install as needed.
+   If necessary, install it.
 
    ```sh
    sudo apt-get -y install libusb-1.0.0-dev
@@ -175,9 +175,9 @@ Gadgetseed is a multi-tasking OS for embedded devices.
    ```
 -->
 
-## Build executables
+## Build an executable file
 
-1. Execute make command
+1. Run the Make command
 
    Run the make command in the directory where you extracted the source tree.
 
@@ -185,27 +185,28 @@ Gadgetseed is a multi-tasking OS for embedded devices.
    make
    ```
 
-1. System Selection by configuration
+1. Select the system by configuration
 
-   When the following is displayed, select the system to build. Enter a number from 1 to 5 to select the system.
+   When you see the following, select the system you want to build. Enter a number from 1 to 5 to select the system.
 
    ```sh
    *** Select target system ***
-     1 : 32F746GDISCOVERY               : STM 32F746GDISCOVERY                          : 32F746GDISCOVERY.conf
-     2 : 32F769IDISCOVERY               : STM 32F769IDISCOVERY                          : 32F769IDISCOVERY.conf
-     3 : NUCLEO-F411RE                  : STM NUCLEO-F411RE                             : NUCLEO-F411RE.conf
-     4 : NUCLEO-F411RE_HVGA-LCD-HX8357D : STM NUCLEO-F411RE + MAR3520(HVGA LCD HX8357D) : NUCLEO-F411RE_HVGA-LCD-HX8357D.conf
-     5 : NUCLEO-F411RE_QVGA-LCD-ILI9341 : STM NUCLEO-F411RE + K60(QVGA LCD ILI9341)     : NUCLEO-F411RE_QVGA-LCD-ILI9341.conf
-     6 : NUCLEO-L152RE                  : STM NUCLEO-L152RE                             : NUCLEO-L152RE.conf
-     7 : emu                            : Emulator system with linux                    : emu.conf
+     1 : 32F469IDISCOVERY               : STM 32F469IDISCOVERY                          : 32F469IDISCOVERY.conf
+     2 : 32F746GDISCOVERY               : STM 32F746GDISCOVERY                          : 32F746GDISCOVERY.conf
+     3 : 32F769IDISCOVERY               : STM 32F769IDISCOVERY                          : 32F769IDISCOVERY.conf
+     4 : NUCLEO-F411RE                  : STM NUCLEO-F411RE                             : NUCLEO-F411RE.conf
+     5 : NUCLEO-F411RE_HVGA-LCD-HX8357D : STM NUCLEO-F411RE + MAR3520(HVGA LCD HX8357D) : NUCLEO-F411RE_HVGA-LCD-HX8357D.conf
+     6 : NUCLEO-F411RE_QVGA-LCD-ILI9341 : STM NUCLEO-F411RE + K60(QVGA LCD ILI9341)     : NUCLEO-F411RE_QVGA-LCD-ILI9341.conf
+     7 : NUCLEO-L152RE                  : STM NUCLEO-L152RE                             : NUCLEO-L152RE.conf
+     8 : emu                            : Emulator system with linux                    : emu.conf
    Input No. : 
    ```
 
-1. Selecting an application by configuration
+1. Selecting Applications by configuration
 
-   When you see the following information, choose the application you want to build.
-   An example is when you select "2" (32F769IDISCOVERY) as the system.
-   Enter a number and select an application.
+   When you see the following, select the application you want to build.
+   The example is when you select "2" (32F769IDISCOVERY) as the system.
+   Enter a number to select the application.
 
    ```sh
    Select : 2
@@ -223,7 +224,7 @@ Gadgetseed is a multi-tasking OS for embedded devices.
    Input No. : 
    ```
 
-   An example is when you select "7" (Music Player High resolution Display) as your application.
+   An example is when you select "7" (Music Player High resolution Display) as an application.
 
    ```sh
    Select : 7
@@ -240,17 +241,17 @@ Gadgetseed is a multi-tasking OS for embedded devices.
    gcc -Wall -O2 -o txt2bitmap txt2bitmap.c
     :
     :
-   echo "const char os_version[] = \"0.9.5\";" > version.c
+   echo "const char os_version[] = \"0.9.8\";" > version.c
    echo "const char build_date[] = __DATE__;" >> version.c
    echo "const char build_time[] = __TIME__;" >> version.c
    arm-none-eabi-gcc -g -Wall -mthumb -mcpu=cortex-m7 -mtune=cortex-m7 -fipa-sra -mfpu=fpv5-d16 -mfloat-abi=hard -O2 -I/home/shudo/develop/gadgetseed/include -c version.c
-   arm-none-eabi-gcc -g -Wall -mthumb -mcpu=cortex-m7 -mtune=cortex-m7 -fipa-sra -mfpu=fpv5-d16 -mfloat-abi=hard -O2 -I/home/shudo/develop/gadgetseed/include -Wl,-static -Wl,--gc-sections -nostartfiles -o gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.5.elf -Tarch/Cortex-M7/systems/32F769IDISCOVERY.lds -Wl,-Map=gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.5.map arch/Cortex-M7/start.o version.o \
+   arm-none-eabi-gcc -g -Wall -mthumb -mcpu=cortex-m7 -mtune=cortex-m7 -fipa-sra -mfpu=fpv5-d16 -mfloat-abi=hard -O2 -I/home/shudo/develop/gadgetseed/include -Wl,-static -Wl,--gc-sections -nostartfiles -o gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.8.elf -Tarch/Cortex-M7/systems/32F769IDISCOVERY.lds -Wl,-Map=gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.8.map arch/Cortex-M7/start.o version.o \
    main.o gs_logo.o apps/soundplay/soundplay.a apps/musicplay/musicplay.a kernel/kernel.a arch/Cortex-M7/arch.a drivers/drivers.a libs/libs.a kernel/task/task.a extlibs/fatfs/libfatfs.a fs/fs.a uilib/uilib.a graphics/graphics.a font/font.a fontdata/fontdata.a shell/shell.a extlibs/libmad/libmad.a extlibs/faad2/libfaad2.a extlibs/picojpeg/libpicojpeg.a extlibs/libpng/libpng.a extlibs/zlib/libzlib.a arch/Cortex-M7/arch.a -lm kernel/kernel.a arch/Cortex-M7/arch.a drivers/drivers.a libs/libs.a kernel/task/task.a extlibs/fatfs/libfatfs.a fs/fs.a uilib/uilib.a graphics/graphics.a font/font.a fontdata/fontdata.a shell/shell.a extlibs/libmad/libmad.a extlibs/faad2/libfaad2.a extlibs/picojpeg/libpicojpeg.a extlibs/libpng/libpng.a extlibs/zlib/libzlib.a
-   ln -f -s gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.5.elf gadgetseed
+   ln -f -s gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.8.elf gadgetseed
    arm-none-eabi-objdump -h --section=.VECTORS --section=.text --section=.data \
-   --section=.bss --section=.stack gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.5.elf
+   --section=.bss --section=.stack gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.8.elf
 
-   gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.5.elf:     file format elf32-littlearm
+   gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.8.elf:     file format elf32-littlearm
 
    Sections:
    Idx Name          Size      VMA       LMA       File off  Algn
@@ -266,15 +267,15 @@ Gadgetseed is a multi-tasking OS for embedded devices.
                      CONTENTS
    ```
 
-## How to write and run software
+## How to write and run the software
 
-   Use OPENOCD and GDB to write the software you build to your hardware.
-   Use the serial terminal to use the debug console.
+   Use OPENOCD and GDB to write the built software to the hardware.
+   Use a serial terminal to use the debug console.
    The following example uses terminals for OPENOCD and GDB and serial terminals.
 
-1. Start OPENOCD
+1. Launching Openocd
 
-   Open the terminal for OPENOCD and run the following command to match the hardware:
+   Open the terminal for OPENOCD and run the following command to fit your hardware:
 
    ### 32F7xxxDISCOVERY
 
@@ -300,9 +301,9 @@ Gadgetseed is a multi-tasking OS for embedded devices.
    sudo openocd -f /usr/share/openocd/scripts/board/st_nucleo_l1.cfg
    ```
 
-   OPENOCD is in a state that remains operational.
+   OPENOCD will remain running.
 
-1. Starting the serial terminal
+1. Launching the serial terminal
 
    Open the terminal for the serial terminal and run the following command:
 
@@ -312,39 +313,40 @@ Gadgetseed is a multi-tasking OS for embedded devices.
    sudo picocom -l /dev/ttyACM0 -b 115200
    ```
 
-   ### When using CU
+   ### When to use CU
 
    ```sh
    sudo cu -l /dev/ttyACM0 -s 115200
    ```
 
-1. Start GDB
+1. Starting GDB
 
-   Open the terminal for GDB and run the following command:
-   This command runs below the directory where you built the gadgetseed.
+   Open the terminal for GDB. Run the following command:
+   Run this command under the directory where you built the gadgetseed.
 
    ```sh
    arm-none-eabi-gdb -x gdbinit-openocd gadgetseed
    ```
 
-   The above command writes the Gadgetseed built to the hardware.
+   The above command will write the gadgetseed built into the hardware.
 
    ```
-   GNU gdb (GDB) 7.9
-   Copyright (C) 2015 Free Software Foundation, Inc.
+   GNU gdb (GNU Tools for Arm Embedded Processors 8-2018-q4-major) 8.2.50.20181213-git
+   Copyright (C) 2018 Free Software Foundation, Inc.
    License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
    This is free software: you are free to change and redistribute it.
-   There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-   and "show warranty" for details.
-   This GDB was configured as "--host=x86_64-apple-darwin16.1.0 --target=arm-none-eabi".
+   There is NO WARRANTY, to the extent permitted by law.
+   Type "show copying" and "show warranty" for details.
+   This GDB was configured as "--host=x86_64-apple-darwin10 --target=arm-none-eabi".
    Type "show configuration" for configuration details.
    For bug reporting instructions, please see:
-   http://www.gnu.org/software/gdb/bugs/>.
+   <http://www.gnu.org/software/gdb/bugs/>.
    Find the GDB manual and other documentation resources online at:
-   <http://www.gnu.org/software/gdb/documentation/>.
+    <http://www.gnu.org/software/gdb/documentation/>.
+
    For help, type "help".
    Type "apropos word" to search for commands related to "word"...
-   Reading symbols from gadgetseed...done.
+   Reading symbols from gadgetseed...
     :
    stm32f7x.cpu: target state: halted
    target halted due to debug-request, current mode: Thread 
@@ -358,29 +360,30 @@ Gadgetseed is a multi-tasking OS for embedded devices.
    (gdb) 
    ```
 
-   A message like the one above is printed.
-   It takes a few tens of seconds for the prompt (GDB) to appear.
+   A message similar to the one above is printed.
+   It takes a few tens of seconds for the prompt (GDB) to be displayed.
 
-   Type the following command to run Gadgetseed.
+   Run Gadgetseed by typing the following command:
 
    ```
    (gdb) c
    Continuing.
    ```
 
-   The Gadgetseed is started and the following display is printed on the serial terminal:
+   Gadgetseed starts and outputs the following display to the serial terminal:
 
    ```
-   GadgetSeed Ver. 0.9.5
+   GadgetSeed Ver. 0.9.8
    (c)2010-2018 Takashi SHUDO
    CPU ARCH     : Cortex-M7
    CPU NAME     : STM32F769NIH6
    SYSTEM       : 32F769IDISCOVERY
-   Build date   : 07:26:51 Aug  5 2018
+   Build date   : 20:41:11 Dec 28 2018
+   Compiler     : 8.2.1 20181213 (release) [gcc-8-branch revision 267074]
    System Clock : 200 MHz
    GS Memory Alloc API is newlib API
-   Heap area    : c0177000 - c0fffffc (15241212)
-   14883 K byte free
+   Heap area    : c099709c - c0fffffc (6721376)
+   6563 K byte free
    Graphics device "fb" Type : Frame buffer, Screen size 800x480(2), 16 bit color
    Storage 0: "sd"
    Set RTC Time = 946684953.003
@@ -397,8 +400,8 @@ Gadgetseed is a multi-tasking OS for embedded devices.
 
 # Running on PC Linux (Ubuntu)
 
-On PC Linux, you can run Gadgetseed emulator.
-Gadgeseed Emulator is an experimental implementation. There is an unstable place in the operation.
+On PC Linux, you can run the Gadgetseed emulator.
+Gadgeseed Emulator is an experimental implementation. There is an unstable point in the operation.
 Install the packages required to build the emulator with the following command:
 
 ```sh
@@ -409,7 +412,7 @@ sudo aptitude install -y libgtk2.0-dev
 ## Configuration and build
 
 To run the emulator, select "EMU" When you select the system in the configuration.
-You can build the gadgetseed from the configuration again with the following command:
+You can build Gadgetseed from the configuration again with the following command:
 
 ```sh
 make reset
@@ -426,7 +429,7 @@ You can run the Gadgetseed emulator with the following command:
 
 # Document
 
-You can create a gadgetseed document with the following command:
+You can create a document for Gadgetseed with the following command:
 
 ```sh
 make docs
@@ -436,7 +439,7 @@ The following Doxygen document files are generated:
 
 [docs/html/index.html](docs/html/index.html)
 
-See below for configuration items for building systems and developing applications.
+The configuration items for the construction of the system and the development of the application refer to the following.
 
 [configs/CONFIG.md](configs/CONFIG.md)
 

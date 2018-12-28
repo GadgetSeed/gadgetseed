@@ -61,7 +61,7 @@ int mount_fatfs(int drvno, struct st_device *dev)
 	result = f_mount(&(fatfs[drvno].fatfs), dev_name, 1);
 
 	if(result != FR_OK) {
-		SYSERR_PRINT("Device (Storage %d:) mount error.\n", drvno);
+		eprintf("Device (Storage %d:) mount error.\n", drvno);
 		return -1;
 	} else {
 		return 0;
@@ -431,10 +431,17 @@ int stat_fatfs(const uchar *path, FS_FILEINFO *finfo)
 int getfree_fatfs(const uchar *path, unsigned long *sect, void **fs)
 {
 	FATFS **fspp = (FATFS **)fs;
+	int rtn = 0;
 
 	DTFPRINTF(0x02, "path = %s, sect = %p, fs = %p\n", path, sect, fs);
 
-	return f_getfree((char *)path, sect, fspp);
+#ifdef GSC_TARGET_SYSTEM_EMU
+	rtn = f_getfree((char *)path, (unsigned int *)sect, fspp);
+#else
+	rtn = f_getfree((char *)path, sect, fspp);
+#endif
+
+	return rtn;
 }
 
 /**

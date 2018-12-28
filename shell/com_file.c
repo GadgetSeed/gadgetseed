@@ -43,12 +43,12 @@ static char *fsize2str(t_size size)
 	return size2str(szstr, size);
 }
 
-static char *fsize2lstr(unsigned long size)
+static char *fsize2lstr(unsigned int size)
 {
 #define FSIZE_LSTR_LEN	10
 	static char szstr[FSIZE_LSTR_LEN+1];
 
-	tsnprintf(szstr, FSIZE_LSTR_LEN+1, "%10ld", size);
+	tsnprintf(szstr, FSIZE_LSTR_LEN+1, "%10d", size);
 
 	return &szstr[0];
 }
@@ -197,7 +197,7 @@ static void print_fresult(char *path, FRESULT fr)
 	}
 }
 
-static unsigned long	acc_size;
+static unsigned int	acc_size;
 static unsigned short	acc_files;
 static unsigned short	acc_dirs;
 
@@ -319,7 +319,7 @@ static int diskfree(int argc, uchar *argv[])
 {
 	FATFS *fs;
 	int fr;
-	unsigned long numcl;
+	long unsigned int numcl;
 	unsigned char *path = (unsigned char *)defdrive;
 
 	if(argc > 1) {
@@ -345,22 +345,22 @@ static int diskfree(int argc, uchar *argv[])
 		return 0;
 	}
 
-	tprintf("FAT type                : %ld\n"
-		"Bytes/Cluster           : %ld\n"
-		"Number of FATs          : %ld\n"
-		"Root DIR entries        : %ld\n"
-		"Sectors/FAT             : %ld\n"
-		"FAT start (lba)         : %ld\n"
-		"DIR start (lba,clustor) : %ld\n"
-		"Data start (lba)        : %ld\n",
-		(unsigned long)fs->fs_type,
-		(unsigned long)fs->csize * FSECTSIZE,
-		(unsigned long)fs->n_fats,
-		(unsigned long)fs->n_rootdir,
-		(unsigned long)fs->fsize,
-		(unsigned long)fs->fatbase,
-		(unsigned long)fs->dirbase,
-		(unsigned long)fs->database
+	tprintf("FAT type                : %d\n"
+		"Bytes/Cluster           : %d\n"
+		"Number of FATs          : %d\n"
+		"Root DIR entries        : %d\n"
+		"Sectors/FAT             : %d\n"
+		"FAT start (lba)         : %d\n"
+		"DIR start (lba,clustor) : %d\n"
+		"Data start (lba)        : %d\n",
+		(unsigned int)fs->fs_type,
+		(unsigned int)fs->csize * FSECTSIZE,
+		(unsigned int)fs->n_fats,
+		(unsigned int)fs->n_rootdir,
+		(unsigned int)fs->fsize,
+		(unsigned int)fs->fatbase,
+		(unsigned int)fs->dirbase,
+		(unsigned int)fs->database
 		);
 
 	fr = scan_files(path, FF_MAX_LFN);
@@ -369,14 +369,14 @@ static int diskfree(int argc, uchar *argv[])
 		return 0;
 	}
 
-	tprintf("%d files, %lu bytes (%s)\n"
+	tprintf("%d files, %u bytes (%s)\n"
 		"%d folders\n"
 		"%s available\n",
 		(int)acc_files,
 		acc_size,
 		fsize2str(acc_size),
 		(int)acc_dirs,
-		fsize2str((unsigned long)numcl * fs->csize * FSECTSIZE));
+		fsize2str((unsigned int)numcl * fs->csize * FSECTSIZE));
 
 	return 0;
 }
@@ -709,6 +709,8 @@ static int fdump(int argc, uchar *argv[])
 		fr = read_file(fd, fdbuf, rlen);
 		if(fr < 0) {
 			tprintf("Cannot read \"%s\"\n", argv[1]);
+			goto close;
+		} else if(fr == 0) {
 			goto close;
 		}
 

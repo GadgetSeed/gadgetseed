@@ -13,6 +13,10 @@ OBJS	= shell_task.o \
 
 CFLAGS += -I$(PRJ_DIR)/shell
 
+ifeq ($(KERNEL_MESSAGEOUT_LOG),YES)
+	OBJS += com_log.o
+endif
+
 ifeq ($(COMP_ENABLE_GRAPHICS),YES)
 	OBJS += com_graphics.o
 ifeq ($(LIB_ENABLE_PICOJPEG),YES)

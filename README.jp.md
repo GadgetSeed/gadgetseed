@@ -110,7 +110,7 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
 
    ```sh
    sudo apt install -y libc6-i386 default-jre openjfx
-   sudo ./SetupSTM32CubeMX-4.26.1.linux
+   sudo ./SetupSTM32CubeMX-5.0.0.linux
    ```
 
 1. STM32 HAL and LL Driversのインストール
@@ -121,24 +121,24 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
    /usr/local/STMicroelectronics/STM32Cube/STM32CubeMX/STM32CubeMX &
    ```
 
-   MCU STM32F7用のシステムのために"STM32Cube MCU Package for STM32F7 Serias Version 1.12.0"をインストールしてください。  
-   MCU STM32F4用のシステムのために"STM32Cube MCU Package for STM32F4 Serias Version 1.21.0"をインストールしてください。  
+   MCU STM32F7用のシステムのために"STM32Cube MCU Package for STM32F7 Serias Version 1.14.0"をインストールしてください。  
+   MCU STM32F4用のシステムのために"STM32Cube MCU Package for STM32F4 Serias Version 1.23.0"をインストールしてください。  
    MCU STM32L1用のシステムのために"STM32Cube MCU Package for STM32L1 Serias Version 1.8.1"をインストールしてください。
 
 1. arm-gccのインストール
 
    <https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads>
 
-   上記サイトから GNU Arm Embedded Toolchain("gcc-arm-none-eabi-7-2017-q4-major-linux.tar.bz2") をダウンロードしてください。
+   上記サイトから GNU Arm Embedded Toolchain("gcc-arm-none-eabi-8-2018-q4-major-linux.tar.bz2") をダウンロードしてください。
 
    インストール
    ```sh
-   sudo tar xvfj gcc-arm-none-eabi-7-2017-q4-major-linux.tar.bz2 -C /opt
+   sudo tar xvfj gcc-arm-none-eabi-8-2018-q4-major-linux.tar.bz2 -C /opt
    ```
 
    実行パスの設定
    ```sh
-   PATH=$PATH:/opt/gcc-arm-none-eabi-7-2017-q4-major/bin
+   PATH=$PATH:/opt/gcc-arm-none-eabi-8-2018-q4-major/bin
    ```
    上記は .bash_aliases 等に追記することを推奨します。
 
@@ -191,13 +191,14 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
 
    ```sh
    *** Select target system ***
-     1 : 32F746GDISCOVERY               : STM 32F746GDISCOVERY                          : 32F746GDISCOVERY.conf
-     2 : 32F769IDISCOVERY               : STM 32F769IDISCOVERY                          : 32F769IDISCOVERY.conf
-     3 : NUCLEO-F411RE                  : STM NUCLEO-F411RE                             : NUCLEO-F411RE.conf
-     4 : NUCLEO-F411RE_HVGA-LCD-HX8357D : STM NUCLEO-F411RE + MAR3520(HVGA LCD HX8357D) : NUCLEO-F411RE_HVGA-LCD-HX8357D.conf
-     5 : NUCLEO-F411RE_QVGA-LCD-ILI9341 : STM NUCLEO-F411RE + K60(QVGA LCD ILI9341)     : NUCLEO-F411RE_QVGA-LCD-ILI9341.conf
-     6 : NUCLEO-L152RE                  : STM NUCLEO-L152RE                             : NUCLEO-L152RE.conf
-     7 : emu                            : Emulator system with linux                    : emu.conf
+     1 : 32F469IDISCOVERY               : STM 32F469IDISCOVERY                          : 32F469IDISCOVERY.conf
+     2 : 32F746GDISCOVERY               : STM 32F746GDISCOVERY                          : 32F746GDISCOVERY.conf
+     3 : 32F769IDISCOVERY               : STM 32F769IDISCOVERY                          : 32F769IDISCOVERY.conf
+     4 : NUCLEO-F411RE                  : STM NUCLEO-F411RE                             : NUCLEO-F411RE.conf
+     5 : NUCLEO-F411RE_HVGA-LCD-HX8357D : STM NUCLEO-F411RE + MAR3520(HVGA LCD HX8357D) : NUCLEO-F411RE_HVGA-LCD-HX8357D.conf
+     6 : NUCLEO-F411RE_QVGA-LCD-ILI9341 : STM NUCLEO-F411RE + K60(QVGA LCD ILI9341)     : NUCLEO-F411RE_QVGA-LCD-ILI9341.conf
+     7 : NUCLEO-L152RE                  : STM NUCLEO-L152RE                             : NUCLEO-L152RE.conf
+     8 : emu                            : Emulator system with linux                    : emu.conf
    Input No. : 
    ```
 
@@ -240,17 +241,17 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
    gcc -Wall -O2 -o txt2bitmap txt2bitmap.c
     :
     :
-   echo "const char os_version[] = \"0.9.5\";" > version.c
+   echo "const char os_version[] = \"0.9.8\";" > version.c
    echo "const char build_date[] = __DATE__;" >> version.c
    echo "const char build_time[] = __TIME__;" >> version.c
    arm-none-eabi-gcc -g -Wall -mthumb -mcpu=cortex-m7 -mtune=cortex-m7 -fipa-sra -mfpu=fpv5-d16 -mfloat-abi=hard -O2 -I/home/shudo/develop/gadgetseed/include -c version.c
-   arm-none-eabi-gcc -g -Wall -mthumb -mcpu=cortex-m7 -mtune=cortex-m7 -fipa-sra -mfpu=fpv5-d16 -mfloat-abi=hard -O2 -I/home/shudo/develop/gadgetseed/include -Wl,-static -Wl,--gc-sections -nostartfiles -o gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.5.elf -Tarch/Cortex-M7/systems/32F769IDISCOVERY.lds -Wl,-Map=gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.5.map arch/Cortex-M7/start.o version.o \
+   arm-none-eabi-gcc -g -Wall -mthumb -mcpu=cortex-m7 -mtune=cortex-m7 -fipa-sra -mfpu=fpv5-d16 -mfloat-abi=hard -O2 -I/home/shudo/develop/gadgetseed/include -Wl,-static -Wl,--gc-sections -nostartfiles -o gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.8.elf -Tarch/Cortex-M7/systems/32F769IDISCOVERY.lds -Wl,-Map=gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.8.map arch/Cortex-M7/start.o version.o \
    main.o gs_logo.o apps/soundplay/soundplay.a apps/musicplay/musicplay.a kernel/kernel.a arch/Cortex-M7/arch.a drivers/drivers.a libs/libs.a kernel/task/task.a extlibs/fatfs/libfatfs.a fs/fs.a uilib/uilib.a graphics/graphics.a font/font.a fontdata/fontdata.a shell/shell.a extlibs/libmad/libmad.a extlibs/faad2/libfaad2.a extlibs/picojpeg/libpicojpeg.a extlibs/libpng/libpng.a extlibs/zlib/libzlib.a arch/Cortex-M7/arch.a -lm kernel/kernel.a arch/Cortex-M7/arch.a drivers/drivers.a libs/libs.a kernel/task/task.a extlibs/fatfs/libfatfs.a fs/fs.a uilib/uilib.a graphics/graphics.a font/font.a fontdata/fontdata.a shell/shell.a extlibs/libmad/libmad.a extlibs/faad2/libfaad2.a extlibs/picojpeg/libpicojpeg.a extlibs/libpng/libpng.a extlibs/zlib/libzlib.a
-   ln -f -s gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.5.elf gadgetseed
+   ln -f -s gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.8.elf gadgetseed
    arm-none-eabi-objdump -h --section=.VECTORS --section=.text --section=.data \
-   --section=.bss --section=.stack gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.5.elf
+   --section=.bss --section=.stack gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.8.elf
 
-   gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.5.elf:     file format elf32-littlearm
+   gs-Cortex-M7-32F769IDISCOVERY-musicplay-0.9.8.elf:     file format elf32-littlearm
 
    Sections:
    Idx Name          Size      VMA       LMA       File off  Algn
@@ -330,21 +331,22 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
    上記のコマンドでハードウェアにビルドした GadgetSeed が書き込まれます。
 
    ```
-   GNU gdb (GDB) 7.9
-   Copyright (C) 2015 Free Software Foundation, Inc.
+   GNU gdb (GNU Tools for Arm Embedded Processors 8-2018-q4-major) 8.2.50.20181213-git
+   Copyright (C) 2018 Free Software Foundation, Inc.
    License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
    This is free software: you are free to change and redistribute it.
-   There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-   and "show warranty" for details.
-   This GDB was configured as "--host=x86_64-apple-darwin16.1.0 --target=arm-none-eabi".
+   There is NO WARRANTY, to the extent permitted by law.
+   Type "show copying" and "show warranty" for details.
+   This GDB was configured as "--host=x86_64-apple-darwin10 --target=arm-none-eabi".
    Type "show configuration" for configuration details.
    For bug reporting instructions, please see:
-   http://www.gnu.org/software/gdb/bugs/>.
+   <http://www.gnu.org/software/gdb/bugs/>.
    Find the GDB manual and other documentation resources online at:
-   <http://www.gnu.org/software/gdb/documentation/>.
+    <http://www.gnu.org/software/gdb/documentation/>.
+
    For help, type "help".
    Type "apropos word" to search for commands related to "word"...
-   Reading symbols from gadgetseed...done.
+   Reading symbols from gadgetseed...
     :
    stm32f7x.cpu: target state: halted
    target halted due to debug-request, current mode: Thread 
@@ -371,16 +373,17 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
    GadgetSeed が起動し、シリアルターミナルに以下の表示が出力されます。
 
    ```
-   GadgetSeed Ver. 0.9.5
+   GadgetSeed Ver. 0.9.8
    (c)2010-2018 Takashi SHUDO
    CPU ARCH     : Cortex-M7
    CPU NAME     : STM32F769NIH6
    SYSTEM       : 32F769IDISCOVERY
-   Build date   : 07:26:51 Aug  5 2018
+   Build date   : 20:41:11 Dec 28 2018
+   Compiler     : 8.2.1 20181213 (release) [gcc-8-branch revision 267074]
    System Clock : 200 MHz
    GS Memory Alloc API is newlib API
-   Heap area    : c0177000 - c0fffffc (15241212)
-   14883 K byte free
+   Heap area    : c099709c - c0fffffc (6721376)
+   6563 K byte free
    Graphics device "fb" Type : Frame buffer, Screen size 800x480(2), 16 bit color
    Storage 0: "sd"
    Set RTC Time = 946684953.003

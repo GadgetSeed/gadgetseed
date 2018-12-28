@@ -355,6 +355,9 @@ void init_cpu(void)
 #include "file.h"
 #endif
 
+extern const struct st_device logout_device;
+extern const struct st_device logbuf_device;
+
 extern const struct st_device uart1_low_device;
 extern const struct st_device uart1_device;
 extern const struct st_device uart6_device;
@@ -420,18 +423,26 @@ void init_system(int *argc, char ***argv)
 //	SCB->CCR |= SCB_CCR_BFHFNMIGN_Msk;
 }
 
+void init_system2(void)
+{
+	BSP_SDRAM_Init();
+}
+
 /**
  * @brief	基本ドライバ初期化後に登録するユーザドライバ登録処理
  */
 void init_system_drivers(void)
 {
-	BSP_SDRAM_Init();
-
 	// シリアルコンソール初期化
 	register_device(&uart1_device, 0);
 	register_console_out_dev(&uart1_device);
 	register_console_in_dev(&uart1_device);
+#ifdef GSC_KERNEL_MESSAGEOUT_LOG
+	register_error_out_dev(&logout_device);
+	register_log_out_dev(&logbuf_device);
+#else
 	register_error_out_dev(&uart1_low_device);
+#endif
 
 	// USART6
 	register_device(&uart6_device, 0);

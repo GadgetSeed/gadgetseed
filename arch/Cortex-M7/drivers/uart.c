@@ -11,7 +11,7 @@
       UART6_TX	PC6
       UART6_RX	PC7
 
-    STM32F756G-Discovery
+    STM32F746G-Discovery
       UART1_TX	PA9
       UART1_RX	PB7
 
@@ -300,7 +300,7 @@ static int uart_ioctl(struct st_device *dev, unsigned int com, unsigned int arg,
 		break;
 
 	default:
-		SYSERR_PRINT("Unknown ioctl(%08lX)\n", com);
+		SYSERR_PRINT("Unknown ioctl(%08X)\n", com);
 		return -1;
 		break;
 	}

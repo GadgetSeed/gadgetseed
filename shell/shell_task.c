@@ -26,6 +26,7 @@
     | i2c		| @copybrief com_i2c		| @ref i2c_command 参照	|
     | file		| @copybrief com_file		| @ref file_command 参照|
     | net		| @copybrief com_net		| @ref net_command 参照	|
+    | log		| @copybrief com_log		| @ref log_command 参照	|
 
     ユーザ独自のコマンドを追加することができます。
     詳細は @ref add_shell_command を参照して下さい。
@@ -57,6 +58,9 @@ extern const struct st_shell_command com_file;
 #ifdef GSC_COMP_ENABLE_TCPIP
 extern const struct st_shell_command com_net;
 #endif
+#ifdef GSC_KERNEL_MESSAGEOUT_LOG
+extern const struct st_shell_command com_log;
+#endif
 
 struct st_shell gs_shell;
 static const uchar prompt[] = ": ";
@@ -83,6 +87,9 @@ const struct st_shell_command * const com_list[] = {
 #endif
 #ifdef GSC_COMP_ENABLE_TCPIP
 	&com_net,
+#endif
+#ifdef GSC_KERNEL_MESSAGEOUT_LOG
+	&com_log,
 #endif
 	0
 };
@@ -149,15 +156,15 @@ static int shell_task(char *arg)
 }
 
 static struct st_tcb shell_tcb;
-static unsigned int shell_stack[SIZEOFSHELLST/sizeof(unsigned int)];
+static unsigned int shell_stack[SIZEOFSHELLST/sizeof(unsigned int)] ATTR_STACK;
 
 void startup_shell(void)
 {
 #ifdef STARTUP_APP
-	task_add(shell_task, "shell", 0, &shell_tcb,
+	task_add(shell_task, "shell", TASK_PRIORITY_SHELL, &shell_tcb,
 		 shell_stack, SIZEOFSHELLST, 0);
 #else
-	task_exec(shell_task, "shell", 0, &shell_tcb,
+	task_exec(shell_task, "shell", TASK_PRIORITY_SHELL, &shell_tcb,
 		  shell_stack, SIZEOFSHELLST, 0);
 #endif
 }

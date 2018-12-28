@@ -113,10 +113,10 @@ int net_task(char *arg)
 
 #define SIZEOFSTACK	(1024*4)
 struct st_tcb net_tcb;
-unsigned int net_stack[SIZEOFSTACK/sizeof(unsigned int)];
+unsigned int net_stack[SIZEOFSTACK/sizeof(unsigned int)] ATTR_STACK;
 
 void startup_network(void)
 {
-	task_exec(net_task, "network", 0, &net_tcb,
+	task_exec(net_task, "network", TASK_PRIORITY_NETWORK, &net_tcb,
 		  net_stack, SIZEOFSTACK, 0);
 }

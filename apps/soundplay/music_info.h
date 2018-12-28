@@ -34,7 +34,10 @@ struct st_music_info {
 	MUSICINFOSTR title[MAX_MINFO_STR];
 	MUSICINFOSTR artist[MAX_MINFO_STR];
 	MUSICINFOSTR album[MAX_MINFO_STR];
+	MUSICINFOSTR genre[MAX_MINFO_STR];
+	MUSICINFOSTR url[MAX_MINFO_STR];
 	unsigned char format;	// MP3/AAC(M4A)/WAV
+	unsigned char vbr;
 	unsigned int time_length;
 	unsigned char track;
 	unsigned char last_track;
@@ -48,6 +51,7 @@ struct st_music_info {
 
 	unsigned int sample_count;	// for MP3/M4A
 	unsigned char *sample_size_data;	// for M4A
+	int metaint;
 	int flg_have_artwork;
 	PIXEL_DATA artwork[ART_WIDTH * ART_HEIGHT];
 };

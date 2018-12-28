@@ -35,8 +35,8 @@ static unsigned int playtime;
 static unsigned char title[MAX_TITLE_LEN+1] = {0};
 static unsigned char artist[MAX_TITLE_LEN+1] = {0};
 static unsigned char album[MAX_TITLE_LEN+1] = {0};
-static unsigned char str_ttime[8] = {0};
-static unsigned char str_ptime[8] = {0};
+static unsigned char str_ttime[10] = {0};
+static unsigned char str_ptime[10] = {0};
 static unsigned char track[10] = {0};
 int flg_shuffle = 0;
 
@@ -454,9 +454,16 @@ void set_music_info(struct st_music_info *info)
 	tsprintf((char *)album, "%d/%d %42s",
 		 minfo->track, minfo->last_track,
 		 &(minfo->album[0]));
-	tsprintf((char *)str_ttime, "%3d:%02d",
-		 minfo->time_length/1000/60,
-		 (minfo->time_length/1000) % 60);
+	if(minfo->time_length < (60 * 60)) {
+		tsprintf((char *)str_ttime, "    %2d:%02d",
+			 minfo->time_length/1000/60,
+			 (minfo->time_length/1000) % 60);
+	} else {
+		tsprintf((char *)str_ttime, "%3d:%02d:%02d",
+			 minfo->time_length/1000/60/60,
+			 (minfo->time_length/1000/60) % 60,
+			 (minfo->time_length/1000) % 60);
+	}
 	tsprintf((char *)track, "%4d/%d", play_file_num + 1, music_file_count);
 	set_playtime(0);
 
@@ -471,7 +478,11 @@ void set_music_info(struct st_music_info *info)
 void set_playtime(unsigned int time)
 {
 	playtime = time;
-	tsprintf((char *)str_ptime, "%3d:%02d", playtime/60, playtime % 60);
+	if(playtime < (60*60)) {
+		tsprintf((char *)str_ptime, "   %2d:%02d", playtime/60, playtime % 60);
+	} else {
+		tsprintf((char *)str_ptime, "%2d:%02d:%02d",  playtime/60/60, (playtime/60) % 60, playtime % 60);
+	}
 
 	if(disp_mode == MODE_PLAY) {
 		draw_playtime();

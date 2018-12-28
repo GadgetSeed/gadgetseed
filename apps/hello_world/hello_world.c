@@ -21,6 +21,6 @@ static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)];
 
 void startup_hello_world(void)
 {
-	task_exec(hello_world_task, "hello_world", 1, &tcb,
+	task_exec(hello_world_task, "hello_world", TASK_PRIORITY_APP_HIGH, &tcb,
 		  stack, SIZEOFAPPTS, 0);
 }

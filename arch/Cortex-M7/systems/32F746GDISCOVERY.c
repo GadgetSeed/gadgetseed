@@ -421,13 +421,16 @@ void init_system(int *argc, char ***argv)
 //	SCB->CCR |= SCB_CCR_BFHFNMIGN_Msk;
 }
 
+void init_system2(void)
+{
+	BSP_SDRAM_Init();
+}
+
 /* NOT API
    @brief	基本ドライバ初期化後に登録するユーザドライバ登録処理
 */
 void init_system_drivers(void)
 {
-	BSP_SDRAM_Init();
-
 	// シリアルコンソール初期化
 	register_device((struct st_device *)&uart1_device, 0);
 	register_console_out_dev((struct st_device *)&uart1_device);

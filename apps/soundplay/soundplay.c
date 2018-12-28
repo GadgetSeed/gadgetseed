@@ -23,6 +23,10 @@
 #include "mp4tag.h"
 #include "id3tag.h"
 #include "charcode.h"
+#include "tkprintf.h"
+
+#define GSLOG_PREFIX	"SPL: "
+#include "log.h"
 
 //#define DEBUGTBITS 0x01
 #include "dtprintf.h"
@@ -49,8 +53,8 @@ void soundplay_mixer_proc(void)
 {
 	if(now_volume != next_volume) {
 		now_volume = next_volume;
-		if(lock_device(audio_dev, SPIO_TIMEOUT) == 0) {
-			tprintf("audio ctrl lock timeout\n");
+		if(lock_device(audio_dev, SPIO_TIMEOUT) < 0) {
+			GSLOG(0, "audio ctrl lock timeout\n");
 		}
 		ioctl_device(audio_dev, IOCMD_AUDIO_SET_VOLUME, now_volume, 0);
 		unlock_device(audio_dev);
@@ -60,14 +64,14 @@ void soundplay_mixer_proc(void)
 
 void soundplay_prepare_sound(void)
 {
-	DTPRINTF(0x01, "[soundplay] PREPARE\n");
+	GSLOG(0, "[soundplay] PREPARE\n");
 
 	create_event(EVT_SOUND_PREPARE, 0, (void *)&music_info);
 }
 
 void soundplay_start_sound(void)
 {
-	DTPRINTF(0x01, "[soundplay] START\n");
+	GSLOG(0, "[soundplay] START\n");
 
 	ioctl_device(audio_dev, IOCMD_AUDIO_PLAY_START, 0, 0);
 
@@ -76,7 +80,7 @@ void soundplay_start_sound(void)
 
 void soundplay_continue_sound(void)
 {
-	DTPRINTF(0x01, "[soundplay] CONTINUE\n");
+	GSLOG(0, "[soundplay] CONTINUE\n");
 
 	ioctl_device(audio_dev, IOCMD_AUDIO_PLAY_START, 0, 0);
 
@@ -85,7 +89,7 @@ void soundplay_continue_sound(void)
 
 void soundplay_end_sound(void)
 {
-	DTPRINTF(0x01, "[soundplay] END\n");
+	GSLOG(0, "[soundplay] END\n");
 
 	ioctl_device(audio_dev, IOCMD_AUDIO_PLAY_STOP, 0, 0);
 
@@ -96,7 +100,7 @@ void soundplay_end_sound(void)
 
 void soundplay_stop_sound(void)
 {
-	DTPRINTF(0x01, "[soundplay] STOP\n");
+	GSLOG(0, "[soundplay] STOP\n");
 
 	ioctl_device(audio_dev, IOCMD_AUDIO_PLAY_STOP, 0, 0);
 
@@ -107,7 +111,7 @@ void soundplay_stop_sound(void)
 
 void soundplay_pause_sound(void)
 {
-	DTPRINTF(0x01, "[soundplay] PAUSE\n");
+	GSLOG(0, "[soundplay] PAUSE\n");
 
 	ioctl_device(audio_dev, IOCMD_AUDIO_PLAY_STOP, 0, 0);
 
@@ -138,18 +142,18 @@ int soundplay_write_audiobuf(unsigned char *buf, int size)
 
 	rtn = select_device(audio_dev, SPIO_TIMEOUT);
 	if(rtn < 0) {
-		tprintf("Audio Decode & Play time too long(%d).\n", rtn);
+		tkprintf("Audio Decode & Play time too long(%d).\n", rtn);
 	}
 
 	if(lock_device(audio_dev, SPIO_TIMEOUT) == 0) {
-		tprintf("audio buf write lock timeout\n");
+		tkprintf("audio buf write lock timeout\n");
 	}
 
 	rtn = write_device(audio_dev, buf, size);
 	unlock_device(audio_dev);
 
-	proc_spectrum_analyse(&(asp.spectrum[0]), (short *)buf);
-	proc_spectrum_analyse(&(asp.spectrum[SPA_ANA_SMP]), (short *)(buf+2));
+	proc_spectrum_analyze(&(asp.spectrum[0]), (short *)buf);
+	proc_spectrum_analyze(&(asp.spectrum[SPA_ANA_SMP]), (short *)(buf+2));
 	asp.frame_num = audio_frame_count;
 
 	create_event(EVT_SOUND_ANALYZE, 0, (void *)&asp);
@@ -169,8 +173,9 @@ void soundplay_wait_audiobuf(unsigned char **p_buf)
 /*
  * ファイル操作
  */
-unsigned char file_buf[MAX_FILEBUF];	// ファイルデータ読み出しバッファ
-unsigned char cname[FF_MAX_LFN + 1];	// UTF-8ファイル名
+unsigned char comp_audio_data[MAX_FILEBUF];	// 圧縮音声データ
+unsigned char comp_audio_file_name[FF_MAX_LFN + 1];	// UTF-8ファイル名
+
 static int audio_fd = -1;
 
 int soundplay_openfile(unsigned char *fname)
@@ -242,48 +247,75 @@ void soundplay_closefile(void)
 /*
  * プロセス操作
  */
-int soundplay_status = SOUND_STOP;	// 0:STOP 1:PLAY 2:PAUSE
-int next_soundplay_status = -1;
+sound_event soundplay_event = SOUND_EVENT_NOEVENT;
+sound_stat soundplay_status = SOUND_STAT_READY;
 
 int audio_frame_count;
 int next_audio_frame_count;
 unsigned int audio_play_time;
 static int (* soundplay_proc)(void) = 0;
 
+#define SOUNDPLAY_STAT_TIMEOUT	1000
+
 void soundplay_start_proc(int (* func)(void))
 {
+	GSLOG(0, "Play start\n");
+
 	soundplay_proc = func;
 
-	soundplay_status = SOUND_PLAY;
+	soundplay_event = SOUND_EVENT_PLAY;
 }
 
 void soundplay_stop_play(void)
 {
-	tprintf("Sound stop\n");
+	int i;
 
-	if(soundplay_status == SOUND_STOP) {
+	GSLOG(0, "Sound stop\n");
+
+	if((soundplay_status != SOUND_STAT_SYNCING) &&
+	   (soundplay_status != SOUND_STAT_PLAYING)) {
 		return;
 	}
 
-	next_soundplay_status = SOUND_STOP;
+	soundplay_event = SOUND_EVENT_STOP;
 
-	while(soundplay_status != SOUND_STOP) {
-		task_sleep(1);
+	for(i=0; i<SOUNDPLAY_STAT_TIMEOUT; i++) {
+		if((soundplay_status == SOUND_STAT_NORMALEND) ||
+		   (soundplay_status == SOUND_STAT_ABORTED)) {
+			break;
+		} else {
+			task_sleep(1);
+		}
+	}
+
+	if(i == SOUNDPLAY_STAT_TIMEOUT) {
+		GSLOG(0, "Sound stop timeout\n");
 	}
 }
 
 void soundplay_pause_play(void)
 {
-	tprintf("Sound pause\n");
+	int i;
 
-	if(soundplay_status == SOUND_STOP) {
+	GSLOG(0, "Sound pause\n");
+
+	if((soundplay_status != SOUND_STAT_SYNCING) &&
+	   (soundplay_status != SOUND_STAT_PLAYING)) {
 		return;
 	}
 
-	next_soundplay_status = SOUND_PAUSE;
+	soundplay_event = SOUND_EVENT_PAUSE;
 
-	while(soundplay_status != SOUND_PAUSE) {
-		task_sleep(1);
+	for(i=0; i<SOUNDPLAY_STAT_TIMEOUT; i++) {
+		if(soundplay_status != SOUND_STAT_PAUSE) {
+			task_sleep(1);
+		} else {
+			break;
+		}
+	}
+
+	if(i == SOUNDPLAY_STAT_TIMEOUT) {
+		GSLOG(0, "Sound pause timeout\n");
 	}
 
 	soundplay_pause_sound();
@@ -291,15 +323,42 @@ void soundplay_pause_play(void)
 
 void soundplay_continue_play(void)
 {
-	tprintf("Sound continue\n");
+	int i;
 
-	if(soundplay_status != SOUND_PAUSE) {
+	GSLOG(0, "Sound continue\n");
+
+	if(soundplay_status != SOUND_STAT_PAUSE) {
 		return;
 	}
 
-	next_soundplay_status = SOUND_PLAY;
+	soundplay_event = SOUND_EVENT_CONTINUE;
 
-	while(soundplay_status != SOUND_PLAY) {
+	for(i=0; i<SOUNDPLAY_STAT_TIMEOUT; i++) {
+		if(soundplay_status != SOUND_STAT_PLAYING) {
+			task_sleep(1);
+		} else {
+			break;
+		}
+	}
+
+	if(i == SOUNDPLAY_STAT_TIMEOUT) {
+		GSLOG(0, "Sound continue timeout\n");
+	}
+
+	soundplay_continue_sound();
+}
+
+void soundplay_resync_play(void)
+{
+	GSLOG(0, "Sound resync\n");
+
+	if(soundplay_status != SOUND_STAT_PAUSE) {
+		return;
+	}
+
+	soundplay_event = SOUND_EVENT_SYNC;
+
+	while(soundplay_status == SOUND_STAT_SYNCING) {
 		task_sleep(1);
 	}
 
@@ -308,7 +367,7 @@ void soundplay_continue_play(void)
 
 void soundplay_move_play(int pos)
 {
-	tprintf("Sound move\n");
+	GSLOG(0, "Sound move\n");
 
 	next_audio_frame_count = pos;
 }
@@ -326,7 +385,7 @@ static int soundplay_task(char *arg)
 			soundplay_proc();
 			soundplay_proc = 0;
 
-			tprintf("Sound Play Proc End\n");
+			GSLOG(0, "Sound Play Proc End\n");
 		} else {
 			no_play_proc();
 		}
@@ -420,6 +479,21 @@ const struct st_shell_command com_continue = {
 	.manual_str	= "CONTINUE play Sound Data"
 };
 
+static int sound_resync(int argc, uchar *argv[])
+{
+	tprintf("Re Sync Play\n");
+
+	soundplay_resync_play();
+
+	return 0;
+}
+
+const struct st_shell_command com_resync = {
+	.name		= "resync",
+	.command	= sound_resync,
+	.manual_str	= "RESYNC play Sound Data"
+};
+
 static int cmd_move(int argc, uchar *argv[])
 {
 	int pos = 0;
@@ -490,6 +564,7 @@ const struct st_shell_command * const com_sound_list[] = {
 	&com_stop,
 	&com_pause,
 	&com_continue,
+	&com_resync,
 	&com_move,
 	&com_volume,
 	&com_artwork,
@@ -513,8 +588,8 @@ static int do_wav_file(uchar *str, uchar *arg)
 
 	escaped_str(fname, str);
 	//tprintf("%s\n", fname);
-	sjisstr_to_utf8str(cname, str, FF_MAX_LFN);
-	tprintf("Play Sound File \"%s\"\n", cname);
+	sjisstr_to_utf8str(comp_audio_file_name, str, FF_MAX_LFN);
+	tprintf("Play Sound File \"%s\"\n", comp_audio_file_name);
 	tsprintf((char *)cmd, "sound %s wav %s", arg, fname);
 	rt = exec_command(cmd);
 
@@ -531,8 +606,8 @@ static int do_mp3_file(uchar *str, uchar *arg)
 	int rt = 0;
 
 	escaped_str(fname, str);
-	sjisstr_to_utf8str(cname, str, FF_MAX_LFN);
-	tprintf("Play MP3 File \"%s\"\n", cname);
+	sjisstr_to_utf8str(comp_audio_file_name, str, FF_MAX_LFN);
+	tprintf("Play MP3 File \"%s\"\n", comp_audio_file_name);
 	tsprintf((char *)cmd, "sound %s mp3 %s", arg, fname);
 	rt = exec_command(cmd);
 
@@ -549,8 +624,8 @@ static int do_m4a_file(uchar *str, uchar *arg)
 	int rt = 0;
 
 	escaped_str(fname, str);
-	sjisstr_to_utf8str(cname, (unsigned char *)str, FF_MAX_LFN);
-	tprintf("Play M4A File \"%s\"\n", cname);
+	sjisstr_to_utf8str(comp_audio_file_name, (unsigned char *)str, FF_MAX_LFN);
+	tprintf("Play M4A File \"%s\"\n", comp_audio_file_name);
 	tsprintf((char *)cmd, "sound %s m4a %s", arg, fname);
 	rt = exec_command(cmd);
 
@@ -572,7 +647,8 @@ static const struct st_file_operation * const file_operation[] = {
 
 //#define SIZEOFAPPTS	(1024*4)
 //#define SIZEOFAPPTS	(1024*16)
-#define SIZEOFAPPTS	(1024*48)
+//#define SIZEOFAPPTS	(1024*48)
+#define SIZEOFAPPTS	(1024*50)
 static struct st_tcb tcb;
 static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)];
 
@@ -597,6 +673,6 @@ void startup_soundplay(void)
 	}
 	tprintf("AUDIO Buffer Size : %d\n", audio_buf_size);
 
-	task_exec(soundplay_task, "soundplay", 2, &tcb,
+	task_exec(soundplay_task, "soundplay", TASK_PRIORITY_APP_HIGH, &tcb,
 		  stack, SIZEOFAPPTS, 0);
 }

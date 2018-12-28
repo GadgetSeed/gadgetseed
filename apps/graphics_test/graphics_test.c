@@ -417,6 +417,6 @@ static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)];
 
 void startup_graphics_test(void)
 {
-	task_exec(gt_task, "graphs_test", 2, &tcb,
+	task_exec(gt_task, "graphs_test", TASK_PRIORITY_APP_HIGH, &tcb,
 		     stack, SIZEOFAPPTS, 0);
 }

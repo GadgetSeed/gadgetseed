@@ -90,29 +90,30 @@ static int m4a_play_proc(void)
 	for(i=0; i<music_info.sample_count; i++) {
 		soundplay_mixer_proc();
 
-		switch(next_soundplay_status) {
-		case SOUND_PLAY:
-			next_soundplay_status = -1;
-			soundplay_status = SOUND_PLAY;
+		switch(soundplay_event) {
+		case SOUND_EVENT_PLAY:
+		case SOUND_EVENT_CONTINUE:
+			soundplay_event = SOUND_EVENT_NOEVENT;
+			soundplay_status = SOUND_STAT_PLAYING;
 			break;
 
-		case SOUND_STOP:
-			next_soundplay_status = -1;
+		case SOUND_EVENT_STOP:
+			soundplay_event = SOUND_EVENT_NOEVENT;
 			DTPRINTF(0x01, "m4aplay force stop\n");
 			flg_abort = 1;
 			goto end;
 			break;
 
-		case SOUND_PAUSE:
-			next_soundplay_status = -1;
-			soundplay_status = SOUND_PAUSE;
+		case SOUND_EVENT_PAUSE:
+			soundplay_event = SOUND_EVENT_NOEVENT;
+			soundplay_status = SOUND_STAT_PAUSE;
 			break;
 
 		default:
 			break;
 		}
 
-		if(soundplay_status == SOUND_PAUSE) {
+		if(soundplay_status == SOUND_STAT_PAUSE) {
 			task_sleep(10);
 			i --;
 			continue;
@@ -122,16 +123,16 @@ static int m4a_play_proc(void)
 		// Put next frame in buffer
 		//
 		unsigned long ssize = sample_size(i);
-		rtn = soundplay_readfile(file_buf, ssize);
+		rtn = soundplay_readfile(comp_audio_data, ssize);
 		if(rtn != ssize) {
 			tprintf("m4aplay read file error(ssize=%ld, rtn=%d)\n", ssize, rtn);
 			goto end;
 		}
 		DTPRINTF(0x01, "%6d %4ld ", i, ssize);
-		XDUMP(0x02, file_buf, 16);
+		XDUMP(0x02, comp_audio_data, 16);
 
 		// Decode the frame in buffer
-		samplebuffer = NeAACDecDecode(hAac, &hInfo, file_buf, ssize);
+		samplebuffer = NeAACDecDecode(hAac, &hInfo, comp_audio_data, ssize);
 		if((hInfo.error == 0) && (hInfo.samples > 0)) {
 			//
 			// do what you need to do with the decoded samples
@@ -180,11 +181,11 @@ end:
 
 	mp4tag_dispose(&music_info);
 
-	soundplay_status = SOUND_STOP;
-
 	if(flg_abort != 0) {
+		soundplay_status = SOUND_STAT_ABORTED;
 		soundplay_stop_sound();
 	} else {
+		soundplay_status = SOUND_STAT_NORMALEND;
 		soundplay_end_sound();
 	}
 
@@ -240,17 +241,17 @@ static int m4a_play(int argc, uchar *argv[])
 		return 0;
 	}
 
-	if(soundplay_status != SOUND_STOP) {
+	if(soundplay_status != SOUND_STAT_READY) {
 		soundplay_stop_play();
 	}
 
 	soundplay_init_time();
 
 	fname = (unsigned char *)argv[1];
-	sjisstr_to_utf8str(cname, fname, FF_MAX_LFN);
+	sjisstr_to_utf8str(comp_audio_file_name, fname, FF_MAX_LFN);
 	rtn = soundplay_openfile(fname);
 	if(rtn < 0) {
-		tprintf("Cannot open \"%s\"\n", cname);
+		tprintf("Cannot open \"%s\"\n", comp_audio_file_name);
 		return 0;
 	}
 
@@ -260,7 +261,7 @@ static int m4a_play(int argc, uchar *argv[])
 	//set_draw_mode(GRP_DRAWMODE_NORMAL);
 	//draw_str(3, 3, music_info.title);
 
-	tprintf("Start Play \"%s\"\n", cname);
+	tprintf("Start Play \"%s\"\n", comp_audio_file_name);
 
 	soundplay_start_proc(m4a_play_proc);
 

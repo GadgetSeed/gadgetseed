@@ -472,7 +472,7 @@ void sys_arch_unprotect(sys_prot_t pval)
 
 static int lwip_thread_num = 0;
 static struct st_tcb tcb[MAX_THREAD_NUM];
-static unsigned int lwip_stack[MAX_THREAD_NUM][SIZEOFTS/sizeof(unsigned int)];
+static unsigned int lwip_stack[MAX_THREAD_NUM][SIZEOFTS/sizeof(unsigned int)] ATTR_STACK;
 static struct st_mutex lwip_thread_mtx;
 static lwip_thread_fn lwip_thread_func[MAX_THREAD_NUM];
 

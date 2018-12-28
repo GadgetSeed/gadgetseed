@@ -97,7 +97,7 @@ int mount_storage(int drvno, const char *devname, const char *fsname)
 	if(fs->mount != 0) {
 		rtn = fs->mount(drvno, dev);
 		if(rtn != 0) {
-			SYSERR_PRINT("Device \"%s\" (Storage %d:) mount error.\n", devname, drvno);
+			eprintf("Device \"%s\" (Storage %d:) mount error.\n", devname, drvno);
 			storage[drvno].device = 0;
 			storage[drvno].fs = 0;
 			return -1;

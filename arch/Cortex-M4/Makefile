@@ -22,9 +22,9 @@ SOBJS   = \
 ### for STM32Cube HAL Drivers
 
 ifeq ($(OS),Windows_NT)
-	HAL_DIR =  C:/$(HOMEPATH)/STM32Cube/Repository/STM32Cube_FW_F4_V1.21.0
+	HAL_DIR =  C:/$(HOMEPATH)/STM32Cube/Repository/STM32Cube_FW_F4_V1.23.0
 else
-	HAL_DIR = $(HOME)/STM32Cube/Repository/STM32Cube_FW_F4_V1.21.0
+	HAL_DIR = $(HOME)/STM32Cube/Repository/STM32Cube_FW_F4_V1.23.0
 endif
 
 HAL_DRIVERS_DIR = $(HAL_DIR)/Drivers/STM32F4xx_HAL_Driver/Src

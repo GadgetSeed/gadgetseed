@@ -8,6 +8,7 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
+#include "sysconfig.h"
 #include "device.h"
 
 typedef int (* io_write)(unsigned char *data, unsigned int count);
@@ -26,6 +27,11 @@ extern int cgetcnw(unsigned char *rd);
 
 extern void register_error_out_dev(const struct st_device *err_dev);
 extern int eputs(unsigned char *str, unsigned int len);
+
+#ifdef GSC_KERNEL_MESSAGEOUT_LOG
+extern void register_log_out_dev(const struct st_device *err_dev);
+extern int lputs(unsigned char *str, unsigned int len);
+#endif
 
 extern void set_console_in_device_ISR(struct st_device *dev);
 extern void set_console_out_device_ISR(struct st_device *dev);

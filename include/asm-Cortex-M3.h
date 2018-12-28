@@ -10,6 +10,8 @@
 
 #define ENDIAN_LITTLE
 
+#define ATTR_STACK __attribute__ ((aligned(8)))
+
 #define MAXVECT	98
 #define IRQ_VECT_OFFSET	(16)
 #define IRQ2VECT(x)	(x + IRQ_VECT_OFFSET)

@@ -357,7 +357,7 @@ static int sd_ioctl(struct st_device *dev, unsigned int com, unsigned int arg, v
 		break;
 
 	default:
-		SYSERR_PRINT("Unknow command %08lX arg %08lX\n", com, arg);
+		SYSERR_PRINT("Unknow command %08X arg %08X\n", com, arg);
 		return 0;
 	}
 

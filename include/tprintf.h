@@ -8,6 +8,7 @@
 #ifndef TPRINTF_H
 #define TPRINTF_H
 
+#include "sysconfig.h"
 #include "console.h"
 
 #define UNUSED_VARIABLE(x) (void)(x)

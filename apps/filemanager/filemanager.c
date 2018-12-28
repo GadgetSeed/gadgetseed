@@ -295,6 +295,6 @@ void startup_filemanager(void)
 {
 	set_file_operation(file_operation);
 
-	task_exec(filemanager_task, "filemanager", 2, &tcb,
+	task_exec(filemanager_task, "filemanager", TASK_PRIORITY_APP_HIGH, &tcb,
 		  stack, SIZEOFSTACK, 0);
 }

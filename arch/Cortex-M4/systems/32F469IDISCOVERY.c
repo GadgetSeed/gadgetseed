@@ -161,6 +161,10 @@ void init_system(int *argc, char ***argv)
 	SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 }
 
+void init_system2(void)
+{
+}
+
 /**
    @brief	基本ドライバ初期化後に登録するユーザドライバ登録処理
 */

@@ -8,6 +8,7 @@
 #ifndef DTPRINTF_H
 #define DTPRINTF_H
 
+#include "sysconfig.h"
 #include "tprintf.h"
 
 #ifdef DEBUGTBITS

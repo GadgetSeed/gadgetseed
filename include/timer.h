@@ -30,5 +30,6 @@ extern int unregister_timer_func(timer_func func);
 extern int start_timer(void);
 extern int stop_timer(void);
 extern unsigned long long get_system_utime(void);
+extern int str_timestamp(char *str);
 
 #endif // TIMER_H

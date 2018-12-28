@@ -326,7 +326,7 @@ static int usart_ioctl(struct st_device *dev, unsigned int com, unsigned int arg
 		break;
 
 	default:
-		SYSERR_PRINT("Unknown ioctl(%08lX)\n", com);
+		SYSERR_PRINT("Unknown ioctl(%08X)\n", com);
 		return -1;
 		break;
 	}

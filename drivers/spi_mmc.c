@@ -26,6 +26,7 @@ static struct st_device *mmc_spi;
 /*-----------------------------------------------------------------------*/
 
 
+#include "ff.h"
 #include "diskio.h"
 
 /* MMC/SD command (in SPI) */
@@ -695,7 +696,7 @@ static int mmc_ioctl(struct st_device *dev, unsigned int com, unsigned int arg, 
 		break;
 
 	default:
-		SYSERR_PRINT("Unknow command %08lX arg %08lX\n", com, arg);
+		SYSERR_PRINT("Unknow command %08X arg %08X\n", com, arg);
 		return 0;
 	}
 

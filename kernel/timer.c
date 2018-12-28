@@ -58,6 +58,7 @@
 #include "timer.h"
 #include "device/timer_ioctl.h"
 #include "datetime.h"
+#include "tprintf.h"
 #include "tkprintf.h"
 
 //#define DEBUGKBITS 0x01
@@ -342,4 +343,24 @@ int start_timer(void)
 int stop_timer(void)
 {
 	return ioctl_device(timer_dev, IOCMD_TIMER_STOP, 0, 0);
+}
+
+/**
+   @brief	タイムスタンプ文字列
+
+   @param[out]	str	出力文字列
+
+   @return	出力文字列バイト数
+*/
+int str_timestamp(char *str)
+{
+	int len;
+	unsigned long long ntime;
+
+	ntime = get_system_utime();
+	len = tsnprintf(str, 18, "[%7u.%06u] ",
+			(unsigned int)(ntime/1000000),
+			(unsigned int)(ntime % 1000000));
+
+	return len;
 }

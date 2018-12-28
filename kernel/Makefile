@@ -18,6 +18,10 @@ ifeq ($(MEMORY_ENABLE_HEAP_MEMORY),YES)
 	OBJS += memory.o
 endif
 
+ifeq ($(KERNEL_MESSAGEOUT_LOG),YES)
+	OBJS += log.o
+endif
+
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 

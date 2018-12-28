@@ -41,6 +41,7 @@
 #include "key.h"
 #include "memory.h"
 #include "tprintf.h"
+#include "tkprintf.h"
 #include "system.h"
 #include "task/syscall.h"
 
@@ -65,6 +66,7 @@ static int system_info(int argc, uchar *argv[])
 	tprintf("CPU NAME   : %s\n", cpu_name);
 	tprintf("SYSTEM     : %s\n", system_name);
 	tprintf("Build date : %s %s\n", build_time, build_date);
+	tprintf("Compiler   : %s\n", __VERSION__);
 
 	return 0;
 }
@@ -98,8 +100,8 @@ static int timer_check_time(int argc, uchar *argv[])
 		unsigned long long ktime = get_kernel_time();
 		unsigned long long utime = get_system_utime();
 
-		tprintf("Kernel = %16lld ", ktime);
-		tprintf("System = %16lld.%03lld ", utime/1000, utime%1000);
+		tprintf("Kernel = %16llu ", ktime);
+		tprintf("System = %16llu.%03llu ", utime/1000, utime%1000);
 		tprintf("diff = %8d %8lld\n", (int)(ktime - lktime), utime/1000 - ktime);
 
 		if(cwait(1000) >= 0) {
@@ -133,7 +135,7 @@ static int com_kernel_time(int argc, uchar *argv[])
 {
 	unsigned long long ktime = get_kernel_time();
 
-	tprintf("Kernel Time : %14lld (ms)\n", ktime);
+	tprintf("Kernel Time : %14llu (ms)\n", ktime);
 
 	return 0;
 }
@@ -156,7 +158,7 @@ static int sys_time(int argc, uchar *argv[])
 {
 	unsigned long long kutime = get_system_utime();
 
-	tprintf("System Time : %14lld.%03lld (ms)\n", kutime/1000, kutime%1000);
+	tprintf("System Time : %14llu.%03llu (ms)\n", kutime/1000, kutime%1000);
 
 	return 0;
 }

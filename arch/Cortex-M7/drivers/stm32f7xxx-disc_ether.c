@@ -18,7 +18,7 @@
 #include "stm32f7xx_hal_eth.h"
 #include "stm32f7xx_hal.h"
 
-//#define DEBUGKBITS 0x1000
+//#define DEBUGKBITS 0x10
 #include "dkprintf.h"
 
 
@@ -58,6 +58,7 @@ static unsigned char macaddress[6] = {
 	(GSC_ETHERDEV_DEFAULT_MACADDRESS >>  0) & 0xff
 };
 #endif
+
 static unsigned char ether_event[ETH_RXBUFNB + 1];
 static struct st_event interrupt_evtque;
 static ETH_HandleTypeDef EthHandle;
@@ -148,7 +149,7 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
 
 #define SIZEOFSTACK	(1024*1)
 static struct st_tcb tcb;
-static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)] ATTR_STACK;
 
 static int rmii_task(char *arg)
 {
@@ -208,7 +209,7 @@ static int ether_register(struct st_device *dev, char *param)
 
 	if(HAL_GetREVID() == 0x1000) {
 		tkprintf("RMII configuration Hardware Bug Version(0x1000)\n");
-		task_add(rmii_task, "ether_rmii", 1, &tcb, stack, SIZEOFSTACK, 0);
+		task_add(rmii_task, "ether_rmii", TASK_PRIORITY_DEVICE_DRIVER, &tcb, stack, SIZEOFSTACK, 0);
 	}
 
 	return 0;
@@ -262,17 +263,22 @@ static int ether_read(struct st_device *dev, void *data, unsigned int size)
 	memorycopy(data, buffer, len);
 	KXBDUMP(0x02, data, len);
 
+	__DMB();
 	/* Release descriptors to DMA */
 	/* Point to first descriptor */
 	dmarxdesc = EthHandle.RxFrameInfos.FSRxDesc;
 	/* Set Own bit in Rx descriptors: gives the buffers back to DMA */
 	for(i=0; i< EthHandle.RxFrameInfos.SegCount; i++) {
+		__DMB();
 		dmarxdesc->Status |= ETH_DMARXDESC_OWN;
+		__DMB();
 		dmarxdesc = (ETH_DMADescTypeDef *)(dmarxdesc->Buffer2NextDescAddr);
 	}
 
 	/* Clear Segment_Count */
 	EthHandle.RxFrameInfos.SegCount = 0;
+
+	__DMB();
 
 	/* When Rx Buffer unavailable flag is set: clear it and resume reception */
 	if((EthHandle.Instance->DMASR & ETH_DMASR_RBUS) != (uint32_t)RESET) {
@@ -293,7 +299,7 @@ static int ether_write(struct st_device *dev, const void *data, unsigned int siz
 	HAL_StatusTypeDef res;
 	__IO ETH_DMADescTypeDef *DmaTxDesc;
 
-	DKFPRINTF(0x08, "size = %d\n", size);
+	DKFPRINTF(0x10, "size = %d\n", size);
 
 	DmaTxDesc = EthHandle.TxDesc;
 	if((DmaTxDesc->Status & ETH_DMATXDESC_OWN) != (uint32_t)RESET) {
@@ -301,15 +307,18 @@ static int ether_write(struct st_device *dev, const void *data, unsigned int siz
 		return -1;
 	}
 
+	__DMB();
 	memorycopy(buffer, data, size);
 	KXBDUMP(0x02, buffer, size);
 
+	__DMB();
 	/* Prepare transmit descriptors to give to DMA */
 	res = HAL_ETH_TransmitFrame(&EthHandle, size);
 	if(res != HAL_OK) {
 		SYSERR_PRINT("HAL_ETH_TransmitFrame error %d\n", res);
 	}
 
+	__DMB();
 	/* When Transmit Underflow flag is set, clear it and issue a Transmit Poll Demand to resume transmission */
 	if((EthHandle.Instance->DMASR & ETH_DMASR_TUS) != (uint32_t)RESET) {
 		/* Clear TUS ETHERNET DMA flag */
@@ -395,7 +404,7 @@ static int ether_ioctl(struct st_device *dev, unsigned int com, unsigned int arg
 		break;
 
 	default:
-		SYSERR_PRINT("Unknow command %08lX arg %08lX\n", com, arg);
+		SYSERR_PRINT("Unknow command %08X arg %08X\n", com, arg);
 		break;
 	}
 

@@ -16,6 +16,7 @@
 #include "memory.h"
 #include "font.h"
 #include "sysevent.h"
+#include "log.h"
 #include "device/timer_ioctl.h"
 #include "task/task.h"
 #include "task/syscall.h"
@@ -34,7 +35,7 @@
 #ifdef GSC_TARGET_SYSTEM_EMU	// $gsc ターゲットシステムはエミュレータ
 #define GSC_KERNEL_INITIALTASK_STACK_SIZE	(1024*4)
 #else
-#define GSC_KERNEL_INITIALTASK_STACK_SIZE	(1024*2)
+#define GSC_KERNEL_INITIALTASK_STACK_SIZE	(1024*4)
 #endif
 #endif
 
@@ -48,13 +49,25 @@ const char system_name[] = xstr(GSC_SYSTEM);
 extern struct st_device GSC_KERNEL_ERROUT_DEVICE;	///< $gsc エラーメッセージ出力デバイス
 extern struct st_device GSC_KERNEL_TIMER_DEVICE;	///< $gsc カーネルタイマデバイス
 extern struct st_device GSC_KERNEL_MESSAGEOUT_DEVICE;	///< $gsc カーネルメッセージ出力デバイス
+#ifdef GSC_KERNEL_MESSAGEOUT_LOG
+extern struct st_device logout_device;
+extern struct st_device logbuf_device;
+#endif
 
 // カーネルメッセージ出力デバイス初期化
 static void register_kernel_message_out_device(void)
 {
 	// sysconfig.h
+#ifdef GSC_KERNEL_MESSAGEOUT_LOG
+	(void)register_device(&GSC_KERNEL_ERROUT_DEVICE, 0);
+	(void)register_device(&logout_device, "debug");
+	(void)register_device(&logbuf_device, 0);
+	(void)register_kmess_out_dev(&logout_device);
+	(void)register_kmess_log_dev(&logbuf_device);
+#else
 	(void)register_device(&GSC_KERNEL_ERROUT_DEVICE, 0);
 	(void)register_kmess_out_dev(&GSC_KERNEL_MESSAGEOUT_DEVICE);
+#endif
 }
 
 void display_bunner(void)
@@ -63,12 +76,14 @@ void display_bunner(void)
 	extern const char build_date[];
 	extern const char build_time[];
 
+	tkprintf(NORMAL_COLOR "\n");
 	tkprintf("GadgetSeed Ver. %s\n", os_version);
 	tkprintf("(c)2010-2018 Takashi SHUDO\n");
 	tkprintf("CPU ARCH     : %s\n", arch_name);
 	tkprintf("CPU NAME     : %s\n", cpu_name);
 	tkprintf("SYSTEM       : %s\n", system_name);
 	tkprintf("Build date   : %s %s\n", build_time, build_date);
+	tkprintf("Compiler     : %s\n", __VERSION__);
 }
 
 extern void init_sect(void);
@@ -76,7 +91,7 @@ extern int initial_task(char *arg);
 
 static struct st_tcb init_task_tcb;
 
-static unsigned int init_task_stack[GSC_KERNEL_INITIALTASK_STACK_SIZE/sizeof(unsigned int)];
+static unsigned int init_task_stack[GSC_KERNEL_INITIALTASK_STACK_SIZE/sizeof(unsigned int)]  ATTR_STACK;
 
 int flg_init_task_run = 0;
 
@@ -132,11 +147,17 @@ void init_gs(int *argc, char ***argv)
 	// カーネルタイマドライバ初期化
 	register_device(&GSC_KERNEL_TIMER_DEVICE, 0);	// sysconfig.h
 
+	// システム初期化
+	init_system2();
+
 	// コンソール初期化
 	init_console_device();
 	register_kernel_message_out_device();
+
+	// バナー表示
 	display_bunner();
 
+	// カーネルタイマスタート
 	init_timer(DEF_DEV_NAME_TIMER);
 
 	/*
@@ -177,6 +198,6 @@ void init_gs(int *argc, char ***argv)
 	/*
 	  初期タスク起動
 	*/
-	task_exec(initial_task, "init", GSC_KERNEL_MAX_TASK_PRIORITY-2, &init_task_tcb,
+	task_exec(initial_task, "init", TASK_PRIORITY_APP_LOW, &init_task_tcb,
 		  init_task_stack, GSC_KERNEL_INITIALTASK_STACK_SIZE, 0);
 }

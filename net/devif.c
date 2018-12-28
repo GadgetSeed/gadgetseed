@@ -116,7 +116,7 @@ static int low_level_init(struct netif *netif)
 		netif->hwaddr[5]);
 
 	sys_thread_new("devif_thread", devif_thread, netif,
-		       STACKSIZE, DEFAULT_THREAD_PRIO);
+		       0/*STACKSIZE*/, DEFAULT_THREAD_PRIO);
 
 	return 0;
 }
@@ -130,6 +130,8 @@ static int low_level_init(struct netif *netif)
  *
  */
 /*---------------------------------------------------------------------------*/
+#include "task/syscall.h"
+
 static char obuf[1514];
 
 static err_t low_level_output(struct netif *netif, struct pbuf *p)

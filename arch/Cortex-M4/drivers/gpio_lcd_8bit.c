@@ -754,7 +754,7 @@ static int gpio_ioctl(struct st_device *dev, unsigned int com, unsigned int arg,
 		break;
 
 	default:
-		SYSERR_PRINT("Unknow command %08lX arg %08lX\n", com, arg);
+		SYSERR_PRINT("Unknow command %08X arg %08X\n", com, arg);
 		rtn =  -1;
 		break;
 	}
@@ -1067,7 +1067,7 @@ static int gpio_register(struct st_device *dev, char *param)
 #ifdef GSC_DEV_ENABLE_TOUCHSENSOR
 	mutex_register_ISR(&gpio_mutex, DEF_DEV_NAME_VIDEOIO);
 
-	task_add(ts_task, "touch_sensor", 1, &tcb,
+	task_add(ts_task, "touch_sensor", TASK_PRIORITY_DEVICE_DRIVER, &tcb,
 		 stack, SIZEOFSTACK, 0);
 
 	register_timer_func(ts_timer_func, 20);
@@ -1120,7 +1120,7 @@ static int ts_analog_ioctl(struct st_device *dev, unsigned int com, unsigned int
 		break;
 
 	default:
-		SYSERR_PRINT("Unknow command %08lX arg %08lX\n", com, arg);
+		SYSERR_PRINT("Unknow command %08X arg %08X\n", com, arg);
 		rtn =  -1;
 		break;
 	}

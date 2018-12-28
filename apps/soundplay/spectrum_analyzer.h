@@ -20,7 +20,7 @@ struct st_audio_spectrum {
 	unsigned char spectrum[SPA_ANA_SMP * 2];
 };
 
-void proc_spectrum_analyse(unsigned char *spectrum, short *buf);
+void proc_spectrum_analyze(unsigned char *spectrum, short *buf);
 void init_window_table(void);
 
 #endif // SPECTRUM_ANALYZER_H

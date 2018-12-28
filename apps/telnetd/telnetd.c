@@ -319,10 +319,10 @@ int telnetd_task(char *arg)
 
 #define SIZEOFSTACK	(1024*4)
 struct st_tcb telnetd_tcb;
-unsigned int telnetd_stack[SIZEOFSTACK/sizeof(unsigned int)];
+unsigned int telnetd_stack[SIZEOFSTACK/sizeof(unsigned int)] ATTR_STACK;
 
 void startup_telnetd(void)
 {
-	task_exec(telnetd_task, "telnetd", 0, &telnetd_tcb,
+	task_exec(telnetd_task, "telnetd", TASK_PRIORITY_APP_HIGH, &telnetd_tcb,
 		  telnetd_stack, SIZEOFSTACK, 0);
 }

@@ -100,7 +100,7 @@ static int mmc_block_read(struct st_device *dev, void *data, unsigned int sector
 
 	srt = lseek64(mmc_fd, sector * SECTSIZE, SEEK_SET);
 	if(srt < 0) {
-		SYSERR_PRINT("Block read(data=%p, sector=%u, size=%d) lseek64() error %d\n", data, count, srt);
+		SYSERR_PRINT("Block read(data=%p, sector=%u, count=%u) lseek64() error %ld\n", data, sector, count, srt);
 		return -1;
 	}
 
@@ -109,7 +109,7 @@ static int mmc_block_read(struct st_device *dev, void *data, unsigned int sector
 		rt = count;
 		KXDUMP(0x02, data, count * SECTSIZE);
 	} else {
-		SYSERR_PRINT("Block read(data=%p, sector=%u, size=%d) read() error %d\n", data, count, rt);
+		SYSERR_PRINT("Block read(data=%p, sector=%u, count=%u) read() error %ld\n", data, sector, count, rt);
 	}
 
 	return (int)rt;
@@ -125,7 +125,7 @@ static int mmc_block_write(struct st_device *dev, const void *data, unsigned int
 
 	srt = lseek64(mmc_fd, sector * SECTSIZE, SEEK_SET);
 	if(srt < 0) {
-		SYSERR_PRINT("Block read(data=%p, sector=%u, size=%d) lseek64() error %d\n", data, count, srt);
+		SYSERR_PRINT("Block read(data=%p, sector=%u, size=%u) lseek64() error %ld\n", data, sector, count, srt);
 		return -1;
 	}
 
@@ -133,7 +133,7 @@ static int mmc_block_write(struct st_device *dev, const void *data, unsigned int
 	if(rt > 0) {
 		return count;
 	} else {
-		SYSERR_PRINT("Block write(data=%p, sector=%u, size=%d) write() error %d\n", data, count, rt);
+		SYSERR_PRINT("Block write(data=%p, sector=%u, sector=%u) write() error %ld\n", data, sector, count, rt);
 		return rt;
 	}
 }
@@ -156,7 +156,7 @@ static int mmc_ioctl(struct st_device *dev, unsigned int com, unsigned int arg, 
 		break;
 
 	default:
-		SYSERR_PRINT("Unknow command %08lX arg %08lX\n", com, arg);
+		SYSERR_PRINT("Unknow command %08X arg %08X\n", com, arg);
 		return 0;
 	}
 

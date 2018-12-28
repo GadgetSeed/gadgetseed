@@ -273,6 +273,6 @@ void startup_paint(void)
 	startup_ts_calib();
 #endif
 
-	task_exec(paint_task, "paint", 2, &tcb,
+	task_exec(paint_task, "paint", TASK_PRIORITY_APP_HIGH, &tcb,
 		  stack, SIZEOFSTACK, 0);
 }

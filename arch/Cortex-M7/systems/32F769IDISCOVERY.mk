@@ -1,3 +1,7 @@
+ifeq ($(KERNEL_MESSAGEOUT_LOG),YES)
+DRIVERS += logbuf
+endif
+
 ifeq ($(DEV_ENABLE_ADC),YES)
 ARCH_DRIVERS += adc
 endif

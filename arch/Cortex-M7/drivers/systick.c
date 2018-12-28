@@ -47,7 +47,7 @@ static void start_systick(void)
 	int clock = HAL_RCC_GetHCLKFreq();
 
 	HAL_SYSTICK_Config(clock/1000 * GSC_KERNEL_TIMER_INTERVAL_MSEC);
-	tkprintf("System Clock : %ld MHz\n", clock/1000000);
+	tkprintf("System Clock : %d MHz\n", clock/1000000);
 	/*
 	  タイマ割り込みプライオリティが最高になっているので最低に戻し
 	  ている。多重割り込みは対応していないので他の割り込みと同じレ
@@ -127,7 +127,7 @@ static int systick_ioctl(struct st_device *dev, unsigned int com, unsigned int a
 		break;
 
 	default:
-		SYSERR_PRINT("Unknown ioctl(%08lX)\n", com);
+		SYSERR_PRINT("Unknown ioctl(%08X)\n", com);
 		return -1;
 	}
 

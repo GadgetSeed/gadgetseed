@@ -134,7 +134,7 @@ static int ts_register(struct st_device *dev, char *param)
 
 	register_interrupt(IRQ2VECT(TS_INT_EXTI_IRQn), inthdr_exti9_5);
 
-	task_add(ts_task, "touch_sensor", 1, &tcb,
+	task_add(ts_task, "touch_sensor", TASK_PRIORITY_DEVICE_DRIVER, &tcb,
 		 stack, SIZEOFSTACK, 0);
 
 	BSP_TS_Init(LCD_WIDTH, LCD_HEIGHT);

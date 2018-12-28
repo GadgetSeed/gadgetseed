@@ -17,10 +17,12 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | COMP_ENABLE_FATFS                  | FATFSを有効にする                                                  |
 | COMP_ENABLE_FONTS                  | 文字フォント表示を有効にする                                               |
 | COMP_ENABLE_GRAPHICS               | グラフィック描画を有効にする                                               |
+| COMP_ENABLE_PIPEFS                 | PIPFSを有効にする                                                  |
 | COMP_ENABLE_SHELL                  | コマンドシェルを有効にする                                                |
 | COMP_ENABLE_TCPIP                  | TCP/IPネットワークを有効にする                                           |
 | CPUNAME                            | CPU 名                                                        |
 | CPU_CLOCK_HZ                       | CPUクロック周波数(Hz)                                               |
+| DEFAULT_LOGPRIORITY                | gslogn()のログプライオリティ                                           |
 | DEV_ENABLE_ADC                     | A/Dコンバータデバイスを有効にする                                           |
 | DEV_ENABLE_AUDIO                   | オーディオデバイスを有効にする                                              |
 | DEV_ENABLE_BUTTON                  | ボタンデバイスを有効にする                                                |
@@ -46,7 +48,8 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | ENABLE_UILIB                       | ユーザインタフェースライブラリを有効にする                                        |
 | ETHERDEV_DEFAULT_MACADDRESS        | EtherデバイスデフォルトMACアドレス                                        |
 | ETHERDEV_HARDWARE_CHECKSUM         | Etherデバイスのハードウェアチェックサムを有効にする                                 |
-| FATFS_MAX_FILE_NUM                 | FATFS最大ファイル数                                                 |
+| FATFS_MAX_DIR_NUM                  | FatFsでオープンできる最大ディレクトリ数                                       |
+| FATFS_MAX_FILE_NUM                 | FatFsでオープンできる最大ファイル数                                         |
 | FONTS_ENABLE_FONT_12X16            | 12X16フォントを有効にする                                              |
 | FONTS_ENABLE_FONT_12X24            | 12X24フォントを有効にする                                              |
 | FONTS_ENABLE_FONT_16X24            | 16X24フォントを有効にする                                              |
@@ -65,6 +68,8 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | FONTS_ENABLE_FONT_NUM24X48         | NUM24X48フォントを有効にする                                           |
 | FONTS_ENABLE_FONT_NUM48X64         | NUM48X64フォントを有効にする                                           |
 | FONTS_ENABLE_KANJI                 | 漢字フォントの描画を有効にする                                              |
+| FS_MAX_FILE_NUM                    | オープンできる最大ファイル数                                               |
+| FS_VOLUME_NUM                      | 最大ストレージデバイスボリューム数                                            |
 | GRAPHICS_COLOR_16BIT               | グラフィックデバイスは16ビットカラー                                          |
 | GRAPHICS_COLOR_24BIT               | グラフィックデバイスは24ビットカラー                                          |
 | GRAPHICS_COLOR_32BIT               | グラフィックデバイスは32ビットカラー                                          |
@@ -83,6 +88,7 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | KERNEL_MAX_SYSTEMEVENT_COUNT       | システムイベントの最大バッファ数                                             |
 | KERNEL_MAX_TASK_PRIORITY           | カーネルタスクプライオリティ段階数                                            |
 | KERNEL_MESSAGEOUT_DEVICE           | カーネルメッセージ出力デバイス                                              |
+| KERNEL_MESSAGEOUT_LOG              | カーネルメッセージのログ出力を有効にする                                         |
 | KERNEL_MESSAGEOUT_MEMORY_SIZE      | カーネルメッセージ出力メモリサイズ                                            |
 | KERNEL_SYSTEMEVENT_LIFE_TIME       | システムイベントの寿命(msec)                                            |
 | KERNEL_TIMER_DEVICE                | カーネルタイマデバイス                                                  |
@@ -95,10 +101,14 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | LIB_ENABLE_PICOJPEG                | picojpeg(JPEG decoder)ライブラリを有効にする                            |
 | LIB_ENABLE_RANDOM                  | 乱数ライブラリを有効にする                                                |
 | LIB_ENABLE_ZLIB                    | zlibライブラリを有効にする                                              |
+| MAX_LOGBUF_SIZE                    | ログバッファサイズ                                                    |
 | MAX_TASK_INFO_NUM                  | topコマンドで表示可能な最大タスク数                                          |
 | MEMORY_ENABLE_HEAP_MEMORY          | ヒープメモリを有効にする                                                 |
 | MEMORY_HEAP_IS_NEWLIB              | ヒープメモリ管理をnewlibで行う                                           |
 | MEMORY_HEAP_SIZE                   | ヒープメモリサイズ(newlibを使わない場合)                                     |
+| PIPEFS_MAX_BUF_COUNT               | パイプバッファサイズ                                                   |
+| PIPEFS_MAX_DIR_NUM                 | オープンできる最大ディレクトリ数                                             |
+| PIPEFS_MAX_PIPE_NUM                | 最大パイプ数                                                       |
 | RTC_DATETIME_SYNC_CYCLE            | RTCとカーネル時刻の同期計算周期(msec)                                      |
 | RTC_RESOLUTION_IS_NOT_SEC          | RTCの解像度は秒より精細                                                |
 | SHELL_MAX_COM_ARGV                 | shellコマンド最大引数の数                                              |

@@ -98,7 +98,7 @@ int read_fifo(struct st_fifo *fp, unsigned char *data, unsigned int length)
 /**
    @brief fifoに書き込まれているデータを全て消去する
 
-   @param[in]	fp	データのサイズを読み出すfifo
+   @param[in]	fp	データを全て消去するfifo
 */
 void clear_fifo(struct st_fifo *fp)
 {

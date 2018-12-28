@@ -9,11 +9,11 @@
 #include "fs.h"
 #include "str.h"
 
-#ifdef GSC_COMP_ENABLE_FATFS
+#ifdef GSC_COMP_ENABLE_FATFS	// $gsc FATFSを有効にする
 extern const struct st_filesystem fatfs_fs;
 #endif
 
-#ifdef GSC_COMP_ENABLE_PIPEFS
+#ifdef GSC_COMP_ENABLE_PIPEFS	// $gsc PIPFSを有効にする
 extern const struct st_filesystem pipefs_fs;
 #endif
 

@@ -15,6 +15,8 @@
 #include "str.h"
 #include "memory.h"
 #include "random.h"
+#include "tkprintf.h"
+#include "log.h"
 #include "task/syscall.h"
 
 #include "musicplay_view.h"
@@ -47,11 +49,11 @@ int play_file_num = 0;
 
 static struct st_tcb tcb;
 #define SIZEOFSTACK	(1024*8)
-static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)] ATTR_STACK;
 
 void disp_track(void)
 {
-	tprintf("Track %d/%d\n", play_file_num+1, music_file_count);
+	gslog(1, "Track %d/%d\n", play_file_num+1, music_file_count);
 }
 
 void set_play_file_num(void)
@@ -195,13 +197,13 @@ static void sound_proc(struct st_sysevent *event)
 		break;
 
 	case EVT_SOUND_PREPARE:
-		tprintf("Prepare start success\n");
+		gslog(1, "Prepare start success\n");
 		set_music_info((struct st_music_info *)(event->private_data));
 		set_playtime_slider(0);
 		break;
 
 	case EVT_SOUND_START:
-		tprintf("Play start success\n");
+		gslog(1, "Play start success\n");
 		set_music_info((struct st_music_info *)(event->private_data));
 		musicplay_status = MUSICPLAY_STAT_PLAY;
 		set_play_album_music_num_list_view(play_album_num, play_track_num);
@@ -209,7 +211,7 @@ static void sound_proc(struct st_sysevent *event)
 		break;
 
 	case EVT_SOUND_END:
-		tprintf("Play end\n");
+		gslog(1, "Play end\n");
 		if(musicplay_status != MUSICPLAY_STAT_STOP) {
 			ff_music_play();
 			task_sleep(10);	// soudplayタスクが終了するまで待つ(暫定対策)
@@ -218,7 +220,7 @@ static void sound_proc(struct st_sysevent *event)
 		break;
 
 	case EVT_SOUND_STOP:
-		tprintf("Play stop success\n");
+		gslog(1, "Play stop success\n");
 		if(disp_mode == MODE_PLAY) {
 			draw_spectrum(0);
 		}
@@ -229,7 +231,7 @@ static void sound_proc(struct st_sysevent *event)
 		break;
 
 	case EVT_SOUND_PAUSE:
-		tprintf("Play pause success\n");
+		gslog(1, "Play pause success\n");
 		musicplay_status = MUSICPLAY_STAT_PAUSE;
 		if(disp_mode == MODE_PLAY) {
 			draw_spectrum(0);
@@ -237,7 +239,7 @@ static void sound_proc(struct st_sysevent *event)
 		break;
 
 	case EVT_SOUND_CONTINUE:
-		tprintf("Play continue success\n");
+		gslog(1, "Play continue success\n");
 		musicplay_status = MUSICPLAY_STAT_PLAY;
 		break;
 
@@ -251,7 +253,7 @@ static void sound_proc(struct st_sysevent *event)
 		case KEY_GB_ESC:
 		case KEY_GB_BS:
 		case KEY_GB_SPACE:
-			tprintf("Play stop\n");
+			gslog(1, "Play stop\n");
 			stop_music_play();
 			break;
 
@@ -293,7 +295,7 @@ int musicplay_proc(void)
 		}
 	}
 
-	tprintf("Music Play end\n");
+	gslog(1, "Music Play end\n");
 
 	return 0;
 }
@@ -303,7 +305,7 @@ static int musicplay_task(char *arg)
 	init_musicplay_view();
 	draw_searching();
 
-	tprintf("Audio File searching...\n");
+	gslog(1, "Audio File searching...\n");
 	create_filelist((unsigned char *)"0:", (struct file_ext *)audio_file_ext);
 
 	init_list_view();
@@ -321,6 +323,6 @@ static int musicplay_task(char *arg)
 
 void startup_musicplay(void)
 {
-	task_exec(musicplay_task, "musicplay", 2, &tcb,
+	task_exec(musicplay_task, "musicplay", TASK_PRIORITY_APP_LOW, &tcb,
 		  stack, SIZEOFSTACK, 0);
 }

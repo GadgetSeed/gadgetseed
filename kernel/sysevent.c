@@ -106,7 +106,7 @@ static unsigned long long key_repeat_int_count;	///< キーリピート時間カ
 */
 void init_event(void)
 {
-	eventqueue_register_ISR(&evtque, "event", (void *)event_buf, (unsigned int)sizeof(struct st_sysevent), GSC_KERNEL_MAX_SYSTEMEVENT_COUNT+1);
+	eventqueue_register_ISR(&evtque, "sysevent", (void *)event_buf, (unsigned int)sizeof(struct st_sysevent), GSC_KERNEL_MAX_SYSTEMEVENT_COUNT+1);
 
 	last_key = 0;
 	key_repeat_start_time = GSC_KEY_REPEAT_START_TIME;

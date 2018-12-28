@@ -8,6 +8,7 @@
 #ifndef DKPRINTF_H
 #define DKPRINTF_H
 
+#include "sysconfig.h"
 #include "tkprintf.h"
 
 #ifdef DEBUGKBITS

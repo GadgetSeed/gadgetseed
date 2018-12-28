@@ -6,9 +6,11 @@
     @author	Takashi SHUDO
 */
 
+#include "sysconfig.h"
 #include "console.h"
 #include "vtprintf.h"
 #include "tprintf.h"
+#include "timer.h"
 
 static char *sp;
 
@@ -70,7 +72,7 @@ int tsnprintf(char *str, unsigned int size, const char *fmt, ...)
 	va_end(args);
 
 	*sp = 0;
-	len ++;
+	//len ++;
 
 	return len;
 }
@@ -101,10 +103,24 @@ int tprintf(const char *fmt, ...)
 
    @return	出力文字列バイト数
 */
+extern int flg_disp_logtimestamp;
+
 int eprintf(const char *fmt, ...)
 {
 	va_list	args;
 	int len = 0;
+#ifdef GSC_KERNEL_MESSAGEOUT_LOG
+	char str[MAXFORMATSTR];	// フォーマットデコードバッファ
+
+	len = str_timestamp(str);
+	if(flg_disp_logtimestamp != 0) {
+		eputs((unsigned char *)str, len);
+		eputs((unsigned char *)"(E) ", 4);
+	} else {
+		lputs((unsigned char *)str, len);
+		lputs((unsigned char *)"(E) ", 4);
+	}
+#endif
 
 	va_start(args, fmt);
 	len += vtprintf(eputs, fmt, 0, args);
@@ -112,6 +128,7 @@ int eprintf(const char *fmt, ...)
 
 	return len;
 }
+
 
 void xdump(unsigned char *data, unsigned int len)
 {

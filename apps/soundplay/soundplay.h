@@ -10,14 +10,31 @@
 
 #define MAX_FILEBUF	(1024*10)
 
-#define SOUND_STOP	0
-#define SOUND_PLAY	1
-#define SOUND_PAUSE	2
-extern int soundplay_status;
-extern int next_soundplay_status;
+typedef enum {
+	SOUND_EVENT_NOEVENT,
+	SOUND_EVENT_PLAY,
+	SOUND_EVENT_STOP,
+	SOUND_EVENT_PAUSE,
+	SOUND_EVENT_CONTINUE,
+	SOUND_EVENT_SYNC,
+	MAX_SOUND_EVENT
+} sound_event;
+extern sound_event soundplay_event;
 
-extern unsigned char file_buf[MAX_FILEBUF];
-extern unsigned char cname[FF_MAX_LFN + 1];
+typedef enum {
+	SOUND_STAT_READY,
+	SOUND_STAT_SYNCING,
+	SOUND_STAT_PLAYING,
+	SOUND_STAT_PAUSE,
+	SOUND_STAT_NORMALEND,
+	SOUND_STAT_ABORTED,
+	MAX_SOUND_STAT
+} sound_stat;
+extern sound_stat soundplay_status;
+
+extern unsigned char comp_audio_data[MAX_FILEBUF];
+extern unsigned char comp_audio_file_name[FF_MAX_LFN + 1];
+
 extern int audio_buf_size;
 extern int audio_frame_count;
 extern int next_audio_frame_count;

@@ -42,28 +42,16 @@ void disp_regs(void *sp)
 {
 	union st_regs *regs = (union st_regs *)sp;
 
-	tkprintf("xPSR= %08lX\n", regs->name.xpsr);
-	tkprintf("R0  = %08lX    ", regs->name.r0);
-	tkprintf("R1  = %08lX    ", regs->name.r1);
-	tkprintf("R2  = %08lX    ", regs->name.r2);
-	tkprintf("R3  = %08lX    ", regs->name.r3);
-	tkprintf("\n");
-	tkprintf("R4  = %08lX    ", regs->name.r4);
-	tkprintf("R5  = %08lX    ", regs->name.r5);
-	tkprintf("R6  = %08lX    ", regs->name.r6);
-	tkprintf("R7  = %08lX    ", regs->name.r7);
-	tkprintf("\n");
-	tkprintf("R8  = %08lX    ", regs->name.r8);
-	tkprintf("R9  = %08lX    ", regs->name.r9);
-	tkprintf("R10 = %08lX    ", regs->name.r10);
-	tkprintf("R11 = %08lX    ", regs->name.r11);
-	tkprintf("\n");
-	tkprintf("R12 = %08lX    ", regs->name.r12);
-	tkprintf("SP  = %08lX    ", regs->name.sp);
-	tkprintf("LR  = %08lX    ", regs->name.lr);
-	tkprintf("PC  = %08lX    ", regs->name.pc);
-	tkprintf("\n");
-//	tkprintf("iLR = %08lX    ", regs->name.ilr);
+	tkprintf("xPSR= %08X\n", regs->name.xpsr);
+	tkprintf("R0  = %08X    R1  = %08X    R2  = %08X    R3  = %08X\n",
+		 regs->name.r0, regs->name.r1, regs->name.r2, regs->name.r3);
+	tkprintf("R4  = %08X    R5  = %08X    R6  = %08X    R7  = %08X\n",
+		 regs->name.r4, regs->name.r5, regs->name.r6, regs->name.r7);
+	tkprintf("R8  = %08X    R9  = %08X    R10 = %08X    R11 = %08X\n",
+		 regs->name.r8, regs->name.r9, regs->name.r10, regs->name.r11);
+	tkprintf("R12 = %08X    SP  = %08X    LR  = %08X    PC  = %08X\n",
+		 regs->name.r12, regs->name.sp, regs->name.lr, regs->name.pc);
+//	tkprintf("iLR = %08X    ", regs->name.ilr);
 //	tkprintf("\n");
 }
 
@@ -74,6 +62,7 @@ void disp_regs(void *sp)
 void dispatch(struct st_tcb *otcb, struct st_tcb *tcb)
 {
 	extern void _dispatch(void *sp);
+	union st_regs *regs = (union st_regs *)tcb->sp;
 //	static int svc_flg = 0;
 
 //	if(svc_flg == 1) {
@@ -82,12 +71,14 @@ void dispatch(struct st_tcb *otcb, struct st_tcb *tcb)
 //	svc_flg ++;
 //	NVIC_CCR |= 0x00000001;
 
-	if(((union st_regs *)(tcb->sp))->name.pc >= 0x20000000) {
-		SYSERR_PRINT("Stack Error ?\n");
+	if((((void *)(regs->name.sp)) < tcb->stack_addr) ||
+	   (((void *)(regs->name.sp)) >= (tcb->stack_addr + tcb->stack_size))) {
+		SYSERR_PRINT("Stack Over ERROR\n");
 		disp_task_info();
 		disp_regs(tcb->sp);
 		disp_debug_info();
 		print_queues();
+		while(1);
 	}
 
 	_dispatch(tcb->sp);

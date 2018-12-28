@@ -42,26 +42,26 @@ void disp_regs(void *sp)
 {
 	union st_regs *regs = (union st_regs *)sp;
 
-	tkprintf("xPSR= %08lX\n", regs->name.xpsr);
-	tkprintf("R0  = %08lX    ", regs->name.r0);
-	tkprintf("R1  = %08lX    ", regs->name.r1);
-	tkprintf("R2  = %08lX    ", regs->name.r2);
-	tkprintf("R3  = %08lX    ", regs->name.r3);
+	tkprintf("xPSR= %08X\n", regs->name.xpsr);
+	tkprintf("R0  = %08X    ", regs->name.r0);
+	tkprintf("R1  = %08X    ", regs->name.r1);
+	tkprintf("R2  = %08X    ", regs->name.r2);
+	tkprintf("R3  = %08X    ", regs->name.r3);
 	tkprintf("\n");
-	tkprintf("R4  = %08lX    ", regs->name.r4);
-	tkprintf("R5  = %08lX    ", regs->name.r5);
-	tkprintf("R6  = %08lX    ", regs->name.r6);
-	tkprintf("R7  = %08lX    ", regs->name.r7);
+	tkprintf("R4  = %08X    ", regs->name.r4);
+	tkprintf("R5  = %08X    ", regs->name.r5);
+	tkprintf("R6  = %08X    ", regs->name.r6);
+	tkprintf("R7  = %08X    ", regs->name.r7);
 	tkprintf("\n");
-	tkprintf("R8  = %08lX    ", regs->name.r8);
-	tkprintf("R9  = %08lX    ", regs->name.r9);
-	tkprintf("R10 = %08lX    ", regs->name.r10);
-	tkprintf("R11 = %08lX    ", regs->name.r11);
+	tkprintf("R8  = %08X    ", regs->name.r8);
+	tkprintf("R9  = %08X    ", regs->name.r9);
+	tkprintf("R10 = %08X    ", regs->name.r10);
+	tkprintf("R11 = %08X    ", regs->name.r11);
 	tkprintf("\n");
-	tkprintf("R12 = %08lX    ", regs->name.r12);
-	tkprintf("SP  = %08lX    ", regs->name.sp);
-	tkprintf("LR  = %08lX    ", regs->name.lr);
-	tkprintf("PC  = %08lX    ", regs->name.pc);
+	tkprintf("R12 = %08X    ", regs->name.r12);
+	tkprintf("SP  = %08X    ", regs->name.sp);
+	tkprintf("LR  = %08X    ", regs->name.lr);
+	tkprintf("PC  = %08X    ", regs->name.pc);
 	tkprintf("\n");
 }
 

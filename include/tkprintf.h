@@ -8,11 +8,13 @@
 #ifndef TKPRINTF_H
 #define TKPRINTF_H
 
+#include "sysconfig.h"
 #include "device.h"
 
 int register_kmess_out_dev(struct st_device *dev);
 unsigned int set_kernel_message_out_mem(unsigned char *mp, unsigned int size);
-int tkprintf(const char *fmt, ...);
+int kputs(unsigned char *str, unsigned int len);
+int tkprintf(const char *fmt, ...)__attribute__ ((format(printf, 1, 2)));
 void kxdump(unsigned char *data, unsigned int len);
 void kxbdump(unsigned char *data, unsigned int len);
 

@@ -684,7 +684,7 @@ static int spi_transblock(struct st_device *dev, unsigned char *rd, long size,
 			0, SPI_WAIT_TIME);
 	if(rt == 0) {
 		err = 1;
-		SYSERR_PRINT("SPI DMA timeout(%ld)\n", rt);
+		SYSERR_PRINT("SPI DMA timeout(%d)\n", rt);
 	}
 #else
 	if(dev == &spi1_device) {
@@ -1108,7 +1108,7 @@ static int spi_ioctl(struct st_device *dev, unsigned int com, unsigned int arg, 
 		break;
 
 	default:
-		SYSERR_PRINT("Unknown ioctl(%08lX)\n", com);
+		SYSERR_PRINT("Unknown ioctl(%08X)\n", com);
 		break;
 	}
 

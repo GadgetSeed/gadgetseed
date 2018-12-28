@@ -23,6 +23,9 @@
 
 extern int open_lcdwindow(int *argc, char ***argv);
 
+extern const struct st_device logout_device;
+extern const struct st_device logbuf_device;
+
 extern const struct st_device GSC_KERNEL_ERROUT_DEVICE;
 extern const struct st_device vconsole_device;
 extern const struct st_device rtc_device;
@@ -81,6 +84,10 @@ void init_system(int *argc, char ***argv)
 #endif
 }
 
+void init_system2(void)
+{
+}
+
 static void register_devices(const struct st_device * const list[])
 {
 	struct st_device **dev = (struct st_device **)list;
@@ -95,9 +102,14 @@ void init_system_drivers(void)
 {
 	// デバイスドライバ初期化
 	register_devices(dev_list);
-	register_error_out_dev(&GSC_KERNEL_ERROUT_DEVICE);
 	register_console_out_dev(&vconsole_device);
 	register_console_in_dev(&vconsole_device);
+#ifdef GSC_KERNEL_MESSAGEOUT_LOG
+	register_error_out_dev(&logout_device);
+	register_log_out_dev(&logbuf_device);
+#else
+	register_error_out_dev(&GSC_KERNEL_ERROUT_DEVICE);
+#endif
 
 	// RTC初期化
 #ifdef GSC_DEV_ENABLE_RTC
@@ -129,7 +141,7 @@ void init_system_drivers(void)
 
 void init_system_process(void)
 {
-#ifdef GSC_COMP_ENABLE_FATFS	// $gsc FATFSを有効にする
+#ifdef GSC_COMP_ENABLE_FATFS
 	// ファイルシステム初期化
 	init_storage();
 	register_storage_device(storade_devices);

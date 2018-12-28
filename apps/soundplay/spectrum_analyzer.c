@@ -76,7 +76,7 @@ static void calc_pw(FFTACC *ar, FFTACC *ai, unsigned char *pw, int n)
 	}
 }
 
-void proc_spectrum_analyse(unsigned char *spc, short *buf)
+void proc_spectrum_analyze(unsigned char *spc, short *buf)
 {
 	int i;
 

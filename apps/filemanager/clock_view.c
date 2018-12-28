@@ -65,6 +65,6 @@ static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)];
 
 void startup_clock(void)
 {
-	task_exec(clock_task, "clock", 2, &clock_tcb,
+	task_exec(clock_task, "clock", TASK_PRIORITY_APP_HIGH, &clock_tcb,
 		  stack, SIZEOFAPPTS, 0);
 }

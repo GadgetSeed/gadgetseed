@@ -40,6 +40,6 @@ static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)];
 
 void startup_heartbeat(void)
 {
-	task_exec(hb_task, "heartbeat", 1, &tcb,
+	task_exec(hb_task, "heartbeat", TASK_PRIORITY_APP_HIGH, &tcb,
 		  stack, SIZEOFAPPTS, 0);
 }

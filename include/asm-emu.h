@@ -15,6 +15,8 @@
 
 #define ENDIAN_LITTLE
 
+#define ATTR_STACK
+
 extern int pause(void);	// <unistd.h>
 
 #define SIGNAL_TIMER	SIGALRM

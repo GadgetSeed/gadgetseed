@@ -89,7 +89,7 @@ void init_task(void)
 	init_eventqueue();
 	init_mutex();
 
-	task_add_ISR(idle_task, "IDLE", GSC_KERNEL_MAX_TASK_PRIORITY-1, &idle_tcb,
+	task_add_ISR(idle_task, "IDLE", TASK_PRIORITY_IDLE, &idle_tcb,
 		     idle_stack, GSC_KERNEL_IDLE_TASK_STACK_SIZE, 0);
 }
 
@@ -209,7 +209,7 @@ void print_task(void)
 
 	if(check_queue((struct st_queue *)queue) != 0) {
 		while(tmp->next != ((struct st_queue *)queue)->next) {
-			tkprintf("%3d %10s %3d %6s %P %08X %P(%04X) %P %9d\n",
+			tkprintf("%3d %10s %3d %6s %p %08X %p(%04X) %p %9d\n",
 				 ((struct tcb_queue *)tmp)->tcb->id,
 				 ((struct tcb_queue *)tmp)->tcb->name,
 				 ((struct tcb_queue *)tmp)->tcb->priority,
@@ -330,7 +330,7 @@ static void dispatch_task(struct st_tcb *task, int status)
 
 #ifndef GSC_TARGET_SYSTEM_EMU
 	if(run_task->sp < run_task->stack_addr) {
-		tkprintf("PID %d \"%s\" Stack OVER %p(%ld)\n",
+		tkprintf("PID %d \"%s\" Stack OVER %p(%d)\n",
 			run_task->id,
 			run_task->name,
 			run_task->stack_addr,
@@ -984,6 +984,7 @@ void event_wakeup_ISR(void *sp, struct st_event *evtque, void *arg)
 			tmpp = &tmp;
 		}
 		if(write_fifo(&evtque->event, tmpp, evtque->size) != evtque->size) {
+			SYSERR_PRINT("\"%s\" event fifo full(arg=%p)\n", evtque->name, arg);
 			DKFPRINTF(0x01, "event fifo full\n");
 		}
 		record_calltrace(SYSCALL_EVTQUE_WAKEUP, 0, evtque, 0, fifo_size(&evtque->event), sp);
@@ -1113,15 +1114,21 @@ void mutex_unlock_ISR(void *sp, struct st_mutex *mutex)
 
 void task_print_task_queue(void)
 {
-	tkprintf("systime: %10ld\n", get_kernel_time());
+	unsigned long long ktime = get_kernel_time();
+
+	tkprintf("systime: %10llu\n", ktime);
 	print_queues();
 }
 
 void disp_task_info(void)
 {
-	tkprintf("Kernel Time = %ld\n", kernel_time_count);
+	tkprintf("Kernel Time = %llu\n", kernel_time_count);
 
 	tkprintf("NOW  PID = %d \"%s\"\n", run_task->id, run_task->name);
+	tkprintf("STACK    = %p - %p (%04X)\n",
+		 run_task->stack_addr,
+		 (run_task->stack_addr + run_task->stack_size),
+		 run_task->stack_size);
 	tkprintf("LAST PID = %d \"%s\"\n", last_task->id, last_task->name);
 	tkprintf("LAST SYSCALL = %s(%d)\n",
 		 syscall_name[last_syscall_type],

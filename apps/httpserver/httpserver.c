@@ -25,6 +25,6 @@ void startup_httpserver(void)
 {
 	tprintf("Startup HTTP Server\n");
 
-	task_exec(httpserver_task, "httpserver", 1, &tcb,
+	task_exec(httpserver_task, "httpserver", TASK_PRIORITY_APP_LOW, &tcb,
 		  stack, SIZEOFAPPTS, 0);
 }
