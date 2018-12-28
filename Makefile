@@ -147,6 +147,8 @@ ifeq ($(COMP_ENABLE_FONTS),YES)
 endif
 
 # net, lwip
+LWIP_VER = 2.1.2
+export LWIP_VER
 LWIP_DIR = $(EXTLIBS_DIR)/lwip
 LWIP_LIB = $(LWIP_DIR)/liblwip.a
 export LWIP_DIR

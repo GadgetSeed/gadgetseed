@@ -4,7 +4,7 @@ LIB	= telnetd.a
 
 OBJS	= telnetd.o
 
-CFLAGS += -I$(PRJ_DIR)/$(LWIP_DIR) -I$(PRJ_DIR)/$(LWIP_DIR)/lwip-2.0.3/src/include
+CFLAGS += -I$(PRJ_DIR)/$(LWIP_DIR) -I$(PRJ_DIR)/$(LWIP_DIR)/lwip-$(LWIP_VER)/src/include
 
 all:	$(LIB)
 

@@ -37,7 +37,7 @@ endif
 
 ifeq ($(COMP_ENABLE_TCPIP),YES)
 	CFLAGS += -I$(PRJ_DIR)/$(EXTLIBS_DIR)/lwip
-	CFLAGS += -I$(PRJ_DIR)/$(EXTLIBS_DIR)/lwip/lwip-2.1.0/src/include
+	CFLAGS += -I$(PRJ_DIR)/$(EXTLIBS_DIR)/lwip/lwip-$(LWIP_VER)/src/include
 	OBJS += com_net.o
 endif
 

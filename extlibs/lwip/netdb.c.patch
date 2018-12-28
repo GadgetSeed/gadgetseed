@@ -1,10 +1,10 @@
---- lwip-2.1.2/src/api/netdb.c.org	2018-12-28 10:06:37.360359474 +0900
-+++ lwip-2.1.2/src/api/netdb.c	2018-12-28 10:05:29.992012275 +0900
+--- lwip-2.1.2/src/api/netdb.c.orig	2018-12-28 22:09:39.637694291 +0900
++++ lwip-2.1.2/src/api/netdb.c	2018-12-28 22:10:09.313421240 +0900
 @@ -47,7 +47,8 @@
  #include "lwip/dns.h"
  
  #include <string.h> /* memset */
--#include <stdlib.h>
+-#include <stdlib.h> /* atoi */
 +// for GadgetSeed #include <stdlib.h> /* atoi */
 +int atoi(const char *nptr); // for GadgetSeed
  

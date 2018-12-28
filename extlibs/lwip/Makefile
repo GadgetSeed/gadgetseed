@@ -2,7 +2,7 @@ include $(PRJ_DIR)/common.mk
 
 LIB	= liblwip.a
 
-LWIP = lwip-2.1.2
+LWIP = lwip-$(LWIP_VER)
 
 #LWIPURL = http://download.savannah.nongnu.org/releases/lwip/
 LWIPURL = http://mirror.lihnidos.org/GNU/savannah/lwip

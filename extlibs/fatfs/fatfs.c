@@ -435,11 +435,7 @@ int getfree_fatfs(const uchar *path, unsigned long *sect, void **fs)
 
 	DTFPRINTF(0x02, "path = %s, sect = %p, fs = %p\n", path, sect, fs);
 
-#ifdef GSC_TARGET_SYSTEM_EMU
-	rtn = f_getfree((char *)path, (unsigned int *)sect, fspp);
-#else
 	rtn = f_getfree((char *)path, sect, fspp);
-#endif
 
 	return rtn;
 }
