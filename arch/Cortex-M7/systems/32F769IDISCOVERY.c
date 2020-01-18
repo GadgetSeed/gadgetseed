@@ -24,6 +24,7 @@
 #include "stm32f7xx_hal.h"
 
 #include "stm32f769i_discovery_sdram.h"
+#include "stm32f769i_discovery_qspi.h"
 
 /** System Clock Configuration
 */
@@ -61,6 +62,15 @@ extern unsigned int _etdata;
 extern unsigned int _stitcm;
 extern unsigned int _sitcm;
 extern unsigned int _eitcm;
+
+#if 0
+#include "timer.h"
+
+uint32_t HAL_GetTick(void)
+{
+	return (uint32_t)get_kernel_time();
+}
+#endif
 
 /* Prototypes ----------------------------------------------------------------*/
 
@@ -371,6 +381,7 @@ extern const struct st_device i2c1_device;
 extern const struct st_device i2c4_device;
 extern const struct st_device adt7410_device;
 
+extern const struct st_device qspi_device;
 extern const struct st_device sdmmc_device;
 
 extern const struct st_device led_device;
@@ -426,6 +437,10 @@ void init_system(int *argc, char ***argv)
 void init_system2(void)
 {
 	BSP_SDRAM_Init();
+
+	// QSPI-ROM
+	BSP_QSPI_Init();
+	BSP_QSPI_EnableMemoryMappedMode();
 }
 
 /**
@@ -500,6 +515,10 @@ void init_system_process(void)
 #endif
 #endif
 
+#ifdef GSC_DEV_ENABLE_QSPI
+	register_device((struct st_device *)&qspi_device, 0);
+#endif
+
 #ifdef GSC_DEV_ENABLE_STORAGE	// $gsc ストレージ(SDカードなど)デバイスを有効にする
 	register_device(&sdmmc_device, 0);
 #endif
@@ -537,7 +556,7 @@ void init_system_process(void)
 
 	// 乱数初期化
 #ifdef GSC_LIB_ENABLE_RANDOM
-	init_genrand(get_systime_sec());
+	init_random(get_systime_sec());
 #endif
 
 #ifdef GSC_DEV_ENABLE_BUZZER	// $gsc 圧電ブザーデバイスを有効にする

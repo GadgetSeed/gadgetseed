@@ -1,0 +1,42 @@
+{
+        // IntelliSense を使用して利用可能な属性を学べます。
+        // 既存の属性の説明をホバーして表示します。
+        // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "emu debug",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/gadgetseed",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"externalConsole": false,
+			"MIMode": "gdb",
+			"setupCommands": [
+			    {
+				"description": "Enable pretty-printing for gdb",
+				"text": "-enable-pretty-printing",
+				"ignoreFailures": true
+			    }
+			]
+		},
+	        {
+	                "name": "OpenOCD Debug",
+	                "type": "gdb",
+	                "request": "attach",
+	                "executable": "gadgetseed",
+	                "target": ":3333",
+	                "remote": true,
+			"cwd": "${workspaceRoot}",
+	                "autorun": [
+				"monitor reset halt",
+				"load",
+				"break main"
+	                ],
+	                "gdbpath": "arm-none-eabi-gdb"
+		}
+	]
+}

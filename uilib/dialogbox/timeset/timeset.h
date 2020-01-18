@@ -1,5 +1,5 @@
 /** @file
-    @brief	時間設定インタフェース
+    @brief	時間設定ダイアログボックス
 
     @date	2018.01.27
     @author	Takashi SHUDO
@@ -11,8 +11,12 @@
 #include "sysevent.h"
 #include "datetime.h"
 
+typedef int (* timeset_proc)(struct st_sysevent *event);
+
 void prepare_timeset(struct st_datetime *datetime);
 void draw_timeset(void);
-void proc_timeset(struct st_sysevent *event);
+int proc_timeset(struct st_sysevent *event);
+int do_timeset(timeset_proc proc);
+int open_timeset_dialog(timeset_proc proc);
 
 #endif // TIMESET_H

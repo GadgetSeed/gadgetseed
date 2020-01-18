@@ -10,6 +10,7 @@ extern const unsigned short jis2uni_table[];
 
 int flg_jisx = 0;
 char fontname[256];
+char *sectname = 0;
 int fwidth, fheight;
 int origin_x, origin_y;
 int max_width = 0, max_height = 0;
@@ -199,8 +200,12 @@ int main(int argc, char *argv[])
 		if(argc > 2) {
 			strncpy(fontname, argv[2], 256);
 		}
+
+		if(argc > 3) {
+			sectname = argv[3];
+		}
 	} else {
-		printf("Usage: %s <bdf> [fontname]\n", argv[0]);
+		printf("Usage: %s <bdf> [fontname] [section]\n", argv[0]);
 		return 0;
 	}
 
@@ -240,8 +245,16 @@ int main(int argc, char *argv[])
 				sscanf(str, "FOUNDRY \"%s", fontname);
 				fontname[strlen(fontname)-1] = 0;
 			}
-			printf("const signed char "
-			       "font_bitmap_%s[] = {\n", fontname);
+			if(sectname == 0) {
+				printf("const signed char "
+				       "font_bitmap_%s[]"
+				       " = {\n", fontname);
+			} else {
+				printf("const signed char "
+				       "font_bitmap_%s[]"
+				       " __attribute__ ((section(\"%s\")))"
+				       " = {\n", fontname, sectname);
+			}
 		}
 
 		if(strncmp(str, "ENCODING ", 9) == 0) {

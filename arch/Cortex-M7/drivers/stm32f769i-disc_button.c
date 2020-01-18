@@ -11,6 +11,7 @@
 
 #include "interrupt.h"
 #include "device.h"
+#include "device/input_ioctl.h"
 #include "sysevent.h"
 #include "key.h"
 #include "tkprintf.h"
@@ -178,8 +179,27 @@ static int gpio_button_register(struct st_device *dev, char *param)
 	return 0;
 }
 
+static int input_ioctl(struct st_device *dev, unsigned int com, unsigned int arg, void *param)
+{
+	int rt = 0;
+
+	switch(com) {
+	case IOCMD_INPUT_SCAN_LINE:
+		rt = scan_gpio();
+		break;
+
+	default:
+		SYSERR_PRINT("Unknow command %08X arg %08X\n", com, arg);
+		break;
+	}
+
+	return rt;
+}
+
+
 const struct st_device gpio_button_device = {
 	.name		= DEF_DEV_NAME_INPUT,
 	.explan		= "STM32F769I-Disc GPIO Button",
 	.register_dev	= gpio_button_register,
+	.ioctl		= input_ioctl,
 };

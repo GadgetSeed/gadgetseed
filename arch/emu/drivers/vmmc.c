@@ -26,7 +26,7 @@
 #include <fcntl.h>
 #include <string.h>
 
-#define MMCFILE "MMC.DAT"
+#define DEFMMCFILENAME "MMC.DAT"
 
 static int mmc_fd;
 
@@ -42,22 +42,29 @@ static int mmc_fd;
 #define MMCSIZE	((long)1024*1024*512)	// 512MBytes
 #define SECTSIZE 512
 
+#define MMCFNAMELEN	64
+static char mmc_file_name[MMCFNAMELEN+1] = DEFMMCFILENAME;
 static unsigned char mmc_data[SECTSIZE];
+
+void set_mmc_filename(char *fname)
+{
+	strncpy(mmc_file_name, fname, MMCFNAMELEN);
+}
 
 static int mmc_register(struct st_device *dev, char *param)
 {
 	int i;
 
-	mmc_fd = open(MMCFILE, O_RDWR);
+	mmc_fd = open(mmc_file_name, O_RDWR);
 	if(mmc_fd < 0) {
 		int rt;
 
-		fprintf(stderr, "Cannot open \"%s\".\r\n", MMCFILE);
-		fprintf(stderr, "Create \"%s\".\r\n", MMCFILE);
-		mmc_fd = open(MMCFILE, O_RDWR | O_CREAT, S_IRWXU);
+		fprintf(stderr, "Cannot open \"%s\".\r\n", mmc_file_name);
+		fprintf(stderr, "Create \"%s\".\r\n", mmc_file_name);
+		mmc_fd = open(mmc_file_name, O_RDWR | O_CREAT, S_IRWXU);
 		if(mmc_fd < 0) {
 			fprintf(stderr, "Cannot create \"%s\".\r\n",
-				MMCFILE);
+				mmc_file_name);
 		}
 
 		memset(mmc_data, 0, SECTSIZE);

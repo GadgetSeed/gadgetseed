@@ -73,7 +73,7 @@ static int eeprom_read(struct st_device *dev, void *data, unsigned int size)
 	} else {
 		dev_addr = DEV_ADDR1;
 	}
-	// !!! デバイスをまたいだアクセスは出来ない
+	// [TODO] デバイスをまたいだアクセスは出来ない
 	lock_device(i2c_dev, 0);
 	ioctl_device(i2c_dev, IOCMD_I2C_SLAVE_ADDR7, dev_addr, 0);
 	ioctl_device(i2c_dev, IOCMD_I2C_MEMADDRSIZE, I2C_MEM_ADDR_SIZE_16BIT, 0);
@@ -105,7 +105,7 @@ static int eeprom_write(struct st_device *dev, const void *data, unsigned int si
 	} else {
 		dev_addr = DEV_ADDR1;
 	}
-	// !!! デバイスをまたいだアクセスは出来ない
+	// [TODO] デバイスをまたいだアクセスは出来ない
 	lock_device(i2c_dev, 0);
 	ioctl_device(i2c_dev, IOCMD_I2C_SLAVE_ADDR7, dev_addr, 0);
 	ioctl_device(i2c_dev, IOCMD_I2C_MEMADDRSIZE, I2C_MEM_ADDR_SIZE_16BIT, 0);

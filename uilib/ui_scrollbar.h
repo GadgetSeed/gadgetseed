@@ -24,7 +24,7 @@
 struct st_ui_scrollbar {
 	struct st_box view_area;	///< 表示エリア
 	const struct st_graph_object *normal_view;	///< 通常時表示グラフィックス
-	const struct st_graph_object *selected_view;	///< 選択時表示グラフィックス
+	const struct st_graph_object *select_view;	///< 選択時表示グラフィックス
 
 	struct st_box upon_knob_area;	///< つまみの上エリア
 	struct st_box knob_area;	///< つまみのエリア

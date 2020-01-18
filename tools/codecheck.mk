@@ -106,14 +106,16 @@ SRCS	 = \
 	graphics/jpegdec.c \
 	graphics/pngdec.c \
 	fs/batch.c \
-	fs/diskio.c \
-	fs/fattime.c \
+	extlibs/fatfs/diskio.c \
+	extlibs/fatfs/fattime.c \
 	fs/file.c \
 	fs/storage.c \
 	net/devif.c \
 	net/nettask.c \
 	net/sys_arch.c \
+	uilib/appsetting.c \
 	uilib/ui_button.c \
+	uilib/ui_progressbar.c \
 	uilib/ui_scrollbar.c \
 	uilib/ui_selectlist.c \
 	uilib/ui_seekbar.c \
@@ -147,6 +149,9 @@ main.k: main.c
 	$(LINT) $(LINTFLAGS) $< 2>&1 | tee $@
 
 %.k: fs/%.c
+	$(LINT) $(LINTFLAGS) $< 2>&1 | tee $@
+
+%.k: extlibs/fatfs/%.c
 	$(LINT) $(LINTFLAGS) $< 2>&1 | tee $@
 
 %.k: net/%.c

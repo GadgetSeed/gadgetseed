@@ -2,7 +2,7 @@ include $(PRJ_DIR)/common.mk
 
 LIB	= clock.a
 
-OBJS	= clock.o timeset.o
+OBJS	= clock.o
 
 CFLAGS += -I$(PRJ_DIR)/$(UILIB_DIR)
 

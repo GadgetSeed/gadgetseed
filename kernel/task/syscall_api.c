@@ -42,7 +42,7 @@
 
     タスクには名前をつけることができます。
 
-    タスクには優先順位があります。タスク優先順位デフォルトでは0(最高)から3(最低)の4段階を設定することができます。
+    タスクには優先順位があります。タスク優先順位デフォルトでは0(最高)から7(最低)の8段階を設定することができます。
     タスク優先順位の数はコンフィグレーションマクロ GSC_KERNEL_MAX_TASK_PRIORITY を定義することにより変更することができます。
 
     各タスクのスタックメモリは、各タスク毎にスタティックに定義する必要があります。
@@ -181,12 +181,12 @@
    @param[in]	tcb		タスクコンテキストポインタ
    @param[in]	stack		タスクスタックポインタ
    @param[in]	stack_size	タスクスタックサイズ
-   @param[in]	arg		タスク実行時引数文字列ポインタ
+   @param[in]	arg		タスク実行時引数ポインタ
 
    @return	!=0:エラー
 */
 int task_add(task_func func, char *name, int priority, struct st_tcb *tcb,
-	     unsigned int *stack, int stack_size, char *arg)
+	     unsigned int *stack, int stack_size, void *arg)
 {
 	volatile struct exec_task_param param;
 
@@ -224,12 +224,12 @@ int task_add(task_func func, char *name, int priority, struct st_tcb *tcb,
    @param[in]	tcb		タスクコンテキストポインタ
    @param[in]	stack		タスクスタックポインタ
    @param[in]	stack_size	タスクスタックサイズ
-   @param[in]	arg		タスク実行時引数文字列ポインタ
+   @param[in]	arg		タスク実行時引数ポインタ
 
    @return	!=0:エラー
 */
 int task_exec(task_func func, char *name, int priority, struct st_tcb *tcb,
-		 unsigned int *stack, int stack_size, char *arg)
+	      unsigned int *stack, int stack_size, void *arg)
 {
 	volatile struct exec_task_param param;
 
@@ -320,6 +320,26 @@ void task_wakeup(int id)
 	DKFPRINTF(0x01, "id = %d\n", id);
 
 	sys_call(SYSCALL_TASK_WAKEUP, (void *)(long)id);
+}
+
+/**
+   @brief	指定したタスクの優先度を設定する
+
+   id で指定したタスクの優先度を設定する。
+
+   @param[in]	id		タスクID
+   @param[in]	priority	優先度
+*/
+void task_priority(int id, int priority)
+{
+	volatile struct st_task_priority_param param;
+
+	DKFPRINTF(0x01, "\n");
+
+	param.id = id;
+	param.priority = priority;
+
+	sys_call(SYSCALL_TASK_PRIORITY, (void *)&param);
 }
 
 
@@ -510,7 +530,7 @@ void mutex_register(struct st_mutex *mutex, const char *name)
    @brief	MUTEXをロックする
 
    @param[in]	mutex		MUTEXポインタ
-   @param[in]	timeout		タイムアウト時間(msec)(=0:タイムアウト無し)
+   @param[in]	timeout		タイムアウト時間(msec)
 
    @return	待ちタイムアウト残り時間(msec)(<0:タイムアウト)
 */

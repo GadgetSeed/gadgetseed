@@ -121,7 +121,7 @@
 #include "tprintf.h"
 #include "tkprintf.h"
 
-//#define DEBUGKBITS 0x03
+//#define DEBUGKBITS 0x01
 #include "dkprintf.h"
 
 #define DEF_SYSTIME_INC_COUNT	(1000 * GSC_KERNEL_TIMER_INTERVAL_MSEC) ///< システム時間カーネルタイマ間隔増加分
@@ -187,14 +187,14 @@ static void disp_systime(struct st_datetime *rtcdatetime)
 	datemtime_to_str(str, &sysdatetime);
 	DKPRINTF(0x01, "SYS : %s\n", str);
 
-	DKPRINTF(0x01, "UTC_COUNT : %ld.%06d\n", system_time.sec, system_time.usec);
+	DKPRINTF(0x01, "UTC_COUNT : %lld.%06d\n", system_time.sec, system_time.usec);
 	DKPRINTF(0x01, "Increment : %d\n", systime_inc_count);
 }
 #endif
 
 #ifdef GSC_DEV_ENABLE_RTC
 #ifdef GSC_RTC_DATETIME_SYNC_CYCLE
-#define SYSTIME_ADJUST_MARGIN	(1000 * 100)	// システム時間補正しない誤差(100ms)
+#define SYSTIME_ADJUST_MARGIN	(1000 * 10)	// システム時間補正しない誤差(10ms)
 
 #define ABS(x) ((x) < 0 ? -(x) : (x))
 
@@ -212,18 +212,18 @@ static void calc_systime_inc_count(struct st_systime *rtcsystime)
 
 	DKPRINTF(0x01, "RTC_COUNT : %lld\n", rtc_time_count);
 	DKPRINTF(0x01, "SYS_COUNT : %lld\n", system_time_count);
-	DKPRINTF(0x01, "RTC DIFF : %d\n", rtc_sys_diff_count);
+	DKPRINTF(0x01, "RTC DIFF  : %d\n", rtc_sys_diff_count);
 
 	error_correction = rtc_sys_diff_count / GSC_RTC_DATETIME_SYNC_CYCLE;
 	DKPRINTF(0x01, "Error correction : %d\n", error_correction);
 
 	// 時間インクリメント値設定
 	if(ABS(rtc_sys_diff_count) <= SYSTIME_ADJUST_MARGIN) {
-		systime_inc_count = DEF_SYSTIME_INC_COUNT + (error_correction * GSC_KERNEL_TIMER_INTERVAL_MSEC);
+		systime_inc_count = DEF_SYSTIME_INC_COUNT;	// 補正しない
 	} else {
-		// 誤差が大きい場合は補正を２倍
+		// 誤差が大きい場合は補正
 		DKPRINTF(0x01, "difference > %d\n", SYSTIME_ADJUST_MARGIN);
-		systime_inc_count = DEF_SYSTIME_INC_COUNT + (error_correction * GSC_KERNEL_TIMER_INTERVAL_MSEC * 2);
+		systime_inc_count = DEF_SYSTIME_INC_COUNT + (error_correction * GSC_KERNEL_TIMER_INTERVAL_MSEC);
 	}
 	DKPRINTF(0x01, "systime_inc_count : %d\n", systime_inc_count);
 }
@@ -239,9 +239,7 @@ static void calc_systime_inc_count(struct st_systime *rtcsystime)
 */
 static void time_count_proc(void *sp, unsigned long long ktime)
 {
-#ifdef GSC_DEV_ENABLE_RTC
 	int flg_just_sec = 0;
-#endif
 
 	UNUSED_VARIABLE(ktime);
 
@@ -249,12 +247,10 @@ static void time_count_proc(void *sp, unsigned long long ktime)
 	if(system_time.usec >= (1000 * 1000)) {
 		system_time.usec -= (1000 * 1000);
 		system_time.sec ++;
-#ifdef GSC_DEV_ENABLE_RTC
 		flg_just_sec = 1;
-#endif
 	}
 	//tkprintf("system_time = %12d.%06d\n", system_time.sec, system_time.usec);
-	DKPRINTF(2, "system_time = %12d.%06d\n", system_time.sec, system_time.usec);
+	DKPRINTF(0x02, "system_time = %12lld.%06d\n", system_time.sec, system_time.usec);
 
 #ifdef GSC_DEV_ENABLE_RTC
 	switch(tsync_status) {
@@ -263,7 +259,7 @@ static void time_count_proc(void *sp, unsigned long long ktime)
 
 	case TSYNC_SYNC:
 		if(rtc_dev == 0) {
-			DKPRINTF(0x01, "RTC device not found\n");
+			SYSERR_PRINT("RTC device not found\n");
 			tsync_status = TSYNC_NONE;
 		} else {
 			/*
@@ -278,7 +274,7 @@ static void time_count_proc(void *sp, unsigned long long ktime)
 				tsync_status = TSYNC_NONE;
 			} else {
 #ifdef DEBUGKBITS
-				char str[DATEMTIME_STR_LEN+1];
+				char str[DATEMTIME_STR_LEN];
 				datemtime_to_str(str, &rtcdatetime);
 				DKPRINTF(0x02, "RTC time : %s\n", str);
 #endif
@@ -328,7 +324,7 @@ static void time_count_proc(void *sp, unsigned long long ktime)
 				tsync_status = TSYNC_NONE;
 			} else {
 #ifdef DEBUGKBITS
-				char str[DATEMTIME_STR_LEN+1];
+				char str[DATEMTIME_STR_LEN];
 				datemtime_to_str(str, &rtcdatetime);
 				DKPRINTF(0x02, "RTC time : %s\n", str);
 #endif
@@ -359,21 +355,19 @@ static void time_count_proc(void *sp, unsigned long long ktime)
 			}
 		}
 		break;
-#endif
+#endif // GSC_RTC_DATETIME_SYNC_CYCLE
 
 	default:
 		SYSERR_PRINT("Invalid status %d\n", tsync_status);
 		break;
 	}
-#endif // GSC_RTC_DATETIME_SYNC_CYCLE
+#endif // GSC_DEV_ENABLE_RTC
 
-#ifdef GSC_DEV_ENABLE_RTC
 	if(flg_just_sec != 0) {
 		if(sec_timer_func != 0) {
 			sec_timer_func(sp, kernel_time_count);
 		}
 	}
-#endif
 }
 
 static const char weekname[7][10] = {
@@ -660,7 +654,7 @@ void unixtime_to_datetime(struct st_datetime *datetime, struct st_systime *unixt
 	t_time sec = unixtime->sec;
 	t_time jday = (sec/((int)24*60*60)) + 2440588; // ユリウス日へ
 
-	DKPRINTF(0x02, "jday = %d\n", jday);
+	DKPRINTF(0x02, "jday = %lld\n", jday);
 
 	jd2greg(jday, &(datetime->year), &(datetime->month),
 		&(datetime->day));
@@ -715,7 +709,7 @@ t_time datetime_to_utc(struct st_datetime *datetime)
 	utc = (year/4 - year/100 + year/400
 		+ 367L*month/12 + datetime->day) + year*365 - 719499L;
 
-	DKPRINTF(0x02, "day = %d\n", utc);
+	DKPRINTF(0x02, "day = %lld\n", utc);
 
 	utc *= ((int)24*60*60);
 	utc += ((int)(datetime->hour)*(60*60) + datetime->min*60 + datetime->sec);

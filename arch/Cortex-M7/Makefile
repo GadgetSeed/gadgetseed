@@ -11,6 +11,7 @@ OBJS	+= \
 	initsect.o \
 	interrupt.o \
 	cpu.o \
+	halver.o \
 	systems/$(SYSTEM).o
 
 SOBJS   = \
@@ -22,10 +23,14 @@ SOBJS   = \
 ### for STM32Cube HAL Drivers
 
 ifeq ($(OS),Windows_NT)
-	HAL_DIR =  C:/$(HOMEPATH)/STM32Cube/Repository/STM32Cube_FW_F7_V1.14.0
+	HAL_DIR =  C:/$(HOMEPATH)/STM32Cube/Repository/STM32CubeF7
+#	HAL_DIR =  C:/$(HOMEPATH)/STM32Cube/Repository/STM32Cube_FW_F7_V1.15.0
 else
-	HAL_DIR = $(HOME)/STM32Cube/Repository/STM32Cube_FW_F7_V1.14.0
+	HAL_DIR = $(HOME)/STM32Cube/Repository/STM32CubeF7
+#	HAL_DIR = $(HOME)/STM32Cube/Repository/STM32Cube_FW_F7_V1.15.0
 endif
+
+HAL_VER = `xmllint --xpath "Package/PackDescription/@Release" $(HAL_DIR)/package.xml | sed 's/[^"]*"\([^"]*\)"[^"]*/\1/g'`
 
 HAL_SRCS_DIR = $(HAL_DIR)/Drivers/STM32F7xx_HAL_Driver/Src
 
@@ -81,6 +86,7 @@ HAL_SRCS = $(HAL_SRCS_DIR)/stm32f7xx_hal.c \
 	  $(HAL_SRCS_DIR)/stm32f7xx_hal_eth.c \
 	  $(HAL_SRCS_DIR)/stm32f7xx_hal_sai.c \
 	  $(HAL_SRCS_DIR)/stm32f7xx_hal_dfsdm.c \
+	  $(HAL_SRCS_DIR)/stm32f7xx_hal_qspi.c \
 	  $(HAL_SRCS_DIR)/stm32f7xx_hal_iwdg.c
 
 HAL_OBJS  = $(addprefix $(HAL_OBJS_DIR)/, $(notdir $(HAL_SRCS:.c=.o)))
@@ -91,6 +97,7 @@ BSP_OBJS_DIR   = ./bsp_objs
 ifeq ($(TARGET_SYSTEM_STM32F769IDISCOVERY),YES)
 BSP_SRCS_DIR = $(HAL_DIR)/Drivers/BSP/STM32F769I-Discovery
 BSP_SRCS = $(BSP_SRCS_DIR)/stm32f769i_discovery.c \
+	   $(BSP_SRCS_DIR)/stm32f769i_discovery_qspi.c \
 	   $(BSP_SRCS_DIR)/stm32f769i_discovery_sdram.c \
 	   $(BSP_SRCS_DIR)/stm32f769i_discovery_lcd.c \
 	   $(BSP_SRCS_DIR)/stm32f769i_discovery_ts.c \
@@ -102,6 +109,7 @@ endif
 ifeq ($(TARGET_SYSTEM_STM32F746GDISCOVERY),YES)
 BSP_SRCS_DIR = $(HAL_DIR)/Drivers/BSP/STM32746G-Discovery
 BSP_SRCS = $(BSP_SRCS_DIR)/stm32746g_discovery.c \
+	   $(BSP_SRCS_DIR)/stm32746g_discovery_qspi.c \
 	   $(BSP_SRCS_DIR)/stm32746g_discovery_sdram.c \
 	   $(BSP_SRCS_DIR)/stm32746g_discovery_lcd.c \
 	   $(BSP_SRCS_DIR)/stm32746g_discovery_ts.c \
@@ -165,12 +173,15 @@ $(ACD_OBJ): $(ACD_SRC)
 inthdr.s: mkinthdr.awk
 	awk -f mkinthdr.awk > $@
 
+halver.c:
+	echo "const char hal_ver[] = \"$(HAL_VER)\";" > halver.c
+
 $(LIB): $(OBJS) $(SOBJS) $(MAKECONFIGSYS)
 	$(AR) rc $(LIB) $(OBJS) $(SOBJS)
 	$(RANLIB) $(LIB)
 
 clean:
-	rm -f -r inthdr.[os] $(OBJS) $(SOBJS) $(LIB) $(DEPEND)
+	rm -f -r inthdr.[os] $(OBJS) $(SOBJS) $(LIB) $(DEPEND) halver.c
 
 include $(PRJ_DIR)/rules.mk
 

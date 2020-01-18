@@ -58,6 +58,7 @@ void init_storage(void)
 
    @param[in]	drvno	デバイス番号
    @param[in]	devname	デバイス名文字列ポインタ
+   @param[in]	fsname	ファイルシステム名文字列ポインタ
 
    @return	エラーコード
 */

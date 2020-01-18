@@ -1,7 +1,10 @@
 include $(PRJ_DIR)/common.mk
 
-LIBFAAD2 = faad2-2.7
-LIBFAAD2ARC = $(LIBFAAD2).tar.bz2
+LIBFAAD2 = faad2-2.8.8
+LIBFAAD2ARC = $(LIBFAAD2).tar.gz
+#LIBFAAD2 = faad2-2.7
+#LIBFAAD2ARC = $(LIBFAAD2).tar.bz2
+
 LIBFAAD2URI = http://downloads.sourceforge.net/faac/$(LIBFAAD2ARC)
 LIBFAAD2DIR = $(LIBFAAD2)/libfaad
 LIBFAAD2SRC = $(LIBFAAD2DIR)/bits.c
@@ -59,7 +62,8 @@ $(LIB): $(OBJS)
 	$(RANLIB) $(LIB)
 
 $(LIBFAAD2SRC): $(LIBFAAD2ARC)
-	tar xvfj $(LIBFAAD2ARC)
+	tar xvfz $(LIBFAAD2ARC)
+#	tar xvfj $(LIBFAAD2ARC)
 	touch $(LIBFAAD2SRC)
 
 $(LIBFAAD2ARC):
@@ -69,7 +73,7 @@ clean:
 	rm -f -r $(OBJS) $(LIB) $(DEPEND)
 
 distclean:
-	rm -f -r $(LIBFAAD2ARC) $(LIBFAAD2) $(DEPEND)
+	rm -f -r $(LIBFAAD2ARC) $(LIBFAAD2) $(DEPEND) $(LIB)
 
 include $(PRJ_DIR)/rules.mk
 

@@ -250,6 +250,7 @@ static int audio_ioctl(struct st_device *dev, unsigned int com, unsigned int arg
 				//eprintf("bufsize = %d\n", bufsize);
 				lock_ts();
 				BSP_AUDIO_OUT_Play((uint16_t*)audio_buf, bufsize);
+				BSP_AUDIO_OUT_SetVolume(volume);
 				unlock_ts();
 				flg_audio_start = 1;
 			} else {
@@ -360,7 +361,7 @@ static int audio_select(struct st_device *dev, unsigned int timeout)
 
 const struct st_device audio_device = {
 	.name		= DEF_DEV_NAME_AUDIO,
-	.explan		= "STM32F769I-Disc Audio Out",
+	.explan		= "STM32F7xxx-Disc Audio Out",
 	.register_dev	= audio_register,
 	.mutex		= &audio_mutex,
 	.open		= audio_open,

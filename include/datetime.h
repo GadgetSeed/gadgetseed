@@ -23,8 +23,8 @@ typedef long long int	t_time;
 #define DATE_STR_LEN	((unsigned int)sizeof("YYYY/MM/DD WWW"))
 #define TIME_STR_LEN	((unsigned int)sizeof("HH/MM/SS"))
 #define MSEC_STR_LEN	((unsigned int)sizeof(".mmm"))
-#define DATETIME_STR_LEN	(DATE_STR_LEN + 1 + TIME_STR_LEN)
-#define DATEMTIME_STR_LEN	(DATE_STR_LEN + 1 + TIME_STR_LEN + 1 + MSEC_STR_LEN)
+#define DATETIME_STR_LEN	(DATE_STR_LEN + TIME_STR_LEN)
+#define DATEMTIME_STR_LEN	(DATE_STR_LEN + TIME_STR_LEN + MSEC_STR_LEN)
 
 struct st_datetime {
 	short	year;	///< 年

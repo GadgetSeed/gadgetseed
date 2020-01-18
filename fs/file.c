@@ -60,8 +60,9 @@
 #include "str.h"
 #include "tkprintf.h"
 #include "fs.h"
+#include "task/syscall.h"
 
-//#define DEBUGTBITS 0x01
+//#define DEBUGTBITS 0x04
 #include "dtprintf.h"
 
 // ファイルディスクリプタはスタティックに確保
@@ -78,6 +79,8 @@ static struct st_file_desc {
 	void *fs_desc;			///< ファイルシステム用ディスクリプタ
 } file_desc[GSC_FS_MAX_FILE_NUM];
 
+static struct st_mutex fsapi_mutex;
+
 /**
    @brief	全てのファイルディスクリプタを初期化する
 */
@@ -88,6 +91,8 @@ void init_file(void)
 	for(i=0; i<GSC_FS_MAX_FILE_NUM; i++) {
 		file_desc[i].flg_used = 0;
 	}
+
+	mutex_register_ISR(&fsapi_mutex, "fsapi");
 }
 
 /**
@@ -127,7 +132,7 @@ struct st_filesystem * get_filesystem(const uchar *path)
 	if(devno >= GSC_FS_VOLUME_NUM) {
 		fs = 0;	// デバイス無し
 	} else {
-		fs = filesystems[devno];
+		fs = storage[devno].fs;
 	}
 
 	return fs;
@@ -153,7 +158,9 @@ int open_file(const uchar *path, int flags)
 	if(fs == 0) {
 		return -1;
 	}
+	DTFPRINTF(0x04, "fs->name = %s\n", fs->name);
 
+	mutex_lock(&fsapi_mutex, 0);
 	for(i=0; i<GSC_FS_MAX_FILE_NUM; i++) {
 		if(file_desc[i].flg_used == 0) {
 			file_desc[i].fs = fs;
@@ -161,14 +168,17 @@ int open_file(const uchar *path, int flags)
 			if(fdesc != 0) {
 				file_desc[i].fs_desc = fdesc;
 				file_desc[i].flg_used = 1;
-				DTFPRINTF(0x01, "fdesc = %p, fd_num = %d\n", fdesc, i);
+				DTFPRINTF(0x04, "fdesc = %p, fd_num = %d\n", fdesc, i);
+				mutex_unlock(&fsapi_mutex);
 				return i;
 			} else {
 				DTFPRINTF(0x01, "open error \"%s\" fdesc = %p\n", (char *)path, fdesc);
+				mutex_unlock(&fsapi_mutex);
 				return -1;
 			}
 		}
 	}
+	mutex_unlock(&fsapi_mutex);
 
 	SYSERR_PRINT("cannot open file \"%s\" (GSC_FS_MAX_FILE_NUM)\n", path);
 
@@ -288,11 +298,11 @@ t_size tell_file(int fd)
 }
 
 /**
-   @brief	ファイルアクセス位置の取得
+   @brief	ファイルサイズの取得
 
    @param[in]	fd	ファイルディスクリプタ
 
-   @return	先頭からのオフセット位置バイト数
+   @return	ファイルサイズ
 */
 t_ssize size_file(int fd)
 {
@@ -327,6 +337,7 @@ int close_file(int fd)
 	int rtn = 0;
 
 	DTFPRINTF(0x01, "fd = %d\n", fd);
+	DTFPRINTF(0x04, "fd = %d\n", fd);
 
 	fs = file_desc[fd].fs;
 	if(fs == 0) {
@@ -558,7 +569,6 @@ int mkdir_file(const uchar *path)
 	return rtn;
 }
 
-#if FF_USE_CHMOD != 0
 /**
    @brief	ファイルまたはディレクとの属性を変更する
 
@@ -585,7 +595,6 @@ int chmod_file(const uchar *path, unsigned char flag)
 
 	return rtn;
 }
-#endif
 
 /**
    @brief	ファイル/ディレクトリ名を変更する
@@ -616,7 +625,6 @@ int rename_file(const uchar *oldpath, const uchar *newpath)
 	return rtn;
 }
 
-#if FF_USE_MKFS != 0
 /**
    @brief	ディスクをフォーマットする
 
@@ -646,7 +654,6 @@ int mkfs_file(const uchar *path, unsigned char part, unsigned short alloc)
 
 	return rtn;
 }
-#endif
 
 /**
    @brief	ファイルパスからファイル名のみを取得する

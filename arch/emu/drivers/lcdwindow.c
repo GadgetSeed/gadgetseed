@@ -105,9 +105,9 @@ void vlcd_reset_rect(void)
 	pthread_mutex_lock(&vlcd_mutex);
 
 	clip.left = 0;
-	clip.right = XSIZE;
+	clip.right = XSIZE - 1;
 	clip.top = 0;
-	clip.bottom = YSIZE;
+	clip.bottom = YSIZE - 1;
 
 	pen_x = clip.left;
 	pen_y = clip.top;

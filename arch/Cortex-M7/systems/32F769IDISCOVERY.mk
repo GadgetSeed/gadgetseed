@@ -18,6 +18,10 @@ ifeq ($(DEV_ENABLE_STORAGE),YES)
 ARCH_DRIVERS += stm32f7xxx-disc_sdmmc
 endif
 
+ifeq ($(DEV_ENABLE_QSPI),YES)
+ARCH_DRIVERS += stm32f7xxx-disc_qspi
+endif
+
 ifeq ($(DEV_ENABLE_BUTTON),YES)
 ARCH_DRIVERS += stm32f769i-disc_button
 endif

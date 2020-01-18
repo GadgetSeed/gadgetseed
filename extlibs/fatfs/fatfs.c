@@ -123,7 +123,8 @@ void * open_fatfs(const uchar *path, int flags)
 				fatfs_file_desc[i].flg_used = 1;
 				return (void *)&fatfs_file_desc[i];
 			} else {
-				//SYSERR_PRINT("cannot open file \"%s\" (%d)", path, res);
+				DTFPRINTF(0x01, "cannot open file \"%s\" (%d)\n", path, res);
+				//SYSERR_PRINT("cannot open file \"%s\" (%d)\n", path, res);
 				return 0;
 			}
 		}
@@ -435,7 +436,11 @@ int getfree_fatfs(const uchar *path, unsigned long *sect, void **fs)
 
 	DTFPRINTF(0x02, "path = %s, sect = %p, fs = %p\n", path, sect, fs);
 
+#ifdef GSC_TARGET_SYSTEM_EMU
+	rtn = f_getfree((char *)path, (unsigned int *)sect, fspp);
+#else
 	rtn = f_getfree((char *)path, sect, fspp);
+#endif
 
 	return rtn;
 }
@@ -532,7 +537,7 @@ int mkfs_fatfs(const uchar *path, unsigned char part, unsigned short alloc)
 {
 	unsigned char buf[FF_MIN_SS];
 
-	DTFPRINTF(0x02, "path = %s, part = %d, alloc = %d\n", ath, part, alloc);
+	DTFPRINTF(0x02, "path = %s, part = %d, alloc = %d\n", path, part, alloc);
 
 	return f_mkfs((char *)path, part, alloc, buf, FF_MIN_SS);
 }

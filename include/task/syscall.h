@@ -14,13 +14,14 @@
 #include "mutex.h"
 #include "device.h"
 
-extern int task_add(task_func func, char *name, int priority, struct st_tcb *tcb, unsigned int *stack, int stack_size, char *arg);
-extern int task_exec(task_func func, char *name, int priority, struct st_tcb *tcb, unsigned int *stack, int stack_size, char *arg);
+extern int task_add(task_func func, char *name, int priority, struct st_tcb *tcb, unsigned int *stack, int stack_size, void *arg);
+extern int task_exec(task_func func, char *name, int priority, struct st_tcb *tcb, unsigned int *stack, int stack_size, void *arg);
 extern void task_exit(void);
 extern void task_pause(void);
 extern void task_sleep(unsigned int stime);
 extern void task_kill(int id);
 extern void task_wakeup(int id);
+extern void task_priority(int id, int priority);
 
 extern void eventqueue_register(struct st_event *evtque, const char *name, void *args, unsigned int size, int count);
 extern int event_wait(struct st_event *evtque, void *argp, unsigned int timeout);

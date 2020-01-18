@@ -321,24 +321,36 @@ err_t devif_init(struct netif *netif)
 
 #include "net.h"
 
-int link_up_net(void)
+int link_up_netdev(void)
 {
 	struct devif *devif;
 
+	if(netifp == 0) {
+		return 0;
+	}
+
 	devif = (struct devif *)netifp->state;
 
-	ioctl_device(devif->dev, IOCMD_ETHER_LINK_UP, 0, 0);
+	if(devif->dev != 0) {
+		ioctl_device(devif->dev, IOCMD_ETHER_LINK_UP, 0, 0);
+	}
 
 	return 0;
 }
 
-int link_down_net(void)
+int link_down_netdev(void)
 {
 	struct devif *devif;
 
+	if(netifp == 0) {
+		return 0;
+	}
+
 	devif = (struct devif *)netifp->state;
 
-	ioctl_device(devif->dev, IOCMD_ETHER_LINK_DOWN, 0, 0);
+	if(devif->dev != 0) {
+		ioctl_device(devif->dev, IOCMD_ETHER_LINK_DOWN, 0, 0);
+	}
 
 	return 0;
 }
@@ -347,7 +359,15 @@ int net_status(void)
 {
 	struct devif *devif;
 
+	if(netifp == 0) {
+		return 0;
+	}
+
 	devif = (struct devif *)netifp->state;
 
-	return ioctl_device(devif->dev, IOCMD_ETHER_GET_LINK_STATUS, 0, 0);
+	if(devif->dev != 0) {
+		return ioctl_device(devif->dev, IOCMD_ETHER_GET_LINK_STATUS, 0, 0);
+	} else {
+		return 0;
+	}
 }

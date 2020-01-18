@@ -1,0 +1,52 @@
+{
+	// tasks.json 形式の詳細についての資料は、
+        // https://go.microsoft.com/fwlink/?LinkId=733558 をご覧ください
+	"version": "2.0.0",
+	"type": "shell",
+	"echoCommand": true,
+	"tasks": [
+		{
+			"label": "build all",
+			"command": "make",
+			"args": [
+				"all",
+			],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "build all first",
+			"command": "make",
+			"args": [
+				"-j",
+				"all",
+			],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "clean",
+			"command": "make",
+			"args": [
+				"clean",
+			],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
+}

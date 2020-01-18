@@ -19,7 +19,7 @@
 #include "sysconfig.h"
 
 #include "clock.h"
-#include "timeset.h"
+#include "dialogbox/timeset/timeset.h"
 
 //#define DEBUGTBITS 0x02
 #include "dtprintf.h"
@@ -254,7 +254,6 @@ static unsigned char date_str[32];
 static unsigned char l_time_str[32];
 static unsigned char time_str[32];
 
-int disp_mode = MODE_CLOCK;
 
 static void draw_num_char(short x, short y, unsigned char ch)
 {
@@ -370,13 +369,13 @@ static void sec_timer(void *sp, unsigned long long systime)
 static void proc_clock(struct st_sysevent *event)
 {
 	switch(event->what) {
-	case EVT_TOUCHSTART:
+	case EVT_TOUCHEND:
 		prepare_timeset(&now_datetime);
 		if(frame_num >= 2) {
 			set_draw_frame(disp_frame);
 		}
-		draw_timeset();
-		disp_mode = MODE_SETTING;
+		open_timeset_dialog(0);
+		draw_clock_view();
 		break;
 
 	case EVT_SECCOUNTUP:
@@ -391,7 +390,7 @@ static void proc_clock(struct st_sysevent *event)
 	}
 }
 
-static int clock_task(char *arg)
+static int clock_task(void *arg)
 {
 	int i;
 
@@ -419,18 +418,7 @@ static int clock_task(char *arg)
 		struct st_sysevent event;
 
 		if(get_event(&event, 50)) {
-			switch(disp_mode) {
-			case MODE_CLOCK:
-				proc_clock(&event);
-				break;
-
-			case MODE_SETTING:
-				proc_timeset(&event);
-				break;
-
-			default:
-				break;
-			}
+			proc_clock(&event);
 		}
 	}
 
@@ -438,7 +426,7 @@ static int clock_task(char *arg)
 }
 
 #define SIZEOFAPPTS	(1024*8)
-static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)] ATTR_STACK;
 
 void startup_clock(void)
 {

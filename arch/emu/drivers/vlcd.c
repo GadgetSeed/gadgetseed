@@ -80,12 +80,26 @@ static int vlcd_write(struct st_device *dev, const void *data, unsigned int size
 	return size;
 }
 
+static int vlcd_seek(struct st_device *dev, int offset, int whence)
+{
+	DKFPRINTF(0x01, "offset = %d, whence = %d\n", offset, whence);
+
+	if(!power) {
+		return 0;
+	}
+
+	// [TODO] 画面ハードコピー用に暫定的な処理
+	vlcd_reset_rect();
+
+	return 0;
+}
+
 #define MAX_FRAMEBUF	2
 static int disp_frame = 0;
 static int draw_frame = 0;
 
-extern unsigned long vlcd_fore_color;
-extern unsigned long vlcd_back_color;
+extern unsigned int vlcd_fore_color;
+extern unsigned int vlcd_back_color;
 
 static int vlcd_ioctl(struct st_device *dev, unsigned int com, unsigned int arg, void *param)
 {
@@ -267,6 +281,7 @@ const struct st_device vlcd_device = {
 	.register_dev	= vlcd_register,
 	.read		= vlcd_read,
 	.write		= vlcd_write,
+	.seek		= vlcd_seek,
 	.ioctl		= vlcd_ioctl,
 	.suspend	= vlcd_suspend,
 	.resume		= vlcd_resume,

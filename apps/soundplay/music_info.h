@@ -23,8 +23,8 @@
 #define ART_WIDTH	128
 #define ART_HEIGHT	128
 #else
-#define ART_WIDTH	64
-#define ART_HEIGHT	64
+#define ART_WIDTH	96
+#define ART_HEIGHT	96
 #endif
 
 //#define MUSICINFOSTR ushort
@@ -48,13 +48,23 @@ struct st_music_info {
 	unsigned char mpeg_padding;	// for MP3
 	unsigned char channel;
 	unsigned short frame_length;	// for MP3
+	unsigned int frame_start;	// for MP3/M4A
 
 	unsigned int sample_count;	// for MP3/M4A
 	unsigned char *sample_size_data;	// for M4A
 	int metaint;
-	int flg_have_artwork;
+	#define MINFO_ARTWORK_NOIMAGE	0
+	#define MINFO_ARTWORK_JPEG	1
+	#define MINFO_ARTWORK_PNG	2
+	int flg_have_artwork;	// 0:No image, 1:JPEG, 2:PNG
 	PIXEL_DATA artwork[ART_WIDTH * ART_HEIGHT];
 };
+
+typedef int (* tag_read_func)(unsigned char *data, int size);
+typedef int (* tag_seekcur_func)(int pos);
+typedef int (* tag_seekset_func)(int pos);
+typedef int (* tag_size_func)(void);
+typedef int (* tag_tell_func)(void);
 
 void init_music_info(struct st_music_info *info);
 void disp_music_info(struct st_music_info *info);

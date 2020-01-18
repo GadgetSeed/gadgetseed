@@ -11,7 +11,6 @@
 #include "task/mutex.h"
 
 // 推奨デバイス名
-#define DEF_DEV_NAME_INPUT	"input"		// キーボード、ボタン等入力デバイス
 #define DEF_DEV_NAME_LED	"led"		// LED等
 #define DEF_DEV_NAME_EEPRMOM	"eeprom"	// EEPROM
 

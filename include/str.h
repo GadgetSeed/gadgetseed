@@ -41,5 +41,6 @@ extern unsigned int hdstou(uchar *str);
 extern void * memoryset(void *dest, uchar data, unsigned int count);
 extern void * memorycopy(void *dest, const void *src, unsigned int count);
 extern uchar *strchar(const uchar *str, uchar ch);
+extern uchar *searchstr(const uchar *tstr, uchar *sstr);
 
 #endif	// STR_H

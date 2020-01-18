@@ -31,6 +31,10 @@ ifeq ($(DEV_ENABLE_I2C),YES)
 	OBJS += com_i2c.o
 endif
 
+ifeq ($(DEV_ENABLE_QSPI),YES)
+	OBJS += com_qspi.o
+endif
+
 ifeq ($(COMP_ENABLE_FATFS),YES)
 	OBJS += com_file.o file_operation.o
 endif

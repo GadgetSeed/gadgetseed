@@ -14,6 +14,7 @@
     | list		| @copybrief com_task_list	| @ref com_task_list	|
     | queue		| @copybrief com_task_queue	| @ref com_task_queue	|
     | kill		| @copybrief com_task_kill	| @ref com_task_kill	|
+    | priority		| @copybrief com_task_priority	| @ref com_task_priority|
     | calltrace		| @copybrief com_task_calltrace	| @ref com_task_calltrace	|
 */
 
@@ -185,6 +186,31 @@ static int command_task_kill(int argc, uchar *argv[])
 }
 
 
+static int command_task_priority(int argc, uchar *argv[]);
+
+/**
+   @brief	タスクの優先度を設定する
+*/
+static const struct st_shell_command com_task_priority = {
+	.name		= "priority",
+	.command	= command_task_priority,
+	.usage_str	= "<PID> <PRIORITY>",
+	.manual_str	= "Set task priority"
+};
+
+static int command_task_priority(int argc, uchar *argv[])
+{
+	if(argc < 3) {
+		print_command_usage(&com_task_priority);
+		return 0;
+	}
+
+	task_priority(dstoi(argv[1]), dstoi(argv[2]));
+
+	return 0;
+}
+
+
 
 #ifdef GSC_KERNEL_ENABLE_CALLTRACE
 static int command_call_trace(int argc, uchar *argv[])
@@ -217,6 +243,7 @@ static const struct st_shell_command * const com_task_com_list[] = {
 	&com_task_list,
 	&com_task_queue,
 	&com_task_kill,
+	&com_task_priority,
 #ifdef GSC_KERNEL_ENABLE_CALLTRACE
 	&com_task_calltrace,
 #endif

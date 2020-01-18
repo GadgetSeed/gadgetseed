@@ -18,13 +18,16 @@
     | 8x16		| FONTS_ENABLE_FONT_8X16		| オリジナル8x16サイズ半角フォント	|	|
     | 12x16		| FONTS_ENABLE_FONT_12X16		| オリジナル12x16サイズ半角フォント	|	|
     | 12x24		| FONTS_ENABLE_FONT_12X24		| オリジナル12x24サイズ半角フォント	|	|
+    | 16x24		| FONTS_ENABLE_FONT_16X24		| オリジナル16x24サイズ半角フォント	|	|
     | num24x32		| FONTS_ENABLE_FONT_NUM24X32		| オリジナル24x32サイズ数字フォント	|	|
     | num24x40		| FONTS_ENABLE_FONT_NUM24X40		| オリジナル24x40サイズ数字フォント	|	|
     | num24x48		| FONTS_ENABLE_FONT_NUM24X48		| オリジナル24x48サイズ数字フォント	|	|
+    | num32x48		| FONTS_ENABLE_FONT_NUM32X48		| オリジナル32x48サイズ数字フォント	|	|
     | num48x64		| FONTS_ENABLE_FONT_NUM48X64		| オリジナル48x64サイズ数字フォント	|	|
     | misaki		| FONTS_ENABLE_FONT_MISAKI		| 美咲フォント 8x8サイズ漢字フォント	| http://www.geocities.jp/littlimi/misaki.htm	|
     | knj10		| FONTS_ENABLE_FONT_NAGA10		| ナガ10フォント 10x10サイズ漢字フォント	| https://github.com/r-lyeh-archived/fortfont/tree/master/kochi-mincho/docs/naga10	|
     | jiskan16		| FONTS_ENABLE_FONT_JISKAN16		| jiskan16フォント 16x16サイズ漢字フォント	|	|
+    | jiskan16gs	| FONTS_ENABLE_FONT_JISKAN16GS		| jiskan16フォント + オリジナル8x16サイズ半角フォント	|	|
     | jiskan24		| FONTS_ENABLE_FONT_JISKAN24		| jiskan24フォント 24x24サイズ漢字フォント	|	|
     | genshingothic_p18	| FONTS_ENABLE_FONT_GENSHINGOTHIC	| 源真ゴシック 18ポイント漢字フォント	| http://jikasei.me/font/genshin/	|
     | mplus_p2_p18	| FONTS_ENABLE_FONT_MPLUS		| M+ 18ポイント漢字フォント		| https://mplus-fonts.osdn.jp/	|
@@ -49,10 +52,12 @@ extern const struct st_fontset * const fontptr_16x24;
 extern const struct st_fontset * const fontptr_num24x32;
 extern const struct st_fontset * const fontptr_num24x40;
 extern const struct st_fontset * const fontptr_num24x48;
+extern const struct st_fontset * const fontptr_num32x48;
 extern const struct st_fontset * const fontptr_num48x64;
 extern const struct st_fontset * const fontptr_misaki;
 extern const struct st_fontset * const fontptr_knj10;
 extern const struct st_fontset * const fontptr_jiskan16;
+extern const struct st_fontset * const fontptr_jiskan16gs;
 extern const struct st_fontset * const fontptr_jiskan24;
 extern const struct st_fontset * const fontptr_genshingothic_p18;
 extern const struct st_fontset * const fontptr_mplus_p2_p18;
@@ -98,6 +103,10 @@ const struct st_fontset * const * const font_list[] = {
 	&fontptr_num24x48,
 #endif
 
+#ifdef GSC_FONTS_ENABLE_FONT_NUM32X48	// $gsc NUM32X48フォントを有効にする
+	&fontptr_num32x48,
+#endif
+
 #ifdef GSC_FONTS_ENABLE_FONT_NUM48X64	// $gsc NUM48X64フォントを有効にする
 	&fontptr_num48x64,
 #endif
@@ -112,6 +121,10 @@ const struct st_fontset * const * const font_list[] = {
 
 #ifdef GSC_FONTS_ENABLE_FONT_JISKAN16	// $gsc jiskan16フォントを有効にする
 	&fontptr_jiskan16,
+#endif
+
+#ifdef GSC_FONTS_ENABLE_FONT_JISKAN16GS	// $gsc jiskan16gsフォントを有効にする
+	&fontptr_jiskan16gs,
 #endif
 
 #ifdef GSC_FONTS_ENABLE_FONT_JISKAN24	// $gsc jiskan24フォントを有効にする

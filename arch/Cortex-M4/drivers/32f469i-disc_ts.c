@@ -48,11 +48,11 @@ static void inthdr_exti9_5(unsigned int intnum, void *sp)
 
 #define SIZEOFSTACK	(1024*4)
 static struct st_tcb tcb;
-static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)] ATTR_STACK;
 
 extern const struct st_device ts_device;
 
-static int ts_task(char *arg)
+static int ts_task(void *arg)
 {
 	TS_StateTypeDef  TS_State;
 	struct st_sysevent ev;

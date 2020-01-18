@@ -17,4 +17,4 @@ $(DBFONTARC):
 include $(PRJ_DIR)/$(FONTDATA_DIR)/txtbdf2font.mk
 
 distclean:
-	rm -f $(DBFONTARC) $(OBFONTBDF) $(DBFONTBDF)
+	rm -f $(DBFONTARC) $(DBFONTBDF)

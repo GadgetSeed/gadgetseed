@@ -14,6 +14,7 @@
 
 #define FSNAME_VFAT	"vfat"
 #define FSNAME_PIPE	"pipe"
+#define FSNAME_GSFFS	"gsffs"
 
 #ifdef GSC_COMP_ENABLE_FATFS
 #include "ff.h"
@@ -36,7 +37,7 @@ typedef int		t_ssize;
 
 typedef struct {
 	t_size	fsize;
-	t_time	fdatetime;
+	t_time	fdatetime;	///< Local time
 	unsigned int fattrib;
 	uchar	fname[MAX_FNAME_LEN + 1];
 } FS_FILEINFO;	///< ファイル情報
@@ -49,6 +50,9 @@ typedef struct {
 #endif
 #ifdef GSC_COMP_ENABLE_PIPEFS
 		int finfo_cnt;
+#endif
+#ifdef GSC_COMP_ENABLE_GSFFS
+		int finfo_sector;
 #endif
 	} dir;
 } FS_DIR;	///< ディレクトリ情報

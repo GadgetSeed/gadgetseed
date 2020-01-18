@@ -27,6 +27,11 @@ const struct st_graph_object normal_color_view[] = {
 	{ 0, { 0, 0, 0, 0 }}
 };
 
+const struct st_graph_object bar_color[] = {
+	{ GO_TYPE_FORECOLOR,	{ RGB(0,100,100) } },
+	{ 0, { 0, 0, 0, 0 }}
+};
+
 static struct st_ui_seekbar ui_volume_slider = {
 	.view_area = {
 		.pos.x = GSC_GRAPHICS_DISPLAY_WIDTH - VOL_WIDTH,
@@ -36,8 +41,9 @@ static struct st_ui_seekbar ui_volume_slider = {
 	},
 	.type = UI_SKB_TYPE_HOLIZONTAL,
 	.attr = UI_SKB_ATTR_REALTIME_VALUE_CAHNGE,
+	.flg_active = 1,
 	.normal_view = normal_color_view,
-	.bar_color = RGB(0,100,100),
+	.bar_color = bar_color,
 	.value = VOL_DEF,
 	.max_value = 99,
 };

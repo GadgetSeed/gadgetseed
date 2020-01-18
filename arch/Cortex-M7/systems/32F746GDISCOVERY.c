@@ -24,6 +24,7 @@
 #include "stm32f7xx_hal.h"
 
 #include "stm32746g_discovery_sdram.h"
+#include "stm32746g_discovery_qspi.h"
 
 /** System Clock Configuration
 */
@@ -369,6 +370,7 @@ extern const struct st_device i2c1_device;
 extern const struct st_device i2c4_device;
 extern const struct st_device adt7410_device;
 
+extern const struct st_device qspi_device;
 extern const struct st_device sdmmc_device;
 
 extern const struct st_device led_device;
@@ -424,6 +426,14 @@ void init_system(int *argc, char ***argv)
 void init_system2(void)
 {
 	BSP_SDRAM_Init();
+
+#ifdef GSC_DEV_ENABLE_QSPI
+	// QSPI-ROM
+	BSP_QSPI_Init();
+#ifdef GSC_DEV_QSPI_MEMORYMAP	/// $gsc QSPI-ROMをメモリマップする
+	BSP_QSPI_MemoryMappedMode();
+#endif
+#endif
 }
 
 /* NOT API
@@ -443,8 +453,11 @@ void init_system_drivers(void)
 	// LED
 //	register_device((struct st_device *)&led_device, 0);
 
+#ifdef GSC_DEV_ENABLE_BUTTON	// $gsc ボタンデバイスを有効にする
 	// ボタン
-//	register_device((struct st_device *)&gpio_button_device, 0);
+	register_device(&gpio_button_device, 0);
+#endif
+
 //	register_device((struct st_device *)&gpio_keyboard_device, 0);
 
 	// NULLデバイス初期化
@@ -479,6 +492,10 @@ void init_system_process(void)
 #ifdef GSC_DEV_ENABLE_TOUCHSENSOR
 	register_device((struct st_device *)&ts_device, 0);
 #endif
+#endif
+
+#ifdef GSC_DEV_ENABLE_QSPI
+	register_device((struct st_device *)&qspi_device, 0);
 #endif
 
 #ifdef GSC_DEV_ENABLE_STORAGE
@@ -523,7 +540,7 @@ void init_system_process(void)
 
 	// 乱数初期化
 #ifdef GSC_LIB_ENABLE_RANDOM
-	init_genrand(get_systime_sec());
+	init_random(get_systime_sec());
 #endif
 
 #ifdef GSC_DEV_ENABLE_BUZZER

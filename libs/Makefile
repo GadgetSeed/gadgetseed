@@ -6,10 +6,14 @@ OBJS	= fifo.o \
 	  str.o \
 	  tprintf.o \
 	  vtprintf.o \
+	  crc.o \
 	  charcode.o
 
 ifeq ($(LIB_ENABLE_RANDOM),YES)
-	OBJS += $(PRJ_DIR)/$(RANDOM_LIB)
+ifeq ($(LIB_ENABLE_MT19937AR),YES)
+	CFLAGS += -I$(PRJ_DIR)/$(EXTLIBS_DIR)/mt19937ar
+endif
+	OBJS += random.o
 endif
 
 .c.o:

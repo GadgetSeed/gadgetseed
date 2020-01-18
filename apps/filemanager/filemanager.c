@@ -89,7 +89,7 @@ static struct st_filelist_view filelist_view = {
 			.sur.height = GSC_GRAPHICS_DISPLAY_HEIGHT - INFO_AREA_HEIGHT - CONTROL_HEIGHT,
 		},
 		.normal_view = fm_normal_view,
-		.selected_view = fm_select_view,
+		.select_view = fm_select_view,
 		.status = UI_SCB_ST_STILL,
 	}
 };
@@ -143,26 +143,26 @@ static const struct st_graph_object ddownbtn_obj_a[] = {
 
 /* [◀] */
 static const struct st_ui_button_image ui_view_dup = {
-	{ {BTN_POS_X_DUP,  BTN_POS_Y_DUP}, {BUTTON_WIDTH, BUTTON_HEIGHT} },
 	dup_btn_obj,
 	dup_btn_obj_a
 };
 
 static struct st_ui_button ui_btn_dup = {
 	UO_ID_UP,
+	{ {BTN_POS_X_DUP,  BTN_POS_Y_DUP}, {BUTTON_WIDTH, BUTTON_HEIGHT} },
 	&ui_view_dup,
 	UI_BUTTON_ST_NORMAL
 };
 
 /* [▶] */
 static const struct st_ui_button_image ui_view_ddown = {
-	{ {BTN_POS_X_DDOWN,  BTN_POS_Y_DDOWN}, {BUTTON_WIDTH, BUTTON_HEIGHT} },
 	ddownbtn_obj,
 	ddownbtn_obj_a
 };
 
 static struct st_ui_button ui_btn_ddown = {
 	UO_ID_DOWN,
+	{ {BTN_POS_X_DDOWN,  BTN_POS_Y_DDOWN}, {BUTTON_WIDTH, BUTTON_HEIGHT} },
 	&ui_view_ddown,
 	UI_BUTTON_ST_NORMAL
 };
@@ -210,7 +210,7 @@ static void do_select_file(void)
 {
 	get_filelist_select_fname(&filelist_view, select_file_name, FF_MAX_LFN);
 
-	do_file_operation((uchar *)select_file_name, (uchar *)"play");
+	do_file_operation((uchar *)select_file_name, (uchar *)"open");
 }
 
 int filemanager_proc(void)
@@ -277,7 +277,7 @@ int filemanager_proc(void)
 	return 0;
 }
 
-static int filemanager_task(char *arg)
+static int filemanager_task(void *arg)
 {
 	task_sleep(100);
 
@@ -288,7 +288,7 @@ static int filemanager_task(char *arg)
 
 static struct st_tcb tcb;
 #define SIZEOFSTACK	(1024*8)
-static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)] ATTR_STACK;
 extern const struct st_file_operation * const file_operation[];
 
 void startup_filemanager(void)

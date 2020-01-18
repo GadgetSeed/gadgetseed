@@ -19,6 +19,7 @@
     | httpget		| @copybrief com_net_httpget	| @ref com_net_httpget	|
 */
 
+#include "sysconfig.h"
 #include "shell.h"
 #include "device.h"
 #include "str.h"
@@ -37,6 +38,9 @@
 #include "lwip/netifapi.h"
 #include "lwip/netdb.h"
 #include "lwip/dns.h"
+#ifdef GSC_TCPIP_ENABLE_SNTP
+#include "lwip/apps/sntp.h"
+#endif
 
 //#define DEBUGTBITS 0x02
 #include "dtprintf.h"
@@ -113,22 +117,10 @@ static int ip(int argc, uchar *argv[])
 		int stat;
 
 		stat = net_status();
-		if(stat & IORTN_BIT_ETHER_LINK_UP) {
-			tprintf("Link UP,");
-		} else {
-			tprintf("Link Down,");
-		}
-		if(stat & IORTN_BIT_ETHER_100M) {
-			tprintf(" 100baseT");
-		} else {
-			tprintf(" 10baseT");
-		}
-		if(stat & IORTN_BIT_ETHER_FULLDUPLEX) {
-			tprintf("/Full");
-		} else {
-			tprintf("/Half");
-		}
-		tprintf("\n");
+		tprintf("Link %s, %sMb/s, %s\n",
+			(stat & IORTN_BIT_ETHER_LINK_UP) ? "Up" : "Down",
+			(stat & IORTN_BIT_ETHER_100M) ? "100" : "10",
+			(stat & IORTN_BIT_ETHER_FULLDUPLEX) ? "Full" : "Half");
 
 		addr = netif_ip4_addr(&netif);
 		tprintf("IP Address  : %s\n", ip4addr_ntoa(addr));
@@ -238,7 +230,7 @@ static const struct st_shell_command com_net_up = {
 
 static int up(int argc, uchar *argv[])
 {
-	link_up_net();
+	link_up_netdev();
 
 	return 0;
 }
@@ -257,7 +249,7 @@ static const struct st_shell_command com_net_down = {
 
 static int down(int argc, uchar *argv[])
 {
-	link_down_net();
+	link_down_netdev();
 
 	return 0;
 }
@@ -337,7 +329,9 @@ static int httpget(int argc, uchar *argv[])
 	uchar url[MAX_BUF + 1] = {0};
 	uchar path[MAX_BUF + 1] = {0};
 	uchar *p;
+#ifdef GSC_COMP_ENABLE_FATFS
 	int fd = 0;
+#endif
 	int flg_fw = 0;
 
 	if(argc < 2) {
@@ -457,6 +451,95 @@ close:
 }
 
 
+#ifdef GSC_TCPIP_ENABLE_SNTP
+static int net_sntp_servername(int argc, uchar *argv[])
+{
+	if(argc < 2) {
+		const char *name = 0;
+		name = sntp_getservername(0);
+		if(name != 0) {
+			tprintf("NTP servername : %s\n", name);
+		} else {
+			tprintf("No set NTP servernameb\n");
+		}
+	} else {
+		sntp_setservername(0, (const char *)argv[1]);
+	}
+
+	return 0;
+}
+
+static const struct st_shell_command com_sntp_servername = {
+	.name		= "servername",
+	.command	= net_sntp_servername,
+	.manual_str	= "Set SNTP servername"
+};
+
+static int net_sntp_init(int argc, uchar *argv[])
+{
+	sntp_init();
+
+	return 0;
+}
+
+static const struct st_shell_command com_sntp_init = {
+	.name		= "init",
+	.command	= net_sntp_init,
+	.manual_str	= "Init SNTP"
+};
+
+static int net_sntp_stop(int argc, uchar *argv[])
+{
+	sntp_stop();
+
+	return 0;
+}
+
+static const struct st_shell_command com_sntp_stop = {
+	.name		= "stop",
+	.command	= net_sntp_stop,
+	.manual_str	= "Stop SNTP"
+};
+
+static const struct st_shell_command * const com_sntp_sub[] = {
+	&com_sntp_servername,
+	&com_sntp_init,
+	&com_sntp_stop,
+	0
+};
+
+static int com_sntp(int argc, uchar *argv[]);
+
+/**
+   @brief	SNTP時刻取得
+*/
+static const struct st_shell_command com_net_sntp = {
+	.name		= "sntp",
+	.command	= com_sntp,
+	.usage_str	= "[init/stop]",
+	.manual_str	= "SNTP operation",
+	.sublist	= com_sntp_sub
+};
+
+static int com_sntp(int argc, uchar *argv[])
+{
+	int flg = 0;
+
+	flg = sntp_enabled();
+
+	tprintf("SNTP ");
+	if(flg == 0) {
+		tprintf("stoped");
+	} else {
+		tprintf("enabled");
+	}
+	tprintf("\n");
+
+	return 0;
+}
+#endif // GSC_TCPIP_ENABLE_SNTP
+
+
 static const struct st_shell_command * const com_net_list[] = {
 	&com_net_arp,
 	&com_net_ip,
@@ -465,6 +548,9 @@ static const struct st_shell_command * const com_net_list[] = {
 	&com_net_down,
 	&com_net_dns,
 	&com_net_httpget,
+#ifdef GSC_TCPIP_ENABLE_SNTP
+	&com_net_sntp,
+#endif
 	0
 };
 

@@ -14,6 +14,10 @@ ifdef COMP_ENABLE_PIPEFS
 OBJS	+= pipefs.o
 endif
 
+ifdef COMP_ENABLE_GSFFS
+OBJS	+= gsffs.o
+endif
+
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
 

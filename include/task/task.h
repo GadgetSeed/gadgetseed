@@ -15,10 +15,10 @@
 #include "tcb.h"
 
 #ifndef GSC_KERNEL_MAX_TASK_PRIORITY
-#define GSC_KERNEL_MAX_TASK_PRIORITY	6	///< $gsc カーネルタスクプライオリティ段階数
+#define GSC_KERNEL_MAX_TASK_PRIORITY	8	///< $gsc カーネルタスクプライオリティ段階数
 #else
-#if GSC_KERNEL_MAX_TASK_PRIORITY < 6
-#error "KERNEL_MAX_TASK_PRIORITY must begreater then 6"
+#if GSC_KERNEL_MAX_TASK_PRIORITY < 8
+#error "KERNEL_MAX_TASK_PRIORITY must begreater then 8"
 #endif
 #endif
 
@@ -26,20 +26,24 @@
   タスクプライリティ
 
   高
-  0: shell
-  1: デバイスドライバ
+  0: デバイスドライバ
+  1: ネットワーク
   2: ネットワーク
-  3: アプリケーション(高プライオリティ)
-  4: アプリケーション(低プライオリティ)
-  5: IDLEタスク
+  3: shell
+  4: アプリケーション(高プライオリティ)
+  5: アプリケーション(中プライオリティ)
+  6: アプリケーション(低プライオリティ)
+  7: IDLEタスク
   低
  */
 
-#define TASK_PRIORITY_SHELL		0
-#define TASK_PRIORITY_DEVICE_DRIVER	1
+#define TASK_PRIORITY_DEVICE_DRIVER	0
+#define TASK_PRIORITY_REALTIME		1
 #define TASK_PRIORITY_NETWORK		2
-#define TASK_PRIORITY_APP_HIGH		3
-#define TASK_PRIORITY_APP_LOW		4
+#define TASK_PRIORITY_SHELL		3
+#define TASK_PRIORITY_APP_HIGH		4
+#define TASK_PRIORITY_APP_MID		5
+#define TASK_PRIORITY_APP_LOW		6
 #define TASK_PRIORITY_IDLE		(GSC_KERNEL_MAX_TASK_PRIORITY - 1)
 
 // プロセッサ依存関数
@@ -49,13 +53,14 @@ void disp_regs(void *sp);
 void dispatch(struct st_tcb *otcb, struct st_tcb *tcb);
 
 // プロセッサ非依存関数
-void task_add_ISR(task_func func, char *name, int priority, struct st_tcb *tcb, void *stack, int stack_size, char *arg);
-void task_exec_ISR(task_func func, char *name, int priority, struct st_tcb *tcb, void *stack, int stack_size, char *arg);
+void task_add_ISR(task_func func, char *name, int priority, struct st_tcb *tcb, void *stack, int stack_size, void *arg);
+void task_exec_ISR(task_func func, char *name, int priority, struct st_tcb *tcb, void *stack, int stack_size, void *arg);
 void task_exit_ISR(void *sp);
 void task_kill_id_ISR(void *sp, int id);
 void task_wakeup_id_ISR(void *sp, int id);
 void task_pause_ISR(void *sp);
 void task_sleep_ISR(void *sp, unsigned int sleep_time);
+void task_priority_ISR(int id, int priority);
 
 struct st_task_info {
 	int id;			///< タスクID

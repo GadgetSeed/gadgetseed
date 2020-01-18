@@ -262,8 +262,9 @@ static int uart_getc(struct st_device *dev, unsigned char *rd)
 
 static int uart_putc(struct st_device *dev, unsigned char td)
 {
-	int timeout = UART_TC_TIMEOUT;
 	USART_TypeDef *uart = ((struct st_uart_data *)(dev->private_data))->huart.Instance;
+#if 1
+	int timeout = UART_TC_TIMEOUT;
 
 	while(!(uart->ISR & USART_ISR_TC)) {
 		timeout --;
@@ -273,9 +274,11 @@ static int uart_putc(struct st_device *dev, unsigned char td)
 		}
 	}
 	uart->TDR = td;
+#endif
 
 #if 1	// 送信完了割り込み使用
 	uart->CR1 |= USART_CR1_TXEIE;	// 送信データエンプティ割り込み許可
+//	uart->TDR = td;
 
 	if(event_wait(&(((struct st_uart_data *)(dev->private_data))->tx_evq), 0, UART_TE_TIMEOUT) < 0) {
 		if(UART_TE_TIMEOUT != 0) {

@@ -25,14 +25,17 @@
 
 #define UI_SKB_EVT_NULL		0
 #define UI_SKB_EVT_CHANGE	1
+#define UI_SKB_EVT_TOUCHEND	2
 
 struct st_ui_seekbar {
 	struct st_box view_area;	///< 表示エリア
 	int type;
 	int attr;
+	int flg_active;
 	const struct st_graph_object *normal_view;
-	const struct st_graph_object *selected_view;
-	unsigned int bar_color;
+	const struct st_graph_object *inactive_view;
+	const struct st_graph_object *bar_color;
+	const struct st_graph_object *bar_inactive_color;
 
 	int status;
 
@@ -55,6 +58,7 @@ struct st_ui_seekbar {
 }; ///< UIシークバー
 
 void draw_ui_seekbar(struct st_ui_seekbar *slider);
+void activate_ui_seekbar(struct st_ui_seekbar *slider, int active);
 void set_value_ui_seekbar(struct st_ui_seekbar *slider, int value);
 int proc_ui_seekbar(struct st_ui_seekbar *slider, struct st_sysevent *event, int *value);
 

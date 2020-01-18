@@ -5,6 +5,8 @@
     @author	Takashi SHUDO
 */
 
+#include <stdio.h>
+
 #include "sysconfig.h"
 #include "system.h"
 #include "device.h"
@@ -36,6 +38,7 @@ extern const struct st_device grconsole_device;
 extern const struct st_device eventcon_device;
 extern const struct st_device sound_device;
 extern const struct st_device veeprom_device;
+extern const struct st_device vqspi_device;
 extern const struct st_device vmmc_device;
 extern const struct st_device vaudio_device;
 extern const struct st_device vether_device;
@@ -60,6 +63,9 @@ static const struct st_device * const dev_list[] = {
 #ifdef GSC_DEV_ENABLE_STORAGE
 	&vmmc_device,
 #endif
+#ifdef GSC_DEV_ENABLE_QSPI
+	&vqspi_device,
+#endif
 #ifdef GSC_DEV_ENABLE_AUDIO	// $gsc オーディオデバイスを有効にする
 	&vaudio_device,
 #endif
@@ -77,10 +83,22 @@ static const char * const storade_devices[] = {
 };
 #endif
 
-void init_system(int *argc, char ***argv)
+extern void set_mmc_filename(char *fname);
+
+void init_system(int *argcp, char ***argvp)
 {
+#ifdef GSC_COMP_ENABLE_FATFS
+	int argc = *argcp;
+	char **argv = *argvp;
+
+	if(argc > 1) {
+		printf("MMC file : %s\n", argv[1]);
+		set_mmc_filename(argv[1]);
+	}
+#endif
+
 #ifdef GSC_COMP_ENABLE_GRAPHICS
-	open_lcdwindow(argc, argv);
+	open_lcdwindow(argcp, argvp);
 #endif
 }
 
@@ -129,8 +147,8 @@ void init_system_drivers(void)
 #endif
 
 	// 乱数初期化
-#ifdef GSC_LIB_ENABLE_RANDOM
-	init_genrand(get_systime_sec());
+#ifdef GSC_LIB_ENABLE_RANDOM	// $gsc 乱数APIを有効にする
+	init_random(get_systime_sec());
 #endif
 
 #ifdef GSC_DEV_ENABLE_NULL

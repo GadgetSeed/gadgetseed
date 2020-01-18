@@ -17,6 +17,7 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | COMP_ENABLE_FATFS                  | FATFSを有効にする                                                  |
 | COMP_ENABLE_FONTS                  | 文字フォント表示を有効にする                                               |
 | COMP_ENABLE_GRAPHICS               | グラフィック描画を有効にする                                               |
+| COMP_ENABLE_GSFFS                  | GSFFSを有効にする                                                  |
 | COMP_ENABLE_PIPEFS                 | PIPFSを有効にする                                                  |
 | COMP_ENABLE_SHELL                  | コマンドシェルを有効にする                                                |
 | COMP_ENABLE_TCPIP                  | TCP/IPネットワークを有効にする                                           |
@@ -37,6 +38,7 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | DEV_ENABLE_LCD_ILI9341             | ILI9341 LCDデバイスを有効にする                                        |
 | DEV_ENABLE_LED                     | LEDデバイスを有効にする                                                |
 | DEV_ENABLE_NULL                    | NULLデバイスを有効にする                                               |
+| DEV_ENABLE_QSPI                    | QSPI ROMデバイスを有効にする                                           |
 | DEV_ENABLE_RTC                     | リアルタイムクロックを有効にする                                             |
 | DEV_ENABLE_SPI                     | SPIマスタコントローラデバイスを有効にする                                       |
 | DEV_ENABLE_SPI2                    | SPI(2)マスタコントローラデバイスを有効にする                                    |
@@ -44,12 +46,21 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | DEV_ENABLE_TEMPSENSOR_ADT7410      | ADT7410温度センサデバイスを有効にする                                       |
 | DEV_ENABLE_TEMPSENSOR_BME280       | BME280温度、湿度、気圧センサデバイスを有効にする                                  |
 | DEV_ENABLE_TOUCHSENSOR             | タッチセンサデバイスを有効にする                                             |
+| DEV_QSPI_MEMORYMAP                 | QSPI-ROMをメモリマップする                                            |
 | DIFF_FROM_LOCAL_TIME_SEC           | UTCと日本時間(+9時間)との時差(秒)                                        |
+| ENABLE_MUSICPLAY_INTERNETRADIO     | インターネットラジオアプリを有効にする                                          |
 | ENABLE_UILIB                       | ユーザインタフェースライブラリを有効にする                                        |
+| ENABLE_UI_DIALOG_NETSET            | ネットワーク設定ダイアログを使用する                                           |
+| ENABLE_UI_DIALOG_TIMESET           | 時刻設定ダイアログを使用する                                               |
 | ETHERDEV_DEFAULT_MACADDRESS        | EtherデバイスデフォルトMACアドレス                                        |
 | ETHERDEV_HARDWARE_CHECKSUM         | Etherデバイスのハードウェアチェックサムを有効にする                                 |
+| FATFS_ENABLE_CHMOD                 | FATファイルシステムのchmod APIを有効にする                                  |
+| FATFS_ENABLE_EXFAT                 | exFATファイルシステムを有効にする                                          |
+| FATFS_ENABLE_MKFS                  | FATファイルシステムのmkfs APIを有効にする                                   |
 | FATFS_MAX_DIR_NUM                  | FatFsでオープンできる最大ディレクトリ数                                       |
 | FATFS_MAX_FILE_NUM                 | FatFsでオープンできる最大ファイル数                                         |
+| FATFS_VOLUME_NUM                   | FATファイルシステムのボリューム数                                           |
+| FONTS_DEFAULT_FONT                 | デフォルトのフォント名                                                  |
 | FONTS_ENABLE_FONT_12X16            | 12X16フォントを有効にする                                              |
 | FONTS_ENABLE_FONT_12X24            | 12X24フォントを有効にする                                              |
 | FONTS_ENABLE_FONT_16X24            | 16X24フォントを有効にする                                              |
@@ -59,6 +70,7 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | FONTS_ENABLE_FONT_8X16             | 8X16フォントを有効にする                                               |
 | FONTS_ENABLE_FONT_GENSHINGOTHIC    | 源真ゴシックフォントを有効にする                                             |
 | FONTS_ENABLE_FONT_JISKAN16         | jiskan16フォントを有効にする                                           |
+| FONTS_ENABLE_FONT_JISKAN16GS       | jiskan16gsフォントを有効にする                                         |
 | FONTS_ENABLE_FONT_JISKAN24         | jiskan24フォントを有効にする                                           |
 | FONTS_ENABLE_FONT_MISAKI           | 美咲フォントを有効にする                                                 |
 | FONTS_ENABLE_FONT_MPLUS            | M+フォントを有効にする                                                 |
@@ -66,8 +78,10 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | FONTS_ENABLE_FONT_NUM24X32         | NUM24X32フォントを有効にする                                           |
 | FONTS_ENABLE_FONT_NUM24X40         | NUM24X40フォントを有効にする                                           |
 | FONTS_ENABLE_FONT_NUM24X48         | NUM24X48フォントを有効にする                                           |
+| FONTS_ENABLE_FONT_NUM32X48         | NUM32X48フォントを有効にする                                           |
 | FONTS_ENABLE_FONT_NUM48X64         | NUM48X64フォントを有効にする                                           |
 | FONTS_ENABLE_KANJI                 | 漢字フォントの描画を有効にする                                              |
+| FONTS_MAP_BITMAPDATA_EXTROM        | フォントビットマップデータを外部ROMにマップする                                    |
 | FS_MAX_FILE_NUM                    | オープンできる最大ファイル数                                               |
 | FS_VOLUME_NUM                      | 最大ストレージデバイスボリューム数                                            |
 | GRAPHICS_COLOR_16BIT               | グラフィックデバイスは16ビットカラー                                          |
@@ -76,6 +90,10 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | GRAPHICS_DISPLAY_HEIGHT            | グラフィックデバイスの表示高さ                                              |
 | GRAPHICS_DISPLAY_WIDTH             | グラフィックデバイスの表示幅                                               |
 | GRAPHICS_DOTSIZE                   | エミュレータ用グラフィックデバイスの1ドットサイズ                                    |
+| GRAPHIC_ENABLE_DEV_MUTEX           | グラフィックデバイスのMUTEXを有効にする                                       |
+| GSFFS_MAX_DIR_NUM                  | GSFFSでオープンできる最大ディレクトリ数                                       |
+| GSFFS_MAX_FILE_NUM                 | GSFFSでオープンできる最大ファイル数                                         |
+| GSFFS_USE_ERASESECTCOUNT           | GSFFSで使用する消去セクタ数(最低2以上)                                      |
 | KERNEL_DRIVERS                     | カーネル動作に必要なデバイスドライバ(タイマ、シリアル等)                                |
 | KERNEL_ENABLE_CALLTRACE            | カーネルシステムコールトレースを有効にする                                        |
 | KERNEL_ENABLE_INTERRUPT_COUNT      | カーネル割込カウンタを有効にする                                             |
@@ -98,9 +116,12 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | LIB_ENABLE_LIBFAAD2                | libfaad2(MPEG-4 and MPEG-2 AAC decoder)ライブラリを有効にする           |
 | LIB_ENABLE_LIBMAD                  | libmad(MPEG audio decoder)ライブラリを有効にする                        |
 | LIB_ENABLE_LIBPNG                  | libpngライブラリを有効にする                                            |
+| LIB_ENABLE_MT19937AR               | 乱数ライブラリを有効にする                                                |
 | LIB_ENABLE_PICOJPEG                | picojpeg(JPEG decoder)ライブラリを有効にする                            |
-| LIB_ENABLE_RANDOM                  | 乱数ライブラリを有効にする                                                |
+| LIB_ENABLE_RANDOM                  | 乱数APIを有効にする                                                  |
 | LIB_ENABLE_ZLIB                    | zlibライブラリを有効にする                                              |
+| LOG_DISPLOGPRI                     | 表示するログ優先順位                                                   |
+| LOG_RECORDLOGPRI                   | 記録するログ優先順位                                                   |
 | MAX_LOGBUF_SIZE                    | ログバッファサイズ                                                    |
 | MAX_TASK_INFO_NUM                  | topコマンドで表示可能な最大タスク数                                          |
 | MEMORY_ENABLE_HEAP_MEMORY          | ヒープメモリを有効にする                                                 |
@@ -128,4 +149,11 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | TCPIP_DEFAULT_GATEWAY              | TCP/IPデフォルトゲートウェイアドレス                                        |
 | TCPIP_DEFAULT_IPADDR               | TCP/IPデフォルトIPアドレス                                            |
 | TCPIP_DEFAULT_NETMASK              | TCP/IPデフォルトネットマスク                                            |
+| TCPIP_DEFAULT_NTP_SERVERNAME       | デフォルトのNTPサーバ名                                                |
+| TCPIP_ENABLE_DHCP                  | DHCPを有効にする                                                   |
+| TCPIP_ENABLE_SNTP                  | SNTPを有効にする                                                   |
+| TCPIP_ENABLE_START_SNTPINIT        | システム起動時にSNTPを有効にする                                           |
 | TIMEZONE_STR                       | タイムゾーンを示す文字列                                                 |
+| UISTYLEDEF                         | UIスタイル定義ヘッダファイル名                                             |
+| UI_BUTTON_REPEAT_TIME              | UIボタン長押し時のリピートイベント発生までの時間(ms)                                |
+| UI_NETWORK_CONFFILE                | ネットワークコンフィグ設定ファイル名                                           |

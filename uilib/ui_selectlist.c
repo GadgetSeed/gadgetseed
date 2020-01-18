@@ -8,12 +8,26 @@
 #include "tprintf.h"
 //#include "timer.h"
 #include "key.h"
+
+#include "ui_style.h"
 #include "ui_selectlist.h"
 #include "ui_scrollbar.h"
 
 //#define DEBUGTBITS 0x02
 #include "dtprintf.h"
 
+
+static const struct st_graph_object sl_normal_view[] = {
+	{ GO_TYPE_FORECOLOR,	{ UI_NORMAL_FORE_COLOR } },
+	{ GO_TYPE_BACKCOLOR,	{ UI_NORMAL_BACK_COLOR } },
+	{ 0, { 0, 0, 0, 0 }}
+};
+
+static const struct st_graph_object sl_select_view[] = {
+	{ GO_TYPE_FORECOLOR,	{ UI_ACTIVE_FORE_COLOR } },
+	{ GO_TYPE_BACKCOLOR,	{ UI_ACTIVE_BACK_COLOR } },
+	{ 0, { 0, 0, 0, 0 }}
+};
 
 void prepare_ui_selectlist(struct st_ui_selectlist *selectlist)
 {
@@ -42,6 +56,19 @@ void draw_item_ui_selectlist(struct st_ui_selectlist *selectlist, int item_num)
 
 		if(item_num == sl->select_item_num) {
 			flg_sel = 1;
+			// 選択アイテム
+			if(sl->select_view == 0) {
+				draw_graph_object(vbox.pos.x, vbox.pos.y, sl_select_view);
+			} else {
+				draw_graph_object(vbox.pos.x, vbox.pos.y, sl->select_view);
+			}
+		} else {
+			// 非選択アイテム
+			if(sl->normal_view == 0) {
+				draw_graph_object(vbox.pos.x, vbox.pos.y, sl_normal_view);
+			} else {
+				draw_graph_object(vbox.pos.x, vbox.pos.y, sl->normal_view);
+			}
 		}
 
 		sl->item_draw_func(sl, &vbox, item_num, flg_sel);
@@ -53,7 +80,9 @@ void draw_ui_selectlist(struct st_ui_selectlist *selectlist)
 	struct st_ui_selectlist *sl = selectlist;
 	int i;
 
-	if(sl->normal_view != 0) {
+	if(sl->normal_view == 0) {
+		draw_graph_object(sl->view_area.pos.x, sl->view_area.pos.y, sl_normal_view);
+	} else {
 		draw_graph_object(sl->view_area.pos.x, sl->view_area.pos.y, sl->normal_view);
 	}
 
@@ -73,6 +102,19 @@ void draw_ui_selectlist(struct st_ui_selectlist *selectlist)
 
 		if(item_num == sl->select_item_num) {
 			flg_sel = 1;
+			// 選択アイテム
+			if(sl->select_view == 0) {
+				draw_graph_object(vbox.pos.x, vbox.pos.y, sl_select_view);
+			} else {
+				draw_graph_object(vbox.pos.x, vbox.pos.y, sl->select_view);
+			}
+		} else {
+			// 非選択アイテム
+			if(sl->normal_view == 0) {
+				draw_graph_object(vbox.pos.x, vbox.pos.y, sl_normal_view);
+			} else {
+				draw_graph_object(vbox.pos.x, vbox.pos.y, sl->normal_view);
+			}
 		}
 
 		sl->item_draw_func(sl, &vbox, item_num, flg_sel);
@@ -105,7 +147,14 @@ static void calc_layout_selectlist(struct st_ui_selectlist *selectlist, int last
 
 		vbox.pos.x = sl->view_area.pos.x;
 		vbox.sur.width = sl->view_area.sur.width;
-		vbox.sur.height = sl->view_area.sur.height;
+		vbox.sur.height = sl->item_height;
+
+		// 非選択アイテム
+		if(sl->normal_view == 0) {
+			draw_graph_object(vbox.pos.x, vbox.pos.y, sl_normal_view);
+		} else {
+			draw_graph_object(vbox.pos.x, vbox.pos.y, sl->normal_view);
+		}
 
 		if((last_sin >= sl->top_item_num) && (last_sin < (sl->top_item_num + sl->max_item_disp_count))) {
 			vbox.pos.y = sl->view_area.pos.y + (sl->item_height * (last_sin - sl->top_item_num));
@@ -113,6 +162,14 @@ static void calc_layout_selectlist(struct st_ui_selectlist *selectlist, int last
 		}
 
 		vbox.pos.y = sl->view_area.pos.y + (sl->item_height * (sl->select_item_num - sl->top_item_num));
+
+		// 選択アイテム
+		if(sl->select_view == 0) {
+			draw_graph_object(vbox.pos.x, vbox.pos.y, sl_select_view);
+		} else {
+			draw_graph_object(vbox.pos.x, vbox.pos.y, sl->select_view);
+		}
+
 		sl->item_draw_func(sl, &vbox, sl->select_item_num, 1);
 	}
 }

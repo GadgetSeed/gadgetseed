@@ -5,13 +5,40 @@
     @auther	Takashi SHUDO
 */
 
-#include "ui_seekbar.h"
-#include "tprintf.h"
-
 //#define CHECK_AREA
+
+#include "tprintf.h"
+#include "graphics_object.h"
+
+#include "ui_style.h"
+#include "ui_seekbar.h"
 
 //#define DEBUGTBITS 0x02
 #include "dtprintf.h"
+
+static const struct st_graph_object seekbar_normal_view[] = {
+	{ GO_TYPE_FORECOLOR,	{ UI_NORMAL_FORE_COLOR } },
+	{ GO_TYPE_BACKCOLOR,	{ UI_BACK_COLOR } },
+	{ 0, { 0, 0, 0, 0 }}
+};
+
+static const struct st_graph_object seekbar_inactive_view[] = {
+	{ GO_TYPE_FORECOLOR,	{ UI_INACTIVE_FORE_COLOR } },
+	{ GO_TYPE_BACKCOLOR,	{ UI_BACK_COLOR } },
+	{ 0, { 0, 0, 0, 0 }}
+};
+
+static const struct st_graph_object seekbar_bar_color[] = {
+	{ GO_TYPE_FORECOLOR,	{ UI_ACTIVE_BACK_COLOR } },
+	{ GO_TYPE_BACKCOLOR,	{ UI_BACK_COLOR } },
+	{ 0, { 0, 0, 0, 0 }}
+};
+
+static const struct st_graph_object seekbar_inactive_bar_color[] = {
+	{ GO_TYPE_FORECOLOR,	{ UI_INACTIVE_FORE_COLOR } },
+	{ GO_TYPE_BACKCOLOR,	{ UI_BACK_COLOR } },
+	{ 0, { 0, 0, 0, 0 }}
+};
 
 
 static int need_redraw_knob(struct st_ui_seekbar *slider, int value)
@@ -104,8 +131,18 @@ static void draw_knob(struct st_ui_seekbar *slider, int flg_clear)
 	draw_box(&(sd->knob_area));
 #endif
 
-	if(sd->normal_view != 0) {
-		draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, sd->normal_view);
+	if(sd->flg_active != 0) {
+		if(sd->normal_view == 0) {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, seekbar_normal_view);
+		} else {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, sd->normal_view);
+		}
+	} else {
+		if(sd->inactive_view == 0) {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, seekbar_inactive_view);
+		} else {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, sd->inactive_view);
+		}
 	}
 
 	if(flg_clear != 0) {
@@ -156,8 +193,18 @@ static void draw_body(struct st_ui_seekbar *slider)
 
 	calc_body_position(sd);
 
-	if(sd->normal_view != 0) {
-		draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, sd->normal_view);
+	if(sd->flg_active != 0) {
+		if(sd->normal_view == 0) {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, seekbar_normal_view);
+		} else {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, sd->normal_view);
+		}
+	} else {
+		if(sd->inactive_view == 0) {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, seekbar_inactive_view);
+		} else {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, sd->inactive_view);
+		}
 	}
 
 	set_draw_mode(GRP_DRAWMODE_NORMAL);
@@ -187,13 +234,13 @@ static void calc_bar_position(struct st_ui_seekbar *slider)
 	case UI_SKB_TYPE_HOLIZONTAL:
 		sd->bar_area.pos.x = sd->body_area.pos.x + 1;
 		sd->bar_area.pos.y = sd->body_area.pos.y + 1;
-		sd->bar_area.sur.width = (sd->knob_area.pos.x - sd->body_area.pos.x) + sd->view_area.sur.height/2 - 2;
+		sd->bar_area.sur.width = (sd->knob_area.pos.x - sd->body_area.pos.x) + sd->view_area.sur.height/2;
 		sd->bar_area.sur.height = sd->body_area.sur.height - 2;
 		sd->bar_area_diameter = sd->body_area_diameter - 2;
 
 		sd->bar_left_area.pos.x = sd->knob_area.pos.x;
 		sd->bar_left_area.pos.y = sd->bar_area.pos.y;
-		sd->bar_left_area.sur.width = sd->body_area.sur.width - sd->bar_area.sur.width - 2;
+		sd->bar_left_area.sur.width = sd->body_area.sur.width + sd->knob_area.sur.width/2 - sd->bar_area.sur.width - 2;
 		sd->bar_left_area.sur.height = sd->body_area.sur.height - 2;
 		break;
 
@@ -209,8 +256,18 @@ static void draw_bar(struct st_ui_seekbar *slider)
 
 	calc_bar_position(sd);
 
-	if(sd->normal_view != 0) {
-		draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, sd->normal_view);
+	if(sd->flg_active != 0) {
+		if(sd->normal_view == 0) {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, seekbar_normal_view);
+		} else {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, sd->normal_view);
+		}
+	} else {
+		if(sd->inactive_view == 0) {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, seekbar_inactive_view);
+		} else {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, sd->inactive_view);
+		}
 	}
 
 	set_draw_mode(GRP_DRAWMODE_REVERSE);
@@ -219,7 +276,20 @@ static void draw_bar(struct st_ui_seekbar *slider)
 	draw_round_fill_box(&(sd->bar_left_area), sd->bar_area_diameter);
 
 	set_draw_mode(GRP_DRAWMODE_NORMAL);
-	set_forecolor(sd->bar_color);
+
+	if(sd->flg_active != 0) {
+		if(sd->bar_color == 0) {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, seekbar_bar_color);
+		} else {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, sd->bar_color);
+		}
+	} else {
+		if(sd->bar_inactive_color == 0) {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, seekbar_inactive_bar_color);
+		} else {
+			draw_graph_object(sd->view_area.pos.x, sd->view_area.pos.y, sd->bar_inactive_color);
+		}
+	}
 	draw_round_fill_box(&(sd->bar_area), sd->bar_area_diameter);
 }
 
@@ -232,9 +302,20 @@ void draw_ui_seekbar(struct st_ui_seekbar *slider)
 	draw_knob(sd, 0);
 }
 
+void activate_ui_seekbar(struct st_ui_seekbar *slider, int active)
+{
+	struct st_ui_seekbar *sd = slider;
+
+	if(sd->flg_active != active) {
+		sd->flg_active = active;
+		draw_ui_seekbar(sd);
+	}
+}
+
 static void set_value(struct st_ui_seekbar *slider, int value)
 {
 	struct st_ui_seekbar *sd = slider;
+	struct st_rect orect, nrect, crect;
 
 	if(value == sd->value) {
 		return;
@@ -258,12 +339,18 @@ static void set_value(struct st_ui_seekbar *slider, int value)
 
 	set_clip_box(&(sd->knob_area));
 	draw_body(sd);
-	clear_clip_rect();
 
 	slider->value = value;
-
+	box2rect(&orect, &(sd->knob_area));
 	calc_knob_position(sd);
+	box2rect(&nrect, &(sd->knob_area));
+	or_rect(&crect, &orect, &nrect);
+	set_clip_rect(&crect);
+
 	draw_bar(sd);
+
+	clear_clip_rect();
+
 	draw_knob(sd, 0);
 }
 
@@ -339,12 +426,15 @@ int proc_ui_seekbar(struct st_ui_seekbar *slider, struct st_sysevent *event, int
 			sd->status = UI_SKB_ST_STILL;
 			//draw_ui_seekbar(sd);
 			DTPRINTF(0x01, "SEEKBAR STILL\n");
+#if 0
 			if(sd->attr == UI_SKB_ATTR_DROP_VALUE_CHANGE) {
 				if(sd->last_value != sd->value) {
 					*value = sd->value;
-					rtn = UI_SKB_EVT_CHANGE;
 				}
 			}
+#endif
+			*value = sd->value;
+			rtn = UI_SKB_EVT_TOUCHEND;
 		}
 		break;
 

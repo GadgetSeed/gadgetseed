@@ -1,43 +1,45 @@
-# Gadgetseed Command shell
+# GadgetSeed Command Shell
 
-Gadgetseed has a command shell that is primarily designed to debug systems and applications.
+GadgetSeed has a command shell primarily for debugging systems and applications.
 
 ## How to use
 
-The command shell is usually available from the serial interface.
-Please connect via serial terminal software from PC.
-The following is an example of launching the STM32F746NGH6 command shell:
+Command shells are usually available from the serial interface.
+Please connect via the serial terminal software from the PC.
+The following is an example of launching the STM32F769NIH6 command shell:
 
 ```
-GadgetSeed Ver. 0.9.5
-(c)2010-2018 Takashi SHUDO
+GadgetSeed Ver. 0.9.9
+(c)2010-2020 Takashi SHUDO
 CPU ARCH     : Cortex-M7
-CPU NAME     : STM32F746NGH6
-SYSTEM       : 32F746GDISCOVERY
-Build date   : 11:07:47 Aug  5 2018
-System Clock : 162 MHz
+CPU NAME     : STM32F769NIH6
+SYSTEM       : 32F769IDISCOVERY
+Build date   : 16:10:10 Jan  3 2020
+Compiler     : 8.2.1 20181213 (release) [gcc-8-branch revision 267074]
+STM32Cube HAL: FW.F7.1.15.0
+System Clock : 200 MHz
 GS Memory Alloc API is newlib API
-Heap area    : c007f800 - c07ffffc (7866364)
-7681 K byte free
-Graphics device "fb" Type : Frame buffer, Screen size 480x272(2), 16 bit color
+Heap area    : c099f204 - c0fffffc (6688248)
+6531 K byte free
+Graphics device "fb" Type : Frame buffer, Screen size 800x480(2), 16 bit color
 Storage 0: "sd"
+Set RTC Time = 946706755.007
+RMII configuration Hardware Bug Version(0x1000)
 Touch sensor found
-: Add user shell command "sound"
-AUDIO Buffer Size : 9216
-
+MAC Address : 02 00 00 00 07 69
+Link Down, 100Mb/s, Half
 : 
-:
 ```
 
-The command prompt is ":".
+The command prompt is ": ".
 
-## Basic operation
+## Basic operations
 
-Enter the command from the keyboard and run the command with enter key.
+Type a command from the keyboard, and then type the enter key to execute the command.
 
-You can enter the command you entered in the past again by typing the cursor key up or down.
+You can enter the commands that you entered in the past again by entering the cursor key up and down.
 
-You can use the TAB key to complete an executable command string.
+You can use the TAB key to complete the executable command string.
 
 ## Main commands
 
@@ -80,67 +82,88 @@ sound        : Sound file play commands
 Displays system information.
 
 ```
-: sys info 
-Version    : 0.9.5
+: sys info
+Version    : 0.9.9
 CPU ARCH   : Cortex-M7
-CPU NAME   : STM32F746NGH6
-SYSTEM     : 32F746GDISCOVERY
-Build date : 11:07:47 Aug  5 2018
+CPU NAME   : STM32F769NIH6
+SYSTEM     : 32F769IDISCOVERY
+Build date : 16:10:10 Jan  3 2020
+Compiler   : 8.2.1 20181213 (release) [gcc-8-branch revision 267074]
+HAL Version: FW.F7.1.15.0
 :
 ```
 
 ### dev list
 
-Displays a list of device drivers that are registered with the system.
+Displays a list of device drivers registered with the system.
 
 ```
 : dev list 
 timer     : Cortex-M SysTick Driver
 debug     : Debug/Error Console
+logout    : log output & buffer device
+logbuf    : log buffer device
 uart      : STM32F7 UART1
 uart1     : STM32F7 UART6
-video     : STM32F746G-Discovery LCD
+input     : STM32F769I-Disc GPIO Button
+null      : null device
+video     : STM32F769I-Discovery LCD
 fb        : Frame buffer(16 bit color)
 ts        : STM32F7xxx-Disc Touch Sensor
-sd        : STM32F7xxx SD/MMC Strage
-audio     : STM32F769I-Disc Audio Out
+qspi      : STM32F7xxx QSPI FLASH ROM
+sd        : STM32F7xxx SD/MMC Storage
+rtc       : STM32F7 RTC
+eth       : STM32F7xxx-Discovery Ether
+audio     : STM32F7xxx-Disc Audio Out
 : 
 ```
 
 ### task list
 
-Displays a list of running task information.
+Displays a list of task information that is running.
 
 ```
 : task list 
 PID Name       Pri Status Entry    PC       Stack(size)    SP       SleepTime
-  0 IDLE         3 READY  08015779 0801577A 2001E6D8(0400) 2001EA88         0
-  2 touch_sens   1 EVENT  08009275 080168DA 2001CE74(1000) 2001DD90        34
-  3 shell        0 RUN    0801B011 080168DA 2002094C(2000) 200228B0         0
-  4 soundplay    1 TIMER  08000465 080168DA 20007CC0(C000) 20013C60         4
-  5 filemanage   2 EVENT  08002245 080168DA 20016AA4(2000) 200189C8         4
-:
+  0 IDLE         7 READY  08074819 0807481A 20043150(0400) 20043500         0
+  1 init         6 TIMER  08058d49 08075A8E 2003c970(1000) 2003d8c0      2419
+  2 touch_sens   0 EVENT  08061a1d 08075A8E 20041980(1000) 200428b8        29
+  3 ether_rmii   0 TIMER  080615b5 08075A8E 200414c0(0400) 20041860        29
+  4 network      2 TIMER  080253a5 08075A8E 20056508(1000) 20057488        -1
+  5 tcpip_thre   2 EVENT  080255a9 08075A8E 200333c8(2000) 20035318        75
+  6 devif_thre   1 EVENT  080255a9 08075A8E 200353c8(2000) 20037320        69
+  7 shell        3 RUN    08006b19 08075A8E 2002cc68(2000) 2002ebc8         0
+  8 soundplay    1 TIMER  080002a9 08075A8E 20014520(C800) 20020c28       -31
+  9 musicplay    5 EVENT  080028b9 08075A8E 20024ca8(2000) 20026be0       -21
+ 10 ir_stream    4 TIMER  08005e69 08075A8E 20027bd8(2800) 2002a358         9
+ 11 iradio       2 TIMER  08005c31 08075A8E 200273d8(0800) 20027b38        -1
+: 
 ```
 
 ### task top
 
-Continues to display the CPU usage of the running task at a one-second interval.
+Continues to display the CPU usage of running tasks at 1-second intervals.
 
 ```
 PID TASK-NAME       PRI RUN-TIME(us)   %CPU
-  0 IDLE              3      1005366  97.60
-  2 touch_sensor      1          153   0.01
-  3 shell             0        23936   2.32
-  4 soundplay         1          377   0.03
-  5 filemanager       2          168   0.01
+  0 IDLE              7       133055  13.05
+  1 init              6            6   0.00
+  2 touch_sensor      0          100   0.00
+  3 ether_rmii        0           23   0.00
+  4 network           2           80   0.00
+  5 tcpip_thread      2           43   0.00
+  6 devif_thread      1           61   0.00
+  7 shell             3          118   0.01
+  8 soundplay         1       228259  22.39
+  9 musicplay         5       657714  64.51
 ```
 
-The display will continue to be updated until you enter a key.
+The display will continue to refresh until any keys are entered.
 
 ### file dir
 
 Displays a list of files for the storage device.
-Available only when the file system is enabled.
+Available only if the file system is enabled.
 
 ```
 : file dir 
@@ -164,7 +187,7 @@ D 18/01/06         MOUNTA~1 Mountain Dance
 D 14/08/17         RIDEON~1 RIDE ON TIME (Remaster)
 D 17/01/22         SAYITW~1 Say It with Silence
 D 18/07/30         YELLOW~1.) Yellow Magic Orchestra(US Ver.)
-D 10/05/15 ______ ~ 1 synchronicity Teen
+D 10/05/15 ______-1 Synchronishinteen
 0:/ OK
    5 File  331.5K
   16 Dir   493.2M free

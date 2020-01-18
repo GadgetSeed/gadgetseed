@@ -26,6 +26,7 @@
     | i2c		| @copybrief com_i2c		| @ref i2c_command 参照	|
     | file		| @copybrief com_file		| @ref file_command 参照|
     | net		| @copybrief com_net		| @ref net_command 参照	|
+    | qspi		| @copybrief com_qspi		| @ref qspi_command 参照|
     | log		| @copybrief com_log		| @ref log_command 参照	|
 
     ユーザ独自のコマンドを追加することができます。
@@ -51,6 +52,9 @@ extern const struct st_shell_command com_graphics;
 #endif
 #ifdef GSC_DEV_ENABLE_I2C
 extern const struct st_shell_command com_i2c;
+#endif
+#ifdef GSC_DEV_ENABLE_QSPI	/// $gsc QSPI ROMデバイスを有効にする
+extern const struct st_shell_command com_qspi;
 #endif
 #ifdef GSC_COMP_ENABLE_FATFS
 extern const struct st_shell_command com_file;
@@ -81,6 +85,9 @@ const struct st_shell_command * const com_list[] = {
 #endif
 #ifdef GSC_DEV_ENABLE_I2C
 	&com_i2c,
+#endif
+#ifdef GSC_DEV_ENABLE_QSPI
+	&com_qspi,
 #endif
 #ifdef GSC_COMP_ENABLE_FATFS
 	&com_file,
@@ -127,7 +134,7 @@ int add_shell_command(struct st_shell_command *command)
 #define MAX_COMMAND_NUM	((sizeof(com_list)/sizeof(struct st_shell_command *))-1)
 #endif
 
-static int shell_task(char *arg)
+static int shell_task(void *arg)
 {
 #ifdef GSC_SHELL_USER_COMMAND_NUM
 	int i = 0;

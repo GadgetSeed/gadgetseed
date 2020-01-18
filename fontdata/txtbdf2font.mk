@@ -14,7 +14,7 @@ $(OBJS): $(SRCS)
 
 $(SRCS): $(FONTTXT) $(FONTCNV) $(FONTCNV2) $(DBFONTBDF)
 	$(FONTCNV2) $(FONTTXT) $(FONTNAME) > $@
-	$(FONTCNV) $(DBFONTBDF) $(DBFONTNAME) $(OFFSET_Y) >> $@
+	$(FONTCNV) $(DBFONTBDF) $(DBFONTNAME) $(FONTS_MAP_BITMAPDATA_EXTROM) >> $@
 	echo "#include \"font.h\"" >> $@
 	echo "#include \"sysconfig.h\"" >> $@
 	echo "const struct st_fontset fontset_$(FONTNAME) = {" >> $@

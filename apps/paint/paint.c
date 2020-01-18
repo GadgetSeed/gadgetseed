@@ -243,7 +243,7 @@ int paint_proc(struct st_sysevent *event)
 	return 0;
 }
 
-static int paint_task(char *arg)
+static int paint_task(void *arg)
 {
 	task_sleep(100);
 
@@ -265,7 +265,7 @@ static int paint_task(char *arg)
 
 static struct st_tcb tcb;
 #define SIZEOFSTACK	(1024*4)
-static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)] ATTR_STACK;
 
 void startup_paint(void)
 {

@@ -60,10 +60,12 @@ ifndef APPNAME	# $gsc 実行ファイルのアプリケーションフィール�
 APPNAME = noname
 endif
 
+PROGNAME = gs-$(ARCH)-$(SYSTEM)-$(APPNAME)-$(VERSION)
+
 ifeq ($(ARCH),emu)
-PROGRAM = gs-$(ARCH)-$(SYSTEM)-$(APPNAME)-$(VERSION)
+PROGRAM = $(PROGNAME)
 else
-PROGRAM = gs-$(ARCH)-$(SYSTEM)-$(APPNAME)-$(VERSION).elf
+PROGRAM = $(PROGNAME).elf
 endif
 
 KERNEL_DIR = kernel
@@ -120,11 +122,11 @@ ifeq ($(COMP_ENABLE_FATFS),YES)
 	SHELL_EXT_LIB += $(FATFS_LIB)
 endif
 
-# random.o
+# mt19937ar
 RANDOM_DIR = $(EXTLIBS_DIR)/mt19937ar
-RANDOM_LIB = $(RANDOM_DIR)/random.o
+RANDOM_LIB = $(RANDOM_DIR)/mt19937ar.o
 export RANDOM_LIB
-ifeq ($(LIB_ENABLE_RANDOM),YES)	# $gsc 乱数ライブラリを有効にする
+ifeq ($(LIB_ENABLE_MT19937AR),YES)	# $gsc 乱数ライブラリを有効にする
 #	OBJS += $(RANDOM_LIB)
 endif
 
@@ -158,6 +160,7 @@ ifeq ($(COMP_ENABLE_TCPIP),YES)
 	HEADERS += $(HEADERS_DIR)/net/*.h
 	LIBS += $(LWIP_LIB)
 	LIBS += $(NET_LIB)
+	SHELL_EXT_LIB += $(NET_LIB)
 endif
 
 # libmad
@@ -318,7 +321,7 @@ $(FONT_LIB): $(FONT_DIR)/*.c
 $(FONTDATA_LIB): $(FONTDATA_DIR)/*/*.txt $(BDF2FONTSRC) $(TXT2FONTSRC)
 	make -C $(FONTDATA_DIR)
 
-$(UILIB_LIB): $(UILIB_DIR)/*.[ch]
+$(UILIB_LIB): $(UILIB_DIR)/*.[ch] $(UILIB_DIR)/dialogbox/*/*.[ch]
 	make -C $(UILIB_DIR)
 
 $(FS_LIB): $(FS_DIR)/*.c
@@ -327,7 +330,7 @@ $(FS_LIB): $(FS_DIR)/*.c
 $(TASK_LIB): $(TASK_DIR)/*.c
 	make -C $(TASK_DIR)
 
-$(NET_LIB): $(NET_DIR)/*.c
+$(NET_LIB): $(NET_DIR)/*.c $(LWIP_LIB)
 	make -C $(NET_DIR)
 
 $(SHELL_LIB): $(SHELL_DIR)/*.c $(SHELL_EXT_LIB)
@@ -391,9 +394,17 @@ $(PROGRAM): $(OBJS) $(ALIBS) $(LIBS) $(LDSCRIPT)
 	$(LD) $(CFLAGS) $(LDFLAGS) $(ARCH_DIR)/start.o version.o \
 	$(OBJS) $(ALIBS) $(LIBS) $(ARCH_LIB) $(LD_LIBS) $(LIBS)
 	ln -f -s $(PROGRAM) $(PROGLINK)
-	$(OBJDUMP) -h --section=.VECTORS --section=.text --section=.data \
-	--section=.bss --section=.stack $(PROGRAM)
+	$(OBJDUMP) -h -w --section=.VECTORS --section=.text --section=.rodata --section=.data \
+	--section=.bss --section=.stack --section=.extram --section=.qspirom $(PROGRAM)
+ifdef FONTS_MAP_BITMAPDATA_EXTROM	# $gsc フォントビットマップデータを外部ROMにマップする
+	$(OBJCOPY) -O ihex -j $(FONTS_MAP_BITMAPDATA_EXTROM) $(PROGRAM) $(PROGNAME)-extrom.hex
+	$(OBJCOPY) -R $(FONTS_MAP_BITMAPDATA_EXTROM) $(PROGRAM)
 endif
+
+endif
+
+#$(warning LIBS = $(LIBS))
+#$(warning APPLICATION = $(APPLICATION))
 
 tags: TAGS
 TAGS:
@@ -461,14 +472,18 @@ ifeq ($(ENABLE_UILIB),YES)
 endif
 	make -C $(TOOLS_DIR) clean
 	rm -f version.c version.o
-	rm -f -r $(OBJS) $(PROGRAM) *.map \
+	rm -f -r $(OBJS) *.map \
 	$(LOGOTXT) $(LOGOSRC) emu.a
 	rm -f $(PROGLINK)
+	rm -f -r $(DEPEND)
+
+progclean:
+	rm -f -r $(PROGRAM)
 
 clean:
 	make objclean
+	make progclean
 	make configclean
-	rm -f -r $(DEPEND)
 
 allobjclean:
 	find . -name "*.[oa]" | xargs rm -f
@@ -494,10 +509,21 @@ distclean:
 	rm -f config.mk
 	rm -f -r $(DEPEND)
 
+binclean:
+	rm -f *.elf *.hex gs-emu-* gadgetseed
+
+logclean:
+	rm -f *.log *.k
+
 $(DEPEND): $(HEADERS_DIR)/asm.h $(SYSCONFHEADER)
 	$(CC) -M $(CFLAGS) main.c > $(DEPEND)
 
-.PHONY: clean docs distclean configlist
+.PHONY: clean objclean progclean docs allobjclean distclean reset configlist binclean
+
+hex: $(PROGRAM)
+ifneq ($(ARCH),emu)
+	$(OBJCOPY) -F ihex $(PROGRAM) $(PROGRAM:.elf=.hex)
+endif
 
 docs:
 	doxygen docs/Doxyfile
@@ -513,8 +539,12 @@ enmd:
 	sh ./tools/translation/trans_md.sh README.jp.md > README.md
 	sh ./tools/translation/trans_md.sh apps/APPLICATIONS.jp.md > apps/APPLICATIONS.md
 	sh ./tools/translation/trans_md.sh shell/SHELL.jp.md > shell/SHELL.md
-	sh ./tools/translation/trans_md.sh configs/CONFIG.jp.md > CONFIG.tmp
-	awk '{if($$3=="|")$$2=toupper($$2);print $$0}' CONFIG.tmp > configs/CONFIG.md
-	rm -f CONFIG.tmp
+#	sh ./tools/translation/trans_md.sh configs/CONFIG.jp.md > CONFIG.tmp
+#	awk '{if($$3=="|")$$2=toupper($$2);print $$0}' CONFIG.tmp > configs/CONFIG.md
+#	rm -f CONFIG.tmp
+
+encl:
+	sh ./tools/configlist_en.sh > configs/CONFIG.md
+	rm -f cfgname.tmp cfgdisc.tmp cfgdisc_en.tmp cfglist.tmp
 
 -include $(DEPEND)

@@ -106,7 +106,8 @@ static const struct st_shell_command com_log_print = {
 	.name		= "print",
 	.init		= init_print,
 	.command	= log_print,
-	.usage_str	= "[size[TODO]]",
+	.attr		= CMDATTR_CONT,
+	.usage_str	= "[line]",
 	.manual_str	= "Print log"
 };
 

@@ -34,10 +34,9 @@ struct st_sysevent {
 
 #define EVT_POWEROFF		16	///< 電源Off
 
-#define EVT_SOUND_PREPARE	47
-#define EVT_SOUND_START		48
-#define EVT_SOUND_PAUSE		49
-#define EVT_SOUND_CONTINUE	50
+#define EVT_SOUND_PREPARED	48
+#define EVT_SOUND_START		49
+#define EVT_SOUND_PAUSE		50
 #define EVT_SOUND_END		51
 #define EVT_SOUND_STOP		52
 #define EVT_SOUND_STATUS	53

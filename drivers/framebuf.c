@@ -101,6 +101,7 @@ static void framebuf_fill_screen(struct st_framebuf_context *fc, unsigned int da
 static const char def_v_dev[] = DEF_DEV_NAME_VIDEO;
 
 static struct st_framebuf_context fb_ctx;
+static struct st_mutex framebuf_mutex;
 
 static int framebuf_register(struct st_device *dev, char *param)
 {
@@ -180,6 +181,29 @@ static int framebuf_write(struct st_device *dev, const void *data, unsigned int 
 	return size;
 }
 
+static void reset_rect(struct st_framebuf_context *fc)
+{
+	fc->clip.left	= 0;
+	fc->clip.top	= 0;
+	fc->clip.right	= fc->width - 1;
+	fc->clip.bottom	= fc->height - 1;
+	fc->pen_x	= fc->clip.left;
+	fc->pen_y	= fc->clip.top;
+	framebuf_set_ptr(fc);
+}
+
+static int framebuf_seek(struct st_device *dev, int offset, int whence)
+{
+	struct st_framebuf_context *fc = (struct st_framebuf_context *)(dev->private_data);
+
+	DKFPRINTF(0x01, "offset = %d, whence = %d\n", offset, whence);
+
+	// [TODO] 画面ハードコピー用に暫定的な処理
+	reset_rect(fc);
+
+	return 0;
+}
+
 static int framebuf_ioctl(struct st_device *dev, unsigned int com, unsigned int arg, void *param)
 {
 	struct st_framebuf_context *fc = (struct st_framebuf_context *)(dev->private_data);
@@ -227,15 +251,7 @@ static int framebuf_ioctl(struct st_device *dev, unsigned int com, unsigned int 
 		break;
 
 	case IOCMD_VIDEO_RESETRECT:
-		{
-			fc->clip.left	= 0;
-			fc->clip.top	= 0;
-			fc->clip.right	= fc->width;
-			fc->clip.bottom	= fc->height;
-			fc->pen_x	= fc->clip.left;
-			fc->pen_y	= fc->clip.top;
-			framebuf_set_ptr(fc);
-		}
+		reset_rect(fc);
 		break;
 
 	case IOCMD_VIDEO_CLEAR:
@@ -346,8 +362,10 @@ static int framebuf_ioctl(struct st_device *dev, unsigned int com, unsigned int 
 struct st_device framebuf_device = {
 	.name		= "fb",
 	.explan		= "Frame buffer(16 bit color)",
+	.mutex		= &framebuf_mutex,
 	.register_dev	= framebuf_register,
 	.read		= framebuf_read,
 	.write		= framebuf_write,
+	.seek		= framebuf_seek,
 	.ioctl		= framebuf_ioctl,
 };

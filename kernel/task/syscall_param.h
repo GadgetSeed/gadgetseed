@@ -40,6 +40,7 @@
 #define	SYSCALL_PRINT_TASK_QUEUE	24
 #define	SYSCALL_PRINT_CALLTRACE		25
 #define	SYSCALL_GET_TASKS_INFO		26
+#define	SYSCALL_TASK_PRIORITY		27
 
 struct exec_task_param {
 	task_func	func;
@@ -48,7 +49,7 @@ struct exec_task_param {
 	struct st_tcb	*tcb;
 	unsigned int	*stack;
 	int		stack_size;
-	char		*arg;
+	void		*arg;
 	int		ret;
 }; ///< タスク追加、起動用システムコールパラメータ
 
@@ -74,6 +75,11 @@ struct st_task_info_param {
 	int		count;
 	int		ret;
 }; ///< タスク情報取得用システムコールパラメータ
+
+struct st_task_priority_param {
+	int		id;
+	int		priority;
+}; ///< タスク優先度設定用システムコールパラメータ
 
 extern const char syscall_name[][16];
 extern int last_syscall_type;

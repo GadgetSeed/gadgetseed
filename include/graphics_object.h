@@ -24,7 +24,10 @@
 #define GO_TYPE_ROUND_FILL_BOX	102	///< 角の丸い塗りつぶした四角
 #define GO_TYPE_FILL_BOX	103	///< 塗りつぶした四角
 #define GO_TYPE_VERTEX4		104	///< 塗りつぶした4頂点の領域
-#define GO_TYPE_SECTOR		105	///< 扇形
+#define GO_TYPE_TRIANGLE	105	///< 塗りつぶした三角形の領域
+#define GO_TYPE_SECTOR		106	///< 扇形
+#define GO_TYPE_BITMAP		107	///< ビットマップデータの描画
+#define GO_TYPE_OBJECT		200	///< グラフィックオブジェクトポインタ
 
 struct st_graph_object {
 	int type;	///< グラフィックオブジェクト種別

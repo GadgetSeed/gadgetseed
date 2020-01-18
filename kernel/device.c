@@ -326,6 +326,7 @@ int lock_device(struct st_device *dev, unsigned int timeout)
 			DKPRINTF(0x02, "DEV %s LOCK\n", dev->name);
 			return mutex_lock(dev->mutex, timeout);
 		} else {
+			DKPRINTF(0x02, "DEV %s no mutex\n", dev->name);
 			return -2;
 		}
 	}
@@ -359,6 +360,7 @@ int unlock_device(struct st_device *dev)
 			DKPRINTF(0x02, "DEV %s UNLOCK\n", dev->name);
 			return mutex_unlock(dev->mutex);
 		} else {
+			DKPRINTF(0x02, "DEV %s no mutex\n", dev->name);
 			return -1;
 		}
 	}

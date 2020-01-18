@@ -20,11 +20,11 @@
 #define UI_BUTTON_EVT_PULL	2	///< UIボタンイベント 離された
 #define UI_BUTTON_EVT_DRAG	3	///< UIボタンイベント ドラッグされた
 #define UI_BUTTON_EVT_RELEASE	4	///< UIボタンイベント 範囲外で離された
+#define UI_BUTTON_EVT_REPEAT	5	///< UIボタンイベント 押しっぱなしでリピート
 
 struct st_ui_button_image {
-	const struct st_box box;	///< ボタン位置、範囲
 	const struct st_graph_object *normal_view;	///< ボタン通常表示グラフィックス
-	const struct st_graph_object *selected_view;	///< ボタン選択時表示グラフィックス
+	const struct st_graph_object *select_view;	///< ボタン選択時表示グラフィックス
 }; ///< UIボタングラフィックス
 
 struct st_button_event {
@@ -34,8 +34,12 @@ struct st_button_event {
 
 struct st_ui_button {
 	int id;		///< ボタンID
+	const struct st_box view_area;		///< ボタン位置、範囲
 	const struct st_ui_button_image *view;	///< ボタングラフィックス
+	char *font_name;		///< フォント名
+	char *name;
 	int status;
+	unsigned long long when;
 }; ///< UIボタン
 
 void draw_ui_button(struct st_ui_button *object);

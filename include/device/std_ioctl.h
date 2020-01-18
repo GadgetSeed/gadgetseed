@@ -24,6 +24,8 @@
 #define DEV_AUDIO	(0x0D)	///< AUDIOデバイス
 #define DEV_TS		(0x0E)	///< タッチセンサデバイス
 #define DEV_ENVSNSR	(0x0F)	///< 環境センサ(温度センサ等)
+#define DEV_INPUT	(0x10)	///< キーボード、ボタン、スイッチ等
+#define DEV_QSPI	(0x11)	///< QSPI FLASH ROM
 #define DEV_LOGBUF	(0xFF)	///< ログバッファ
 
 #define STDIOCTL(dev,ioctl)	((unsigned int)(((dev)<<24)+((ioctl)<<16)))	///< ioctlデバイスタイプ毎のコマンド定義マクロ

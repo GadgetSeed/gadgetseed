@@ -6,10 +6,10 @@
 + /*
 +   µ¿»÷Íð¿ôÈ¯À¸
 + 
-+   2008.01.09	Takashi SHUDO
++   2019.10.14	Takashi SHUDO
 + */
 + 
-+ #include "random.h"
++ #include "mt19937ar.h"
 + 
   /* 
      A C-program for MT19937, with initialization improved 2002/1/26.

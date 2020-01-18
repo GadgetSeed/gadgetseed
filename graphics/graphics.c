@@ -58,6 +58,7 @@
     | set_clip_box()		| @copybrief set_clip_box	|
     | get_clip_rect()		| @copybrief get_clip_rect	|
     | clear_screen()		| @copybrief clear_screen	|
+    | fill_screen()		| @copybrief fill_screen	|
     | set_forecolor()		| @copybrief set_forecolor	|
     | get_forecolor()		| @copybrief get_forecolor	|
     | set_backcolor()		| @copybrief set_backcolor	|
@@ -124,6 +125,14 @@
 //#define DEBUGTBITS 0x02
 #include "dtprintf.h"
 
+#ifdef GSC_GRAPHIC_ENABLE_DEV_MUTEX	/// $gsc グラフィックデバイスのMUTEXを有効にする
+#define MAXDEVLOCK_TIME	10000
+#define GDEV_LOCK()	lock_device(fb_dev,MAXDEVLOCK_TIME)
+#define GDEV_UNLOCK()	unlock_device(fb_dev)
+#else
+#define GDEV_LOCK()
+#define GDEV_UNLOCK()
+#endif
 
 static struct st_device *fb_dev;
 static short gdev_type;
@@ -203,7 +212,9 @@ int register_graphics_dev(struct st_device *dev)
 */
 int set_display_frame(int fnum)
 {
+	GDEV_LOCK();
 	return ioctl_device(fb_dev, IOCMD_VIDEO_SETDISPFRAME, fnum, 0);
+	GDEV_UNLOCK();
 }
 
 /**
@@ -213,7 +224,9 @@ int set_display_frame(int fnum)
 */
 int get_display_frame(void)
 {
+	GDEV_LOCK();
 	return ioctl_device(fb_dev, IOCMD_VIDEO_GETDISPFRAME, 0, 0);
+	GDEV_UNLOCK();
 }
 
 /**
@@ -235,7 +248,9 @@ int get_frame_num(void)
 */
 int set_draw_frame(int fnum)
 {
+	GDEV_LOCK();
 	return ioctl_device(fb_dev, IOCMD_VIDEO_SETDRAWFRAME, fnum, 0);
+	GDEV_UNLOCK();
 }
 
 /**
@@ -253,7 +268,9 @@ int get_draw_frame(void)
 */
 void clear_clip_rect(void)
 {
+	GDEV_LOCK();
 	clip_rect = i_clip_rect;
+	GDEV_UNLOCK();
 }
 
 /**
@@ -263,12 +280,14 @@ void clear_clip_rect(void)
 */
 void set_clip_rect(struct st_rect *rect)
 {
+	GDEV_LOCK();
 	clip_rect = *rect;
 
 	if(clip_rect.left < 0)	clip_rect.left = 0;
 	if(clip_rect.top < 0)	clip_rect.top = 0;
 	if(clip_rect.right > screen_width) clip_rect.right = screen_width;
 	if(clip_rect.bottom > screen_height) clip_rect.bottom = screen_height;
+	GDEV_UNLOCK();
 }
 
 /**
@@ -337,7 +356,19 @@ void get_screen_info(short *width, short *height)
 */
 void clear_screen(void)
 {
+	GDEV_LOCK();
 	ioctl_device(fb_dev, IOCMD_VIDEO_CLEAR, 0, 0);
+	GDEV_UNLOCK();
+}
+
+/**
+   @brief	画面を全て背景色で描画する
+*/
+void fill_screen(void)
+{
+	GDEV_LOCK();
+	ioctl_device(fb_dev, IOCMD_VIDEO_FILL, back_color, 0);
+	GDEV_UNLOCK();
 }
 
 static void prepare_color(void)
@@ -391,9 +422,11 @@ unsigned int get_forecolor(void)
 */
 void set_backcolor(unsigned int color)
 {
+	GDEV_LOCK();
 	back_color = color;
 
 	prepare_color();
+	GDEV_UNLOCK();
 }
 
 /**
@@ -413,9 +446,11 @@ unsigned int get_backcolor(void)
 */
 void set_draw_mode(unsigned char mode)
 {
+	GDEV_LOCK();
 	pen_mode = mode;
 
 	prepare_color();
+	GDEV_UNLOCK();
 }
 
 /**
@@ -434,8 +469,7 @@ unsigned char get_draw_mode(void)
 
 static void _draw_point(short x, short y)
 {
-	ioctl_device(fb_dev, IOCMD_VIDEO_DRAW_PIXEL,
-		     (((int)y) << 16) | (x & 0xffff), 0);
+	ioctl_device(fb_dev, IOCMD_VIDEO_DRAW_PIXEL, (((int)y) << 16) | (x & 0xffff), 0);
 }
 
 /**
@@ -451,7 +485,9 @@ void draw_point(short x, short y)
 	if(clip_rect.left > x) return;
 	if(clip_rect.right <= x) return;
 
+	GDEV_LOCK();
 	_draw_point(x, y);
+	GDEV_UNLOCK();
 }
 
 static void _draw_h_line(short x, short y, short xe)
@@ -485,7 +521,9 @@ void draw_h_line(short x, short y, short width)
 	if(clip_rect.right < xe) xe = clip_rect.right;
 	if(x >= xe) return;
 
+	GDEV_LOCK();
 	_draw_h_line(x, y, xe);
+	GDEV_UNLOCK();
 }
 
 static void _draw_v_line(short x, short y, short ye)
@@ -518,7 +556,9 @@ void draw_v_line(short x, short y, short height)
 	if(clip_rect.top > y) y = clip_rect.top;
 	if(clip_rect.bottom < ye) ye = clip_rect.bottom;
 
+	GDEV_LOCK();
 	_draw_v_line(x, y, ye);
+	GDEV_UNLOCK();
 }
 
 #define LEFT 1
@@ -683,7 +723,9 @@ void draw_line(short x, short y, short xe, short ye)
 		return;
 	}
 
+	GDEV_LOCK();
 	line(x, y, xe, ye);
+	GDEV_UNLOCK();
 }
 
 /**
@@ -701,6 +743,7 @@ void draw_rect(struct st_rect *rect)
 	and_rect(&drect, rect, &clip_rect);
 
 	if(empty_rect(&drect) == 0) {
+		GDEV_LOCK();
 		// 上
 		if((clip_rect.top <= rect->top) &&
 		   (rect->top <= clip_rect.bottom)) {
@@ -736,6 +779,7 @@ void draw_rect(struct st_rect *rect)
 					     drect.bottom-bw);
 			}
 		}
+		GDEV_UNLOCK();
 	}
 }
 
@@ -759,6 +803,7 @@ void draw_round_rect(struct st_rect *rect, short r)
 		return;
 	}
 
+	GDEV_LOCK();
 	// 左上
 	draw_quarter_circle(rect->left + r, rect->top + r, r, 1);
 
@@ -794,6 +839,7 @@ void draw_round_rect(struct st_rect *rect, short r)
 	   (rect->right <= clip_rect.right)) {
 		draw_v_line(rect->right - 1, rect->top + r, l_h);
 	}
+	GDEV_UNLOCK();
 }
 
 static void _draw_fill_rect(struct st_rect *rect)
@@ -825,7 +871,9 @@ void draw_fill_rect(struct st_rect *rect)
 	and_rect(&drect, rect, &clip_rect);
 
 	if(empty_rect(&drect) == 0) {
+		GDEV_LOCK();
 		_draw_fill_rect(&drect);
+		GDEV_UNLOCK();
 	}
 }
 
@@ -877,6 +925,7 @@ void draw_round_fill_rect(struct st_rect *rect, short r)
 
 	and_rect(&drect, &rrect, &clip_rect);
 
+	GDEV_LOCK();
 	if(empty_rect(&drect) == 0) {
 		_draw_fill_rect(&drect);
 	}
@@ -897,6 +946,7 @@ void draw_round_fill_rect(struct st_rect *rect, short r)
 		y++;
 		F += 4 * y + 2;
 	}
+	GDEV_UNLOCK();
 }
 
 static void draw_bits(short x, short y, short width, short height,
@@ -1066,9 +1116,11 @@ void draw_bitdata(short px, short py, short width, short height,
 			offset = (clip_rect.left - wrect.left) & 7;
 		}
 		DTPRINTF(0x02, "data = %p\n", data);
+		GDEV_LOCK();
 		draw_bits(drect.left, drect.top,
 			  drect.right-drect.left, drect.bottom-drect.top,
 			  offset, data, dw);
+		GDEV_UNLOCK();
 	}
 }
 
@@ -1128,10 +1180,12 @@ void draw_enlarged_bitdata(short px, short py,
 		}
 		DTPRINTF(0x02, "data = %p\n", data);
 
+		GDEV_LOCK();
 		draw_enlarged_bits(drect.left, drect.top,
 				   drect.right-drect.left, drect.bottom-drect.top,
 				   offset, data, dw,
 				   rate, dox, doy);
+		GDEV_UNLOCK();
 	}
 }
 
@@ -1178,6 +1232,7 @@ void draw_circle(short x0, short y0, short r)
 	y = 0;
 	F = -2 * r + 3;
 
+	GDEV_LOCK();
 	while(x >= y) {
 		draw_point(x0 + x, y0 + y);
 		draw_point(x0 - x, y0 + y);
@@ -1194,6 +1249,7 @@ void draw_circle(short x0, short y0, short r)
 		y++;
 		F += 4 * y + 2;
 	}
+	GDEV_UNLOCK();
 }
 
 /**
@@ -1212,6 +1268,7 @@ void draw_quarter_circle(short x0, short y0, short r, char q)
 	y = 0;
 	F = -2 * r + 3;
 
+	GDEV_LOCK();
 	while(x >= y) {
 		switch(q) {
 		case 0:
@@ -1241,6 +1298,7 @@ void draw_quarter_circle(short x0, short y0, short r, char q)
 		y++;
 		F += 4 * y + 2;
 	}
+	GDEV_UNLOCK();
 }
 
 /**
@@ -1258,6 +1316,7 @@ void draw_fill_circle(short x0, short y0, short r)
 	y = 0;
 	F = -2 * r + 3;
 
+	GDEV_LOCK();
 	while(x >= y) {
 		draw_h_line(x0 - x, y0 + y, x * 2 + 1);
 		draw_h_line(x0 - x, y0 - y, x * 2 + 1);
@@ -1270,6 +1329,7 @@ void draw_fill_circle(short x0, short y0, short r)
 		y++;
 		F += 4 * y + 2;
 	}
+	GDEV_UNLOCK();
 }
 
 /**
@@ -1287,6 +1347,7 @@ void draw_ellipse(short xc, short yc, short rx, short ry)
 	if(rx == 0) return;
 	if(ry == 0) return;
 
+	GDEV_LOCK();
 	if(rx > ry) {
 		x = r = rx; y = 0;
 		while(x >=y ) {
@@ -1322,6 +1383,7 @@ void draw_ellipse(short xc, short yc, short rx, short ry)
 			}
 		}
 	}
+	GDEV_UNLOCK();
 }
 
 /**
@@ -1339,6 +1401,7 @@ void draw_fill_ellipse(short xc, short yc, short rx, short ry)
 	if(rx == 0) return;
 	if(ry == 0) return;
 
+	GDEV_LOCK();
 	if(rx > ry) {
 		x = r = rx;
 		y = 0;
@@ -1368,6 +1431,7 @@ void draw_fill_ellipse(short xc, short yc, short rx, short ry)
 			}
 		}
 	}
+	GDEV_UNLOCK();
 }
 
 #if 0
@@ -1633,6 +1697,7 @@ void draw_vertex4_region(short x0, short y0,
 	draw_line(xr, yr, xb, yb);
 #endif
 
+	GDEV_LOCK();
 	if(xl == xr) {
 //	if(xt < xl) {
 		set_region_pos(xt, yt, xl, yl, 1);
@@ -1653,6 +1718,25 @@ void draw_vertex4_region(short x0, short y0,
 			draw_h_line(region_pos[0][i], i, region_pos[1][i] - region_pos[0][i]);
 		}
 	}
+	GDEV_UNLOCK();
+}
+
+
+/**
+   @brief	塗りつぶした三角形の領域を描画する
+
+   @param[in]	x0	頂点0のX座標
+   @param[in]	y0	頂点0のY座標
+   @param[in]	x1	頂点1のX座標
+   @param[in]	y1	頂点1のY座標
+   @param[in]	x2	頂点2のX座標
+   @param[in]	y2	頂点2のY座標
+*/
+void draw_triangle_region(short x0, short y0,
+			  short x1, short y1,
+			  short x2, short y2)
+{
+	draw_vertex4_region(x0, y0, x1, y1, x2, y2, x2, y2);
 }
 
 
@@ -1748,9 +1832,11 @@ void draw_sector(short x, short y,	// 中心の座標
 		for(i=tp; i<bt; i++) {
 			region_pos[0][i] = x;
 		}
+		GDEV_LOCK();
 		for(i=(y-er); i<y; i++) {
 			draw_h_line(region_pos[0][i], i, region_pos[1][i] - region_pos[0][i]);
 		}
+		GDEV_UNLOCK();
 		break;
 
 	case 1:
@@ -1763,9 +1849,11 @@ void draw_sector(short x, short y,	// 中心の座標
 		for(i=tp; i<bt; i++) {
 			region_pos[1][i] = x;
 		}
+		GDEV_LOCK();
 		for(i=(y-er); i<y; i++) {
 			draw_h_line(region_pos[0][i], i, region_pos[1][i] - region_pos[0][i]);
 		}
+		GDEV_UNLOCK();
 		break;
 
 	case 2:
@@ -1778,9 +1866,11 @@ void draw_sector(short x, short y,	// 中心の座標
 		for(i=tp; i<bt; i++) {
 			region_pos[1][i] = x;
 		}
+		GDEV_LOCK();
 		for(i=y; i<(y+er); i++) {
 			draw_h_line(region_pos[0][i], i, region_pos[1][i] - region_pos[0][i]);
 		}
+		GDEV_UNLOCK();
 		break;
 
 	case 3:
@@ -1793,9 +1883,11 @@ void draw_sector(short x, short y,	// 中心の座標
 		for(i=tp; i<bt; i++) {
 			region_pos[0][i] = x;
 		}
+		GDEV_LOCK();
 		for(i=y; i<(y+er); i++) {
 			draw_h_line(region_pos[0][i], i, region_pos[1][i] - region_pos[0][i]);
 		}
+		GDEV_UNLOCK();
 		break;
 	}
 }
@@ -1865,9 +1957,11 @@ void draw_image(short px, short py, short width, short height, void *image, shor
 		}
 		DTPRINTF(0x02, "image = %p\n", image);
 
+		GDEV_LOCK();
 		_draw_data(drect.left, drect.top,
 			   drect.right-drect.left, drect.bottom-drect.top,
 			   offset, image, dw);
+		GDEV_UNLOCK();
 	}
 }
 
@@ -1906,6 +2000,7 @@ void scroll_rect_v(struct st_rect *rect, short pixel)
 	crect.left  = tmp.left;
 	crect.right = tmp.right;
 
+	GDEV_LOCK();
 	if(pixel < 0) {
 		height= (tmp.bottom - tmp.top) + pixel;
 		for(i=0; i<height; i++) {
@@ -1941,4 +2036,5 @@ void scroll_rect_v(struct st_rect *rect, short pixel)
 			write_device(fb_dev, (unsigned char *)graph_copy_buf, dwidth);
 		}
 	}
+	GDEV_UNLOCK();
 }

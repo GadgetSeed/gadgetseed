@@ -8,11 +8,12 @@
 #ifndef MP3PLAY_H
 #define MP3PLAY_H
 
-#include "music_info.h"
+#include "shell.h"
 
-int mp3file_analyze(struct st_music_info *info, unsigned char *fname);
+extern const struct st_shell_command com_mp3_open;
 
-extern const struct st_shell_command com_mp3_analyze;
-extern const struct st_shell_command com_mp3_play;
+int mp3file_open(uchar *fname);
+int mp3stream_open(uchar *fname, uchar *stream_title);
+void mp3file_seek(int pos);
 
 #endif // MP3PLAY_H

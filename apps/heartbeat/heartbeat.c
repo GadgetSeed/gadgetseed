@@ -15,7 +15,7 @@ static const char led_devname[] = DEF_DEV_NAME_LED;
 static struct st_device *led_dev;
 static unsigned char led_data[4] = { 0x01, 0x02, 0x04, 0x08 };
 
-int hb_task(char *arg)
+int hb_task(void *arg)
 {
 	led_dev = open_device((char *)led_devname);
 	if(led_dev == 0) {
@@ -36,7 +36,7 @@ int hb_task(char *arg)
 
 #define SIZEOFAPPTS	(1024*2)
 static struct st_tcb tcb;
-static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)] ATTR_STACK;
 
 void startup_heartbeat(void)
 {

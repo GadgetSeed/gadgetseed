@@ -100,17 +100,22 @@ void draw_file_item(struct st_ui_selectlist *selectlist, struct st_box *box, int
 	uchar str[MAX_FNAME_LEN + 1];
 #endif
 	FS_FILEINFO *file_info = &(fi[item_num]->file_info);
-	short fheight = font_height();
+	short fheight;
+
+	set_font_by_name(DEFAULT_FONT);
+	fheight = font_height();
 
 	DTPRINTF(0x01, "%3d (%3d,%3d) %3d,%3d %d %s\n",
 		 item_num, box->pos.x, box->pos.y, box->sur.width, box->sur.height, flg_select,
 		 sj2utf8((uchar *)fi[item_num]->file_info.fname));
 
+#if 0
 	if(flg_select == 0) {
 		draw_graph_object(box->pos.x, box->pos.y, sl->normal_view);
 	} else {
 		draw_graph_object(box->pos.x, box->pos.y, sl->select_view);
 	}
+#endif
 
 	if(file_info->fattrib & AM_DIR) {
 		draw_bitmap(box->pos.x, box->pos.y + (fheight-folder_icon.height)/2, (struct st_bitmap *)&folder_icon);
@@ -133,7 +138,7 @@ void draw_file_item(struct st_ui_selectlist *selectlist, struct st_box *box, int
 	}
 
 #if 0
-	draw_str(box->pos.x + ICON_WIDTH, box->pos.y, sj2utf8(str));
+	draw_str(box->pos.x + ICON_WIDTH, box->pos.y, sj2utf8(str), 256);
 #else
 	draw_fixed_width_str(box->pos.x + ICON_WIDTH, box->pos.y,
 			     sj2utf8((uchar *)file_info->fname),
@@ -177,7 +182,7 @@ void draw_filelist_view(struct st_filelist_view *filelist_view)
 	set_font_by_name(fv->font_name);
 	set_draw_mode(GRP_DRAWMODE_NORMAL);
 	tsprintf((char *)str, fv->filelist_data.dir_print_form, (uchar *)fv->path);
-	draw_str(fv->info_area.pos.x, fv->info_area.pos.y, sj2utf8(str));
+	draw_str(fv->info_area.pos.x, fv->info_area.pos.y, sj2utf8(str), MAX_FNAME_LEN);
 
 	draw_graph_object(fv->list_area.pos.x, fv->list_area.pos.y, fv->list_view);
 	set_draw_mode(GRP_DRAWMODE_REVERSE);

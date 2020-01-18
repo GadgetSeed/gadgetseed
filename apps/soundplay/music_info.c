@@ -11,6 +11,10 @@
 #include "sysevent.h"
 #include "str.h"
 #include "charcode.h"
+#include "log.h"
+
+
+#define MILOGLVL	9
 
 void init_music_info(struct st_music_info *info)
 {
@@ -35,29 +39,36 @@ void init_music_info(struct st_music_info *info)
 		info->sample_size_data = 0;
 	}
 	info->metaint = 0;
-	info->flg_have_artwork = 0;
+	info->flg_have_artwork = MINFO_ARTWORK_NOIMAGE;
 }
 
 void disp_music_info(struct st_music_info *info)
 {
-	tprintf("Title  : %s\n", (char *)(info->title));
-	tprintf("Artist : %s\n", (char *)(info->artist));
-	tprintf("Album  : %s\n", (char *)(info->album));
-	tprintf("Track  : %d/%d\n", (int)info->track, (int)info->last_track);
-	tprintf("BitRate: %d\n", info->bit_rate);
-	tprintf("Rate   : %d\(Hz)\n", info->sampling_rate);
-	tprintf("Frame  : %d\n", info->frame_size);
-	tprintf("Count  : %d\n", info->sample_count);
-	tprintf("Time   : %d(ms) %2d:%02d:%02d.%03d\n", info->time_length,
-		(info->time_length / 1000 / 60 / 60),	// H
-		(info->time_length / 1000 / 60) % 60,	// M
-		(info->time_length / 1000) % 60,	// S
-		(info->time_length % 1000));	// ms
+	gslog(MILOGLVL, "Title  : %s\n", (char *)(info->title));
+	gslog(MILOGLVL, "Artist : %s\n", (char *)(info->artist));
+	gslog(MILOGLVL, "Album  : %s\n", (char *)(info->album));
+	gslog(MILOGLVL, "Track  : %d/%d\n", (int)info->track, (int)info->last_track);
+	gslog(MILOGLVL, "BitRate: %d\n", info->bit_rate);
+	gslog(MILOGLVL, "Rate   : %d\(Hz)\n", info->sampling_rate);
+	gslog(MILOGLVL, "Frame  : %d\n", info->frame_size);
+	gslog(MILOGLVL, "Count  : %d\n", info->sample_count);
+	gslog(MILOGLVL, "Time   : %d(ms) %2d:%02d:%02d.%03d\n", info->time_length,
+	      (info->time_length / 1000 / 60 / 60),	// H
+	      (info->time_length / 1000 / 60) % 60,	// M
+	      (info->time_length / 1000) % 60,	// S
+	      (info->time_length % 1000));	// ms
+	gslog(MILOGLVL, "Artwork: %d\n", info->flg_have_artwork);
 }
 
 unsigned int calc_play_time(struct st_music_info *info, unsigned int frame_count)
 {
-	return (unsigned int)(((unsigned long long)frame_count * 1152/*info->frame_size*/ * 1000) / info->sampling_rate);
+	unsigned int rt = 0;
+
+	if(info != 0) {
+		rt = (unsigned int)(((unsigned long long)frame_count * info->frame_size * 1000) / info->sampling_rate);
+	}
+
+	return rt;
 }
 
 void disp_play_time(unsigned int play_time)

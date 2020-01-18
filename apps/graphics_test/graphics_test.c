@@ -34,9 +34,9 @@ void rand_color(void)
 	int r, g, b;
 	unsigned long color;
 
-	r = genrand_int32() % 256;
-	g = genrand_int32() % 256;
-	b = genrand_int32() % 256;
+	r = gen_random() % 256;
+	g = gen_random() % 256;
+	b = gen_random() % 256;
 
 	color = RGB(r, g, b);
 
@@ -47,10 +47,10 @@ void draw_rand_line(void)
 {
 	struct st_rect rect;
 
-	rect.left = (genrand_int32() % GSC_GRAPHICS_DISPLAY_WIDTH);
-	rect.right = (genrand_int32() % GSC_GRAPHICS_DISPLAY_WIDTH);
-	rect.top = (genrand_int32() % GSC_GRAPHICS_DISPLAY_HEIGHT);
-	rect.bottom = (genrand_int32() % GSC_GRAPHICS_DISPLAY_HEIGHT);
+	rect.left = (gen_random() % GSC_GRAPHICS_DISPLAY_WIDTH);
+	rect.right = (gen_random() % GSC_GRAPHICS_DISPLAY_WIDTH);
+	rect.top = (gen_random() % GSC_GRAPHICS_DISPLAY_HEIGHT);
+	rect.bottom = (gen_random() % GSC_GRAPHICS_DISPLAY_HEIGHT);
 
 	if(log_on != 0) {
 		tprintf("line    %4d %4d  %4d %4d\n",
@@ -66,10 +66,10 @@ void draw_rand_rect(int type)
 	struct st_rect rect;
 	short w, h, r = 0;
 
-	rect.left = (genrand_int32() % GSC_GRAPHICS_DISPLAY_WIDTH);
-	rect.right = (genrand_int32() % GSC_GRAPHICS_DISPLAY_WIDTH);
-	rect.top = (genrand_int32() % GSC_GRAPHICS_DISPLAY_HEIGHT);
-	rect.bottom = (genrand_int32() % GSC_GRAPHICS_DISPLAY_HEIGHT);
+	rect.left = (gen_random() % GSC_GRAPHICS_DISPLAY_WIDTH);
+	rect.right = (gen_random() % GSC_GRAPHICS_DISPLAY_WIDTH);
+	rect.top = (gen_random() % GSC_GRAPHICS_DISPLAY_HEIGHT);
+	rect.bottom = (gen_random() % GSC_GRAPHICS_DISPLAY_HEIGHT);
 
 	correct_rect(&rect);
 
@@ -77,11 +77,11 @@ void draw_rand_rect(int type)
 	h = rect.bottom - rect.top;
 	if(w > h) {
 		if((h/2) != 0) {
-			r = genrand_int32() % (h/2);
+			r = gen_random() % (h/2);
 		}
 	} else {
 		if((w/2) != 0) {
-			r = genrand_int32() % (w/2);
+			r = gen_random() % (w/2);
 		}
 	}
 
@@ -113,9 +113,9 @@ void draw_rand_circle(int fill)
 {
 	short x, y, r;
 
-	x = (genrand_int32() % GSC_GRAPHICS_DISPLAY_WIDTH);
-	y = (genrand_int32() % GSC_GRAPHICS_DISPLAY_HEIGHT);
-	r = (genrand_int32() % GSC_GRAPHICS_DISPLAY_HEIGHT / 2);
+	x = (gen_random() % GSC_GRAPHICS_DISPLAY_WIDTH);
+	y = (gen_random() % GSC_GRAPHICS_DISPLAY_HEIGHT);
+	r = (gen_random() % GSC_GRAPHICS_DISPLAY_HEIGHT / 2);
 
 	if(log_on != 0) {
 		tprintf("circle  %4d %4d  %4d\n",
@@ -134,10 +134,10 @@ void draw_rand_ellipse(int fill)
 {
 	short x, y, rx, ry;
 
-	x = (genrand_int32() % GSC_GRAPHICS_DISPLAY_WIDTH);
-	y = (genrand_int32() % GSC_GRAPHICS_DISPLAY_HEIGHT);
-	rx = (genrand_int32() % GSC_GRAPHICS_DISPLAY_WIDTH/2);
-	ry = (genrand_int32() % GSC_GRAPHICS_DISPLAY_WIDTH/2);
+	x = (gen_random() % GSC_GRAPHICS_DISPLAY_WIDTH);
+	y = (gen_random() % GSC_GRAPHICS_DISPLAY_HEIGHT);
+	rx = (gen_random() % GSC_GRAPHICS_DISPLAY_WIDTH/2);
+	ry = (gen_random() % GSC_GRAPHICS_DISPLAY_WIDTH/2);
 
 	if(log_on != 0) {
 		tprintf("ellipse %4d %4d  %4d %4d\n",
@@ -158,8 +158,8 @@ void draw_rand_vertex4(void)
 	short x[4], y[4];
 
 	for(i=0; i<4; i++) {
-		x[i] = (genrand_int32() % GSC_GRAPHICS_DISPLAY_WIDTH);
-		y[i] = (genrand_int32() % GSC_GRAPHICS_DISPLAY_HEIGHT);
+		x[i] = (gen_random() % GSC_GRAPHICS_DISPLAY_WIDTH);
+		y[i] = (gen_random() % GSC_GRAPHICS_DISPLAY_HEIGHT);
 	}
 
 	if(log_on != 0) {
@@ -182,9 +182,9 @@ void draw_rand_char(void)
 	short x, y;
 	unsigned char c;
 
-	x = (genrand_int32() % GSC_GRAPHICS_DISPLAY_WIDTH);
-	y = (genrand_int32() % GSC_GRAPHICS_DISPLAY_HEIGHT);
-	c = '0' + (genrand_int32() % 10);
+	x = (gen_random() % GSC_GRAPHICS_DISPLAY_WIDTH);
+	y = (gen_random() % GSC_GRAPHICS_DISPLAY_HEIGHT);
+	c = '0' + (gen_random() % 10);
 
 	if(log_on != 0) {
 		tprintf("char    %4d %4d  %c\n",
@@ -202,9 +202,9 @@ void draw_rand_bitmap(void)
 	short x, y;
 	int rate;
 
-	x = (genrand_int32() % GSC_GRAPHICS_DISPLAY_WIDTH);
-	y = (genrand_int32() % GSC_GRAPHICS_DISPLAY_HEIGHT);
-	rate = (genrand_int32() % 16);
+	x = (gen_random() % GSC_GRAPHICS_DISPLAY_WIDTH);
+	y = (gen_random() % GSC_GRAPHICS_DISPLAY_HEIGHT);
+	rate = (gen_random() % 16);
 
 	if(log_on != 0) {
 		tprintf("bitmap  %4d %4d  %c\n",
@@ -376,7 +376,7 @@ void draw_test(void)
 	}
 }
 
-int gt_task(char *arg)
+int gt_task(void *arg)
 {
 #if 0
 	struct event event;
@@ -413,7 +413,7 @@ int gt_task(char *arg)
 
 #define SIZEOFAPPTS	(1024*8)
 static struct st_tcb tcb;
-static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)] ATTR_STACK;
 
 void startup_graphics_test(void)
 {

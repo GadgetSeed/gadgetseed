@@ -60,6 +60,9 @@ static int system_info(int argc, uchar *argv[])
 	extern const char system_name[];
 	extern const char build_date[];
 	extern const char build_time[];
+#ifndef GSC_TARGET_SYSTEM_EMU
+	extern const char hal_ver[];
+#endif
 
 	tprintf("Version    : %s\n", os_version);
 	tprintf("CPU ARCH   : %s\n", arch_name);
@@ -67,6 +70,9 @@ static int system_info(int argc, uchar *argv[])
 	tprintf("SYSTEM     : %s\n", system_name);
 	tprintf("Build date : %s %s\n", build_time, build_date);
 	tprintf("Compiler   : %s\n", __VERSION__);
+#ifndef GSC_TARGET_SYSTEM_EMU
+	tprintf("HAL Version: %s\n", hal_ver);
+#endif
 
 	return 0;
 }
@@ -483,6 +489,10 @@ void display_event(struct st_sysevent *event)
 	tprintf("[%8d] ", (int)event->when);
 
 	switch(event->what) {
+	case EVT_NULL:
+		tprintf("EVT_NULL");
+		break;
+
 	case EVT_KEYDOWN:
 		tprintf("EVT_KEYDOWN   %3d : ", event->arg);
 		disp_key(event->arg);
@@ -939,7 +949,7 @@ static int mem_free(int argc, uchar *argv[])
 
 #endif // GSC_MEMORY_ENABLE_HEAP_MEMORY
 
-static int reboot(int argc, uchar *argv[])
+static int sys_reboot(int argc, uchar *argv[])
 {
 	reset_system();
 
@@ -951,7 +961,7 @@ static int reboot(int argc, uchar *argv[])
 */
 static const struct st_shell_command com_sys_reboot = {
 	.name		= "reboot",
-	.command	= reboot,
+	.command	= sys_reboot,
 	.manual_str	= "Reboot system"
 };
 
@@ -960,7 +970,7 @@ static const struct st_shell_command com_sys_reboot = {
 
 static int random(int argc, uchar *argv[])
 {
-	unsigned int r = (unsigned int)genrand_int32();
+	unsigned int r = gen_random();
 
 	tprintf("%u\n", r);
 

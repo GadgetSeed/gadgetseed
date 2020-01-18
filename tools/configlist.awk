@@ -80,6 +80,8 @@ END {
 	for(i=0; i<gsc_num; i++) {
 		if(gsc_desc[i] == "") {
 			gsc_desc[i] = "Without explanation";
+		} else {
+			gsub("\r", "", gsc_desc[i]);
 		}
 	}
 
@@ -94,6 +96,10 @@ END {
 			printf("%-34s : %s %s:%d\n", gsc_name[i], gsc_desc[i], gsc_file[i], gsc_line[i]);
 		} else if(ARG == "m") {
 			printf("| %-34s | %-60s |\n", gsc_name[i], gsc_desc[i]);
+		} else if(ARG == "n") {
+			printf("%s\n", gsc_name[i]);
+		} else if(ARG == "d") {
+			printf("%s\n", gsc_desc[i]);
 		} else {
 			printf("%-34s : %s\n", gsc_name[i], gsc_desc[i]);
 		}

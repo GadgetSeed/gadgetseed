@@ -80,13 +80,13 @@ const struct st_graph_object playing_btn_obj_a[] = {
 
 /* [■] */
 static const struct st_ui_button_image ui_view_stop = {
-	{ {BTN_POS_X_STOP,  BTN_POS_Y_STOP}, {BUTTON_WIDTH, BUTTON_HEIGHT} },
 	stop_btn_obj,
 	stop_btn_obj_a
 };
 
 static struct st_ui_button ui_btn_stop = {
 	UO_ID_STOP,
+	{ {BTN_POS_X_STOP,  BTN_POS_Y_STOP}, {BUTTON_WIDTH, BUTTON_HEIGHT} },
 	&ui_view_stop,
 	UI_BUTTON_ST_NORMAL
 };
@@ -125,10 +125,10 @@ static void draw_playtime(void)
 {
 	set_forecolor(FM_CTRL_FORE_COLOR);
 	set_backcolor(FM_CTRL_BACK_COLOR);
-//	set_font_by_name("num48x64");
+	set_font_by_name(GSC_FONTS_DEFAULT_FONT);
 	set_font_drawmode(FONT_FIXEDWIDTH);
 	draw_str(BTN_POS_X_STOP - font_width(' ')*7,
-		 GSC_GRAPHICS_DISPLAY_HEIGHT - CONTROL_HEIGHT + (CONTROL_HEIGHT - font_height())/2, str_ptime);
+		 GSC_GRAPHICS_DISPLAY_HEIGHT - CONTROL_HEIGHT + (CONTROL_HEIGHT - font_height())/2, str_ptime, 8);
 }
 
 static void set_playtime(unsigned int time)
@@ -155,7 +155,7 @@ void mini_musicplay_proc(struct st_sysevent *event)
 	case EVT_SOUND_ANALYZE:
 		break;
 
-	case EVT_SOUND_PREPARE:
+	case EVT_SOUND_PREPARED:
 		break;
 
 	case EVT_SOUND_START:
@@ -170,11 +170,8 @@ void mini_musicplay_proc(struct st_sysevent *event)
 	case EVT_SOUND_PAUSE:
 		break;
 
-	case EVT_SOUND_CONTINUE:
-		break;
-
 	case EVT_SOUND_STATUS:
-		set_playtime(*(unsigned long *)event->private_data);
+		set_playtime(*(unsigned int *)event->private_data);
 		break;
 
 	case EVT_KEYDOWN:
@@ -184,6 +181,7 @@ void mini_musicplay_proc(struct st_sysevent *event)
 		case KEY_GB_BS:
 		case KEY_GB_SPACE:
 			exec_command((uchar *)"sound stop");
+			exec_command((uchar *)"sound close");
 			break;
 
 		default:
@@ -201,6 +199,7 @@ void mini_musicplay_proc(struct st_sysevent *event)
 		case UO_ID_STOP:
 			if(obj_evt.what == UI_BUTTON_EVT_PUSH) {
 				exec_command((uchar *)"sound stop");
+				exec_command((uchar *)"sound close");
 			}
 			break;
 

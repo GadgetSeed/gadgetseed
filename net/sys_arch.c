@@ -476,7 +476,7 @@ static unsigned int lwip_stack[MAX_THREAD_NUM][SIZEOFTS/sizeof(unsigned int)] AT
 static struct st_mutex lwip_thread_mtx;
 static lwip_thread_fn lwip_thread_func[MAX_THREAD_NUM];
 
-static int lwip_thread(char *arg)
+static int lwip_thread(void *arg)
 {
 	lwip_thread_func[lwip_thread_num](arg);
 

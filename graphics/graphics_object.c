@@ -10,8 +10,11 @@
 #include "font.h"
 #include "tprintf.h"
 
-static int sc_numerator = 0x10000;
-static int sc_denominator = 0x10000;
+#define DEFAULT_SC_NUM	0x10000
+#define DEFAULT_SC_DEN	0x10000
+
+static int sc_numerator = DEFAULT_SC_NUM;
+static int sc_denominator = DEFAULT_SC_DEN;
 
 static inline short SC(short val)
 {
@@ -26,8 +29,13 @@ static inline short SC(short val)
 */
 void set_graph_obj_scale(int numerator, int denominator)
 {
-	sc_numerator = numerator;
-	sc_denominator = denominator;
+	if((numerator == 0) || (denominator == 0)) {
+		sc_numerator = DEFAULT_SC_NUM;
+		sc_denominator = DEFAULT_SC_DEN;
+	} else {
+		sc_numerator = numerator;
+		sc_denominator = denominator;
+	}
 }
 
 static void set_box(short x, short y, struct st_box *box, const int arg[4])
@@ -72,7 +80,7 @@ void draw_graph_object(short x, short y, const struct st_graph_object *gobj)
 			break;
 
 		case GO_TYPE_TEXT:
-			draw_str(SC(go->arg[0])+x, SC(go->arg[1])+y, (unsigned char *)(go->data));
+			draw_str(SC(go->arg[0])+x, SC(go->arg[1])+y, (unsigned char *)(go->data), go->arg[2]);
 			break;
 
 		case GO_TYPE_TEXT_IN_BOX:
@@ -137,11 +145,39 @@ void draw_graph_object(short x, short y, const struct st_graph_object *gobj)
 			}
 			break;
 
+		case GO_TYPE_TRIANGLE:
+			{
+				draw_triangle_region(SC(go->arg[0])+x, SC(go->arg[1])+y,
+						     SC(go->arg[2])+x, SC(go->arg[3])+y,
+						     SC(go->arg[4])+x, SC(go->arg[5])+y);
+			}
+			break;
+
 		case GO_TYPE_SECTOR:
 			{
 				draw_sector(SC(go->arg[0])+x, SC(go->arg[1])+y,
 					    SC(go->arg[2]), SC(go->arg[3]),
 					    go->arg[4]);
+			}
+			break;
+
+		case GO_TYPE_BITMAP:
+			{
+				draw_bitmap(SC(go->arg[0])+x, SC(go->arg[1])+y,
+					    (struct st_bitmap *)go->data);
+			}
+			break;
+
+		case GO_TYPE_OBJECT:
+			{
+				int numerator = sc_numerator;
+				int denominator = sc_denominator;
+
+				set_graph_obj_scale(go->arg[2], go->arg[3]);
+				draw_graph_object(SC(go->arg[0])+x, SC(go->arg[1])+y, (const struct st_graph_object *)(go->data));
+
+				sc_numerator = numerator;
+				sc_denominator = denominator;
 			}
 			break;
 

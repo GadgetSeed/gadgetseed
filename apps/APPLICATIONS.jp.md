@@ -1,9 +1,14 @@
 # GadgetSeed サンプルアプリケーション
 
-## Music player
+## Internet radio/Music player
 
    タッチパネルで操作する音楽プレーヤーです。
-   MP3ファイル、AACファイルを再生できます。
+
+   [shoutcast](https://directory.shoutcast.com/)のインターネットラジオを再生できます。
+   MicroSDカードに保存されたM3U、PLSファイルはインターネットラジオのプレイリストとして再生することができます。(MP3,128Kbpsのみ)
+
+   MicroSDカードに保存されたMP3ファイル、AACファイルを再生できます。
+
    アルバムアートを含めた楽曲の情報を表示できます。
 
    AACオーディオデコーダに [faad2](https://github.com/dsvensson/faad2) を使用しています。
@@ -20,9 +25,13 @@
 
    32F769IDISCOVERY、32F746GDISCOVERYで動作します。
 
-   ![musicplay](musicplay.png)
+   ![musicplay](internetradio.png)
 
    スナップショットは 32F769IDISCOVERY のものです。
+
+   コンフィグファイル : internetradio_hr.conf, internetradio_lr.conf
+
+   ソースファイルディレクトリ : internetradio, soundplay, musicplay
 
 ## File manager
 
@@ -44,6 +53,10 @@
 
    スナップショットは 32F769IDISCOVERY のものです。
 
+   コンフィグファイル : filemanager_hr.conf, filemanager_lr.conf
+
+   ソースファイルディレクトリ : filemanager, soundplay
+
 ## Clock application
 
    RTCを使用したデジタル時計のアプリケーションです。
@@ -54,6 +67,10 @@
 
    スナップショットは 32F746GDISCOVERY のものです。
 
+   コンフィグファイル : clock_hr.conf
+
+   ソースファイルディレクトリ : clock
+
 ## Paint application
 
    タッチパネルを使用したシンプルなお絵かきソフトです。
@@ -61,6 +78,10 @@
    ![paint](paint.png)
 
    スナップショットは 32F746GDISCOVERY のものです。
+
+   コンフィグファイル : paint.conf
+
+   ソースファイルディレクトリ : paint
 
 ## Graphics test
 
@@ -70,12 +91,20 @@
 
    スナップショットは NUCLEO-F411RE + LCD(Kuman 2.8inch TFT LCD Shield)のものです。
 
+   コンフィグファイル : graphics_test.conf
+
+   ソースファイルディレクトリ : graphics_test
+
 ## LED brink
 
    LEDを点滅させるアプリケーションです。
    ボードに搭載されているLCDを点滅させます。
 
    32F769IDISCOVERY、NUCLEO-F411RE で動作します。
+
+   コンフィグファイル : heartbeat.conf
+
+   ソースファイルディレクトリ : heartbeat
 
 ## Hello world
 
@@ -92,9 +121,17 @@
    : Hello, world!
    ```
 
+   コンフィグファイル : hello_world.conf
+
+   ソースファイルディレクトリ : hello_world
+
 ## Network sample
 
    LwIPのサンプルである HTTPSERVER が動作します。また、 telnetd が動作します。
    外部から telnet でログインし GadgetSeed のデバッグコンソールを使用することができます。
 
    32F769IDISCOVERY、32F746GDISCOVERYで動作します。
+
+   コンフィグファイル : network.conf
+
+   ソースファイルディレクトリ : httpserver, telnetd

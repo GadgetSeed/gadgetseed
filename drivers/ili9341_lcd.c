@@ -184,7 +184,7 @@ static void init_ili9341(void)
 	set_window(0, 0, lcd_width - 1, lcd_height - 1);
 }
 
-static void fill_screen(unsigned short color)
+static void fill_buffer(unsigned short color)
 {
 	set_window(0, 0, lcd_width - 1, lcd_height - 1);
 
@@ -207,7 +207,7 @@ static int ili9341_lcd_register(struct st_device *dev, char *param)
 
 	init_ili9341();
 
-	fill_screen(0);
+	fill_buffer(0);
 
 	return 0;
 }
@@ -284,12 +284,12 @@ static int ili9341_lcd_ioctl(struct st_device *dev, unsigned int com, unsigned i
 		break;
 
 	case IOCMD_VIDEO_CLEAR:
-		fill_screen(0);
+		fill_buffer(0);
 		return 0;
 		break;
 
 	case IOCMD_VIDEO_FILL:
-		fill_screen(arg);
+		fill_buffer(arg);
 		return 0;
 		break;
 

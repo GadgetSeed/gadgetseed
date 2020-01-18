@@ -100,7 +100,7 @@
 #undef PACKAGE_TARNAME
 
 /* Define to the version of this package. */
-#undef PACKAGE_VERSION
+#define PACKAGE_VERSION "2.8.8"
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS

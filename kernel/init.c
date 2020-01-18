@@ -54,6 +54,8 @@ extern struct st_device logout_device;
 extern struct st_device logbuf_device;
 #endif
 
+extern const char hal_ver[];
+
 // カーネルメッセージ出力デバイス初期化
 static void register_kernel_message_out_device(void)
 {
@@ -78,16 +80,19 @@ void display_bunner(void)
 
 	tkprintf(NORMAL_COLOR "\n");
 	tkprintf("GadgetSeed Ver. %s\n", os_version);
-	tkprintf("(c)2010-2018 Takashi SHUDO\n");
+	tkprintf("(c)2010-2020 Takashi SHUDO\n");
 	tkprintf("CPU ARCH     : %s\n", arch_name);
 	tkprintf("CPU NAME     : %s\n", cpu_name);
 	tkprintf("SYSTEM       : %s\n", system_name);
 	tkprintf("Build date   : %s %s\n", build_time, build_date);
 	tkprintf("Compiler     : %s\n", __VERSION__);
+#ifndef GSC_TARGET_SYSTEM_EMU
+	tkprintf("STM32Cube HAL: %s\n", hal_ver);
+#endif
 }
 
 extern void init_sect(void);
-extern int initial_task(char *arg);
+extern int initial_task(void *arg);
 
 static struct st_tcb init_task_tcb;
 
@@ -102,7 +107,7 @@ extern void startup(void);
 
    @param[in]	arg	引数
 */
-int initial_task(char *arg)
+int initial_task(void *arg)
 {
 	flg_init_task_run = 1;
 

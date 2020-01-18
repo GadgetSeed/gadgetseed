@@ -61,6 +61,7 @@
     | memoryset()	| @copybrief memoryset	|
     | memorycopy()	| @copybrief memorycopy	|
     | strchar()		| @copybrief strchar	|
+    | searchstr()	| @copybrief searchstr	|
 */
 
 #include "str.h"
@@ -792,6 +793,45 @@ uchar *strchar(const uchar *str, uchar ch)
 		}
 
 		p ++;
+	}
+
+	return 0;
+}
+
+/**
+    @brief  文字列を検索
+
+    @param[in]	tstr	検索対象文字列
+    @param[in]	sstr	検出する文字列
+
+    @return	検索した文字のポインタ
+*/
+uchar *searchstr(const uchar *tstr, uchar *sstr)
+{
+	const uchar *tp = tstr;
+	const uchar *sp = sstr;
+	const uchar *rp = 0;
+
+	while(*tp != 0) {
+		if(*tp == 0) {
+			return 0;
+		} else if(*tp == *sp) {
+			if(rp == 0) {
+				rp = tp;
+			}
+			sp++;
+			if(*sp == 0) {
+				return (uchar *)rp;
+			}
+		} else {
+			if(rp != 0) {
+				tp = rp;
+			}
+			sp = sstr;
+			rp = 0;
+		}
+
+		tp++;
 	}
 
 	return 0;

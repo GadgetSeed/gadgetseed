@@ -17,12 +17,19 @@ extern const struct st_filesystem fatfs_fs;
 extern const struct st_filesystem pipefs_fs;
 #endif
 
+#ifdef GSC_COMP_ENABLE_GSFFS	// $gsc GSFFSを有効にする
+extern const struct st_filesystem gsffs_fs;
+#endif
+
 struct st_filesystem const *filesystems[] = {
 #ifdef GSC_COMP_ENABLE_FATFS
 	&fatfs_fs,
 #endif
 #ifdef GSC_COMP_ENABLE_PIPEFS
 	&pipefs_fs,
+#endif
+#ifdef GSC_COMP_ENABLE_GSFFS
+	&gsffs_fs,
 #endif
 	0
 };

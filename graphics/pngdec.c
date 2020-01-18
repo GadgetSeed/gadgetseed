@@ -251,10 +251,23 @@ int decode_png(void *image)
 	}
 
 	rowimage = (png_bytepp)alloc_memory(height * sizeof(png_bytep));
+	if(rowimage == 0) {
+		res = -1;
+		goto end;
+	}
 	rowbytes = png_get_rowbytes(png_ptr, info_ptr);
 	DTPRINTF(0x01, "rowbytes = %d\n", rowbytes);
 	for(i=0; i<height; i++) {
 		rowimage[i] = (png_bytep)alloc_memory(rowbytes);
+		if(rowimage[i] == 0) {
+			int j;
+			for(j=0; j<=i; j++) {
+				free_memory(rowimage[i]);
+			}
+			free_memory(rowimage);
+			res = -1;
+			goto end;
+		}
 	}
 
 	png_read_image(png_ptr, rowimage);

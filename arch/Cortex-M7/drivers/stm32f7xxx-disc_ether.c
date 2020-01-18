@@ -151,7 +151,7 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* heth)
 static struct st_tcb tcb;
 static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)] ATTR_STACK;
 
-static int rmii_task(char *arg)
+static int rmii_task(void *arg)
 {
 	(void)arg;
 

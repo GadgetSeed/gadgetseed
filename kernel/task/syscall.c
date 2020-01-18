@@ -261,6 +261,14 @@ void syscall_inthdr(unsigned int intnum, void *sp)
 	}
 	break;
 
+	case SYSCALL_TASK_PRIORITY:
+	{
+		struct st_task_priority_param *param =
+			(struct st_task_priority_param *)run_task->syscall.param;
+		task_priority_ISR(param->id, param->priority);
+	}
+	break;
+
 	default:
 		SYSERR_PRINT("Undifined SYSCALL %d\n", run_task->syscall.type);
 		break;

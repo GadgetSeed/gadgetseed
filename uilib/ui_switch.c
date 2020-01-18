@@ -9,10 +9,40 @@
 #include "tkprintf.h"
 #include "font.h"
 
+#include "ui_style.h"
 #include "ui_switch.h"
 
 //#define DEBUGTBITS 0x01
 #include "dtprintf.h"
+
+static const struct st_graph_object sw_normal_color[] = {
+	{ GO_TYPE_FORECOLOR,	{ UI_NORMAL_FORE_COLOR } },
+	{ GO_TYPE_BACKCOLOR,	{ UI_BACK_COLOR } },
+	{ 0, { 0, 0, 0, 0 }}
+};
+
+static const struct st_graph_object sw_active_color[] = {
+	{ GO_TYPE_FORECOLOR,	{ UI_ACTIVE_FORE_COLOR } },
+	{ GO_TYPE_BACKCOLOR,	{ UI_BACK_COLOR } },
+	{ 0, { 0, 0, 0, 0 }}
+};
+
+static const struct st_graph_object sw_inactive_color[] = {
+	{ GO_TYPE_FORECOLOR,	{ UI_INACTIVE_FORE_COLOR } },
+	{ GO_TYPE_BACKCOLOR,	{ UI_BACK_COLOR } },
+	{ 0, { 0, 0, 0, 0 }}
+};
+
+static const struct st_graph_object sw_on_color[] = {
+	{ GO_TYPE_FORECOLOR,	{ UI_ON_COLOR } },
+	{ 0, { 0, 0, 0, 0 }}
+};
+
+static const struct st_graph_object sw_off_color[] = {
+	{ GO_TYPE_FORECOLOR,	{ UI_OFF_COLOR } },
+	{ 0, { 0, 0, 0, 0 }}
+};
+
 
 static void draw_knob(struct st_ui_switch *ui_switch)
 {
@@ -24,9 +54,17 @@ static void draw_knob(struct st_ui_switch *ui_switch)
 	sw->knob_area.sur.height = sw->knob_area.sur.width;
 
 	if(sw->value == 0) {
-		set_forecolor(SWITCH_OFF_COLOR);
+		if(sw->off_color == 0) {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw_off_color);
+		} else {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw->off_color);
+		}
 	} else {
-		set_forecolor(SWITCH_ON_COLOR);
+		if(sw->on_color == 0) {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw_on_color);
+		} else {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw->on_color);
+		}
 		sw->knob_area.pos.x += sw->knob_area.sur.width;
 	}
 
@@ -52,15 +90,27 @@ static void draw_switch(struct st_ui_switch *ui_switch)
 
 	switch(sw->status) {
 	case UI_SWITCH_ST_INACTIVE:
-		set_forecolor(SWITCH_INACTIVE_COLOR);
+		if(sw->inactive_color == 0) {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw_inactive_color);
+		} else {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw->inactive_color);
+		}
 		break;
 
 	case UI_SWITCH_ST_NORMAL:
-		set_forecolor(SWITCH_NORMAL_COLOR);
+		if(sw->normal_color == 0) {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw_normal_color);
+		} else {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw->normal_color);
+		}
 		break;
 
 	case UI_SWITCH_ST_SELECT:
-		set_forecolor(SWITCH_SELECT_COLOR);
+		if(sw->active_color == 0) {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw_active_color);
+		} else {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw->active_color);
+		}
 		break;
 
 	default:
@@ -68,6 +118,7 @@ static void draw_switch(struct st_ui_switch *ui_switch)
 		break;
 	}
 
+	set_draw_mode(GRP_DRAWMODE_NORMAL);
 	draw_round_fill_box(&sw->switch_area, sw->text_area.sur.height/2);
 	draw_knob(sw);
 }
@@ -83,15 +134,27 @@ void draw_ui_switch(struct st_ui_switch *ui_switch)
 
 	switch(sw->status) {
 	case UI_SWITCH_ST_INACTIVE:
-		set_forecolor(SWITCH_INACTIVE_COLOR);
+		if(sw->inactive_color == 0) {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw_inactive_color);
+		} else {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw->inactive_color);
+		}
 		break;
 
 	default:
-		set_forecolor(SWITCH_NORMAL_COLOR);
+		if(sw->active_color == 0) {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw_active_color);
+		} else {
+			draw_graph_object(sw->switch_area.pos.x, sw->switch_area.pos.y, sw->active_color);
+		}
 		break;
 	}
 
-	(void)set_font_by_name(sw->font_name);
+	if(sw->font_name == 0) {
+		// フォント未指定
+	} else {
+		(void)set_font_by_name(sw->font_name);
+	}
 	draw_str_in_box(&(sw->text_area), FONT_HATTR_LEFT, FONT_VATTR_CENTER, sw->name);
 
 	draw_switch(sw);

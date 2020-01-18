@@ -959,7 +959,7 @@ unsigned int read_pos_y(void)
 #ifdef GSC_DEV_ENABLE_TOUCHSENSOR
 #define SIZEOFSTACK	(1024*1)
 static struct st_tcb tcb;
-static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)] ATTR_STACK;
 #endif
 
 static void ts_timer_func(void *sp, unsigned long long systime)
@@ -982,7 +982,7 @@ static int lpos_x;
 static int lpos_y;
 static int ts_low_val[2];
 
-static int ts_task(char *arg)
+static int ts_task(void *arg)
 {
 	struct st_sysevent ev;
 

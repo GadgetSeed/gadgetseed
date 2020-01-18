@@ -9,7 +9,7 @@
 #include "tprintf.h"
 #include "httpserver-netconn.h"
 
-static int httpserver_task(char *arg)
+static int httpserver_task(void *arg)
 {
 	http_server_netconn_init();
 
@@ -19,7 +19,7 @@ static int httpserver_task(char *arg)
 
 #define SIZEOFAPPTS	(1024*4)
 static struct st_tcb tcb;
-static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)] ATTR_STACK;
 
 void startup_httpserver(void)
 {

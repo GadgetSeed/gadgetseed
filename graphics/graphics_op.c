@@ -15,9 +15,9 @@
 #include "dtprintf.h"
 
 /**
-   @brief	２つの矩形のアンドを求める
+   @brief	２つの矩形のandを求める
 
-   @param[out]	a	２つの矩形のアンド矩形
+   @param[out]	a	２つの矩形のand矩形
    @param[in]	s1	矩形1
    @param[in]	s2	矩形2
 */
@@ -61,6 +61,40 @@ void and_rect(struct st_rect *a, struct st_rect *s1, struct st_rect *s2)
 }
 
 /**
+   @brief	２つの矩形のorを求める
+
+   @param[out]	a	２つの矩形のor矩形
+   @param[in]	s1	矩形1
+   @param[in]	s2	矩形2
+*/
+void or_rect(struct st_rect *a, struct st_rect *s1, struct st_rect *s2)
+{
+	if(s1->left > s2->left) {
+		a->left = s2->left;
+	} else {
+		a->left = s1->left;
+	}
+
+	if(s1->top > s2->top) {
+		a->top = s2->top;
+	} else {
+		a->top = s1->top;
+	}
+
+	if(s1->right > s2->right) {
+		a->right = s1->right;
+	} else {
+		a->right = s2->right;
+	}
+
+	if(s1->bottom > s2->bottom) {
+		a->bottom = s1->bottom;
+	} else {
+		a->bottom = s2->bottom;
+	}
+}
+
+/**
    @brief	矩形が0か調べる
 
    @param	rect	矩形
@@ -74,6 +108,26 @@ short empty_rect(struct st_rect *rect)
 	}
 
 	if(rect->top == rect->bottom) {
+		return 1;
+	}
+
+	return 0;
+}
+
+/**
+   @brief	長方形が0か調べる
+
+   @param	box	長方形
+
+   @return	=1:長方形は0
+*/
+short empty_box(struct st_box *box)
+{
+	if(box->sur.width == 0) {
+		return 1;
+	}
+
+	if(box->sur.height == 0) {
 		return 1;
 	}
 

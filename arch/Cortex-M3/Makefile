@@ -11,6 +11,7 @@ OBJS	+= \
 	initsect.o \
 	interrupt.o \
 	cpu.o \
+	halver.o \
 	systems/$(SYSTEM).o
 
 SOBJS   = \
@@ -22,19 +23,23 @@ SOBJS   = \
 ### for STM32Cube HAL Drivers
 
 ifeq ($(OS),Windows_NT)
-	HAL_DIR =  C:/$(HOMEPATH)/STM32Cube/Repository/STM32Cube_FW_L1_V1.8.1
+	HAL_DIR =  C:/$(HOMEPATH)/STM32Cube/Repository/STM32CubeL1
+#	HAL_DIR =  C:/$(HOMEPATH)/STM32Cube/Repository/STM32Cube_FW_L1_V1.9.0
 else
-	HAL_DIR = $(HOME)/STM32Cube/Repository/STM32Cube_FW_L1_V1.8.1
+	HAL_DIR = $(HOME)/STM32Cube/Repository/STM32CubeL1
+#	HAL_DIR = $(HOME)/STM32Cube/Repository/STM32Cube_FW_L1_V1.9.0
 endif
+
+HAL_VER = `xmllint --xpath "Package/PackDescription/@Release" $(HAL_DIR)/package.xml | sed 's/[^"]*"\([^"]*\)"[^"]*/\1/g'`
 
 HAL_DRIVERS_DIR = $(HAL_DIR)/Drivers/STM32L1xx_HAL_Driver/Src
 
 CFLAGS  += -I$(HAL_DIR)/Drivers/CMSIS/Device/ST/STM32L1xx/Include
 CFLAGS  += -I$(HAL_DIR)/Drivers/CMSIS/Include
 CFLAGS  += -I$(HAL_DIR)/Drivers/STM32L1xx_HAL_Driver/Inc
-CFLAGS  += -I$(HAL_DIR)/Projects/STM32L152RE-Nucleo/Templates/Inc
+CFLAGS  += -I$(HAL_DIR)/Projects/NUCLEO-L152RE/Templates/Inc
 
-SYSSRC   = $(HAL_DIR)/Projects/STM32L152RE-Nucleo/Templates/Src/system_stm32l1xx.c
+SYSSRC   = $(HAL_DIR)/Projects/NUCLEO-L152RE/Templates/Src/system_stm32l1xx.c
 
 HALSRCS = $(HAL_DRIVERS_DIR)/stm32l1xx_hal.c \
 	  $(HAL_DRIVERS_DIR)/stm32l1xx_hal_cortex.c \
@@ -71,6 +76,9 @@ $(OBJDIR)/%.o: $(HAL_DRIVERS_DIR)/%.c
 
 inthdr.s: mkinthdr.awk
 	awk -f mkinthdr.awk > $@
+
+halver.c:
+	echo "const char hal_ver[] = \"$(HAL_VER)\";" > halver.c
 
 $(LIB): $(OBJS) $(SOBJS) $(SYSOBJ) $(HALOBJS) $(MAKECONFIGSYS)
 	$(AR) rc $(LIB) $(OBJS) $(SOBJS) $(SYSOBJ) $(HALOBJS)

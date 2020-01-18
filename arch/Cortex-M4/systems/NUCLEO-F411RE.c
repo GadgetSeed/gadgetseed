@@ -176,7 +176,7 @@ void init_system_drivers(void)
 
 #ifdef GSC_LIB_ENABLE_RANDOM
 	// 乱数初期化
-	init_genrand(get_systime_sec());
+	init_random(get_systime_sec());
 #endif
 }
 

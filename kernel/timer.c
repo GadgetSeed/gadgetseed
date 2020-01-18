@@ -68,9 +68,9 @@
 #define GSC_KERNEL_MAX_KERNEL_TIMER_FUNC	8	///< $gsc カーネルタイマに登録できる最大定期処理関数数
 #endif
 
-unsigned long long kernel_time_count;	///< カーネル時間(ms)
+unsigned long long kernel_time_count = 0;	///< カーネル時間(ms)
 
-static struct st_device *timer_dev;	///< カーネルタイマデバイス
+static struct st_device *timer_dev = 0;	///< カーネルタイマデバイス
 static unsigned char flg_exec_func;	///< タイマ関数実行フラグ
 static timer_func timer_func_list[GSC_KERNEL_MAX_KERNEL_TIMER_FUNC];	///< タイマ関数リスト
 static unsigned long func_interval[GSC_KERNEL_MAX_KERNEL_TIMER_FUNC];	///< タイマ関数実行間隔
@@ -192,7 +192,13 @@ err:
 */
 unsigned long long get_kernel_time(void)
 {
-	return kernel_time_count + ioctl_device(timer_dev, IOCMD_TIMER_GETTIME, 0, 0);
+	unsigned long long rt = kernel_time_count;
+
+	if(timer_dev != 0) {
+		rt += ioctl_device(timer_dev, IOCMD_TIMER_GETTIME, 0, 0);
+	}
+
+	return rt;
 }
 
 /**
@@ -202,9 +208,11 @@ unsigned long long get_kernel_time(void)
 */
 unsigned long long get_system_utime(void)
 {
-	unsigned long long utime;
+	unsigned long long utime = 0;
 
-	ioctl_device(timer_dev, IOCMD_TIMER_GETSYSTIME, 0, (void *)&utime);
+	if(timer_dev != 0) {
+		ioctl_device(timer_dev, IOCMD_TIMER_GETSYSTIME, 0, (void *)&utime);
+	}
 
 	return utime;
 }

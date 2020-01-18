@@ -3,12 +3,14 @@ include $(PRJ_DIR)/common.mk
 LIB	= soundplay.a
 
 OBJS	= soundplay.o \
-	  wavplay.o \
+	  soundio.o \
+	  soundfile.o \
 	  mp3play.o \
 	  m4aplay.o \
 	  music_info.o \
 	  id3tag.o \
 	  mp4tag.o \
+	  artwork.o \
 	  spectrum_analyzer.o \
 	  fft.o
 

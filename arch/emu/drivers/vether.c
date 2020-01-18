@@ -5,6 +5,21 @@
     @authoer	Takashi SHUDO
 */
 
+/*
+--- Setup example ---
+brctl addbr br0
+brctl addif br0 enx106f3fa6b61d
+ifconfig br0 up
+ifconfig enx106f3fa6b61d 0.0.0.0 up
+--- END Setup ---
+
+--- Cancel setting --
+brctl delif br0 tap0
+brctl delif br0 enx106f3fa6b61d
+ifconfig br0 down
+brctl delbr br0
+--- END Cancel ---
+*/
 #include "sysconfig.h"
 
 #include "device.h"

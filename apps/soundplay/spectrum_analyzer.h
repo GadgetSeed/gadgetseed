@@ -16,7 +16,7 @@
 #define SPA_ANA_SMP	(SPA_SMP_NUM/2)
 
 struct st_audio_spectrum {
-	unsigned long frame_num;
+	unsigned int frame_num;
 	unsigned char spectrum[SPA_ANA_SMP * 2];
 };
 

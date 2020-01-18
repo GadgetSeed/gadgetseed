@@ -1,3 +1,7 @@
+ifeq ($(KERNEL_MESSAGEOUT_LOG),YES)
+DRIVERS += logbuf
+endif
+
 ifeq ($(DEV_ENABLE_ADC),YES)
 ARCH_DRIVERS += adc
 endif
@@ -12,6 +16,14 @@ endif
 
 ifeq ($(DEV_ENABLE_STORAGE),YES)
 ARCH_DRIVERS += stm32f7xxx-disc_sdmmc
+endif
+
+ifeq ($(DEV_ENABLE_QSPI),YES)
+ARCH_DRIVERS += stm32f7xxx-disc_qspi
+endif
+
+ifeq ($(DEV_ENABLE_BUTTON),YES)
+ARCH_DRIVERS += stm32f746g-disc_button
 endif
 
 ifeq ($(COMP_ENABLE_GRAPHICS),YES)

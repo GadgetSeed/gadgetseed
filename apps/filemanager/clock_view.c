@@ -28,7 +28,7 @@ void draw_clock(void)
 	set_backcolor(FM_INFO_BACK_COLOR);
 	set_font_drawmode(FONT_FIXEDWIDTH);
 
-	draw_str(GSC_GRAPHICS_DISPLAY_WIDTH - font_width(' ')*8, 0, time_str);
+	draw_str(GSC_GRAPHICS_DISPLAY_WIDTH - font_width(' ')*8, 0, time_str, 32);
 }
 
 struct st_tcb clock_tcb;
@@ -38,7 +38,7 @@ static void sec_timer(void *sp, unsigned long long systime)
 	task_wakeup_id_ISR(sp, clock_tcb.id);
 }
 
-static int clock_task(char *arg)
+static int clock_task(void *arg)
 {
 	struct st_systime now_time;
 
@@ -61,7 +61,7 @@ static int clock_task(char *arg)
 }
 
 #define SIZEOFAPPTS	(1024*8)
-static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)] ATTR_STACK;
 
 void startup_clock(void)
 {

@@ -8,9 +8,11 @@
 #ifndef M4APLAY_H
 #define M4APLAY_H
 
-int m4afile_analyze(struct st_music_info *info, unsigned char *fname);
+#include "shell.h"
 
-extern const struct st_shell_command com_m4a_analyze;
-extern const struct st_shell_command com_m4a_play;
+extern const struct st_shell_command com_m4a_open;
+
+int m4afile_open(uchar *fname);
+void m4afile_seek(int pos);
 
 #endif // M4APLAY_H

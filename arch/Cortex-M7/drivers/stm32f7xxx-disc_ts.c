@@ -56,7 +56,7 @@ static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)] ATTR_STACK;
 
 extern const struct st_device ts_device;
 
-static int ts_task(char *arg)
+static int ts_task(void *arg)
 {
 	TS_StateTypeDef  TS_State;
 	struct st_sysevent ev;

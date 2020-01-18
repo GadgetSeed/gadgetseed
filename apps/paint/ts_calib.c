@@ -114,7 +114,7 @@ int mark_pos(short x, short y, int vx, int vy)
 	}
 }
 
-static int ts_calib_task(char *arg)
+static int ts_calib_task(void *arg)
 {
 	draw_tp_marker();
 
@@ -146,7 +146,7 @@ static int ts_calib_task(char *arg)
 #ifdef TS_CALIB_TASK
 static struct st_tcb tcb;
 #define SIZEOFSTACK	(1024*2)
-static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)] ATTR_STACK;
 #endif
 
 void startup_ts_calib(void)

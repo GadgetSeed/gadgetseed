@@ -11,6 +11,7 @@ OBJS	+= \
 	initsect.o \
 	interrupt.o \
 	cpu.o \
+	halver.o \
 	systems/$(SYSTEM).o
 
 SOBJS   = \
@@ -22,10 +23,14 @@ SOBJS   = \
 ### for STM32Cube HAL Drivers
 
 ifeq ($(OS),Windows_NT)
-	HAL_DIR =  C:/$(HOMEPATH)/STM32Cube/Repository/STM32Cube_FW_F4_V1.23.0
+	HAL_DIR =  C:/$(HOMEPATH)/STM32Cube/Repository/STM32CubeF4
+#	HAL_DIR =  C:/$(HOMEPATH)/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1
 else
-	HAL_DIR = $(HOME)/STM32Cube/Repository/STM32Cube_FW_F4_V1.23.0
+	HAL_DIR = $(HOME)/STM32Cube/Repository/STM32CubeF4
+#	HAL_DIR = $(HOME)/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1
 endif
+
+HAL_VER = `xmllint --xpath "Package/PackDescription/@Release" $(HAL_DIR)/package.xml | sed 's/[^"]*"\([^"]*\)"[^"]*/\1/g'`
 
 HAL_DRIVERS_DIR = $(HAL_DIR)/Drivers/STM32F4xx_HAL_Driver/Src
 
@@ -122,6 +127,9 @@ $(LCD_OBJ): $(LCD_SRC)
 
 inthdr.s: mkinthdr.awk
 	awk -f mkinthdr.awk > $@
+
+halver.c:
+	echo "const char hal_ver[] = \"$(HAL_VER)\";" > halver.c
 
 $(LIB): $(OBJS) $(SOBJS) $(SYSOBJ) $(HALOBJS) $(MAKECONFIGSYS)
 	$(AR) rc $(LIB) $(OBJS) $(SOBJS) $(SYSOBJ) $(HALOBJS)

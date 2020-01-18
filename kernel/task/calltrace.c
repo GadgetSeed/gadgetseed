@@ -136,6 +136,7 @@ static void print_record(struct st_call_record *rp)
 	case SYSCALL_PRINT_TASK_LIST:
 	case SYSCALL_PRINT_TASK_QUEUE:
 	case SYSCALL_PRINT_CALLTRACE:
+	case SYSCALL_TASK_PRIORITY:
 		break;
 	default:
 		tkprintf("Invalid syscall");

@@ -13,9 +13,12 @@
 #include "tprintf.h"
 #include "memory.h"
 #include "id3tag.h"
+#include "artwork.h"
 #include "charcode.h"
 
-//#define DEBUGTBITS 0x01
+#include "soundfile.h"
+
+//#define DEBUGTBITS 0x04
 #include "dtprintf.h"
 
 
@@ -24,7 +27,7 @@
 static unsigned char tag_buf[MAX_ID3TAG_BUFSIZE + 1];
 static int read_size;
 
-static int read_data(unsigned char *dest, int tag_size, id3tag_read_func tag_read)
+static int read_data(unsigned char *dest, int tag_size, tag_read_func tag_read)
 {
 	int size = 0;
 	int rt = 0;
@@ -38,7 +41,7 @@ static int read_data(unsigned char *dest, int tag_size, id3tag_read_func tag_rea
 	return size;
 }
 
-static int read_tag_data(int tag_size, id3tag_read_func tag_read, id3tag_read_func tag_seek)
+static int read_tag_data(int tag_size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
 	int size = 0;
 	int rt = 0;
@@ -50,7 +53,7 @@ static int read_tag_data(int tag_size, id3tag_read_func tag_read, id3tag_read_fu
 			tprintf("tag Read Error(size: %d)\n", rt);
 		}
 		size += rt;
-		rt = tag_seek(tag_buf, tag_size - MAX_ID3TAG_BUFSIZE);
+		rt = tag_seekcur(tag_size - MAX_ID3TAG_BUFSIZE);
 		size += rt;
 	} else {
 		rt = read_data(tag_buf, tag_size, tag_read);
@@ -66,7 +69,7 @@ static int read_tag_data(int tag_size, id3tag_read_func tag_read, id3tag_read_fu
 #if defined(GSC_LIB_ENABLE_PICOJPEG) || defined(GSC_LIB_ENABLE_LIBPNG)
 static unsigned char *malloc_ptr;
 
-static int malloc_read_tag_data(int tag_size, id3tag_read_func tag_read, id3tag_read_func tag_seek)
+static int malloc_read_tag_data(int tag_size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
 	int size = 0;
 	int rt = 0;
@@ -144,7 +147,7 @@ static int id3tag_frame_header_decode(unsigned int *id, unsigned char *tag)
 
 struct st_id3tag_decode {
 	unsigned char tag_id[5];
-	int (* decode)(struct st_music_info *info, int size, id3tag_read_func tag_read, id3tag_read_func tag_seek);
+	int (* decode)(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur);
 };
 
 #if 0
@@ -192,9 +195,9 @@ static int decode_tag_str(uchar *str, unsigned char *tag, int len)
  * 各TAGデコード
  */
 
-static int decode_TPE1(struct st_music_info *info, int size, id3tag_read_func tag_read, id3tag_read_func tag_seek)
+static int decode_TPE1(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_tag_data(size, tag_read, tag_seek);
+	int rt = read_tag_data(size, tag_read, tag_seekcur);
 
 	DTPRINTF(0x01, "%02X\n", (int)tag_buf[0]);
 	tag_buf[size] = 0;
@@ -205,9 +208,9 @@ static int decode_TPE1(struct st_music_info *info, int size, id3tag_read_func ta
 	return rt;
 }
 
-static int decode_TIT2(struct st_music_info *info, int size, id3tag_read_func tag_read, id3tag_read_func tag_seek)
+static int decode_TIT2(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_tag_data(size, tag_read, tag_seek);
+	int rt = read_tag_data(size, tag_read, tag_seekcur);
 
 	DTPRINTF(0x01, "%02X\n", (int)tag_buf[0]);
 	tag_buf[size] = 0;
@@ -218,9 +221,9 @@ static int decode_TIT2(struct st_music_info *info, int size, id3tag_read_func ta
 	return rt;
 }
 
-static int decode_TALB(struct st_music_info *info, int size, id3tag_read_func tag_read, id3tag_read_func tag_seek)
+static int decode_TALB(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_tag_data(size, tag_read, tag_seek);
+	int rt = read_tag_data(size, tag_read, tag_seekcur);
 
 	DTPRINTF(0x01, "%02X\n", (int)tag_buf[0]);
 	tag_buf[size] = 0;
@@ -231,9 +234,9 @@ static int decode_TALB(struct st_music_info *info, int size, id3tag_read_func ta
 	return rt;
 }
 
-static int decode_TRCK(struct st_music_info *info, int size, id3tag_read_func tag_read, id3tag_read_func tag_seek)
+static int decode_TRCK(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_tag_data(size, tag_read, tag_seek);
+	int rt = read_tag_data(size, tag_read, tag_seekcur);
 	int i;
 
 	DTPRINTF(0x01, "%02X\n", (int)tag_buf[0]);
@@ -252,9 +255,9 @@ static int decode_TRCK(struct st_music_info *info, int size, id3tag_read_func ta
 	return rt;
 }
 
-static int decode_TLEN(struct st_music_info *info, int size, id3tag_read_func tag_read, id3tag_read_func tag_seek)
+static int decode_TLEN(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_tag_data(size, tag_read, tag_seek);
+	int rt = read_tag_data(size, tag_read, tag_seekcur);
 
 	DTPRINTF(0x01, "%02X\n", (int)tag_buf[0]);
 	tag_buf[size] = 0;
@@ -283,7 +286,9 @@ void set_id3_decode_artwork(int flg_env)
 #include "pngdec.h"
 #endif
 
-static int decode_APIC(struct st_music_info *info, int size, id3tag_read_func tag_read, id3tag_read_func tag_seek)
+//#define DISABLE_DECODE_MULTTASK
+
+static int decode_APIC(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
 #if defined(GSC_LIB_ENABLE_PICOJPEG) || defined(GSC_LIB_ENABLE_LIBPNG)
 	int rt;
@@ -293,7 +298,7 @@ static int decode_APIC(struct st_music_info *info, int size, id3tag_read_func ta
 
 	if(flg_id3_decode_artwork != 0) {
 		unsigned char *cover_ptr;
-		rt = malloc_read_tag_data(size, tag_read, tag_seek);
+		rt = malloc_read_tag_data(size, tag_read, tag_seekcur);
 		cover_ptr = malloc_ptr+14;
 		DTPRINTF(0x01, "%02X\n", (int)malloc_ptr[0]);
 		malloc_ptr[size] = 0;
@@ -303,41 +308,29 @@ static int decode_APIC(struct st_music_info *info, int size, id3tag_read_func ta
 		if(strncomp(&malloc_ptr[1], (uchar *)apic_jpeg_str, sizeof(apic_jpeg_str)) == 0) {
 			DTPRINTF(0x01, "JPEG Artwork\n");
 #ifdef GSC_LIB_ENABLE_PICOJPEG
-			pjpeg_image_info_t jpeginfo;
-
-			get_jpeg_data_info(cover_ptr, &jpeginfo, 0);
-			DTPRINTF(0x01, "Width = %d, Height = %d\n", jpeginfo.m_width, jpeginfo.m_height);
-			//draw_jpeg(0, 0);
-			void *image = alloc_memory(jpeginfo.m_width * jpeginfo.m_height * sizeof(PIXEL_DATA));
-			decode_jpeg(image);
-			//draw_image(0, 0, jpeginfo.m_width, jpeginfo.m_height, image, jpeginfo.m_width);
-			resize_image(info->artwork, ART_WIDTH, ART_HEIGHT, image, jpeginfo.m_width, jpeginfo.m_height);
-			//draw_image(0, 0, ART_WIDTH, ART_HEIGHT, info->artwork, ART_WIDTH);
-			free_memory(image);
-			info->flg_have_artwork = 1;
+#ifdef DISABLE_DECODE_MULTTASK
+			decode_jpeg_artwork(info, cover_ptr);
+#else
+			decode_jpeg_artwork_bg(info, cover_ptr, malloc_ptr);
+#endif
 #endif
 		} else if(strncomp(&malloc_ptr[1], (uchar *)apic_png_str, sizeof(apic_png_str)) == 0) {
 			DTPRINTF(0x01, "PNG Artwork\n");
 #ifdef GSC_LIB_ENABLE_LIBPNG
-			short width, height;
-
-			get_png_data_info(cover_ptr, &width, &height);
-			DTPRINTF(0x01, "Width = %d, Height = %d\n", width, height);
-			//draw_png(0, 0);
-			void *image = alloc_memory(width * height * 4);
-			decode_png(image);
-			resize_image(info->artwork, ART_WIDTH, ART_HEIGHT, image, width, height);
-			//draw_image(0, 0, ART_WIDTH, ART_HEIGHT, info->artwork, ART_WIDTH);
-			free_memory(image);
-			dispose_png_info();
-			info->flg_have_artwork = 1;
+#ifdef DISABLE_DECODE_MULTTASK
+			decode_png_artwork(info, cover_ptr);
+#else
+			decode_png_artwork_bg(info, cover_ptr, malloc_ptr);
+#endif
 #endif
 		} else {
 			DTPRINTF(0x01, "Unknow format\n");
 		}
+#ifdef DISABLE_DECODE_MULTTASK
 		free_memory(malloc_ptr);
+#endif
 	} else {
-		rt = read_tag_data(size, tag_read, tag_seek);
+		rt = read_tag_data(size, tag_read, tag_seekcur);
 	}
 
 	return rt;
@@ -346,9 +339,9 @@ static int decode_APIC(struct st_music_info *info, int size, id3tag_read_func ta
 #endif
 }
 
-static int decode_Txxx(struct st_music_info *info, int size, id3tag_read_func tag_read, id3tag_read_func tag_seek)
+static int decode_Txxx(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_tag_data(size, tag_read, tag_seek);
+	int rt = read_tag_data(size, tag_read, tag_seekcur);
 
 	DTPRINTF(0x01, "%02X\n", (int)tag_buf[0]);
 	tag_buf[size] = 0;
@@ -372,7 +365,8 @@ static struct st_id3tag_decode id3tag_decode_list[] = {
 	{ {0, 0, 0, 0, 0}, 0 }
 };
 
-int id3tag_decode(struct st_music_info *info, id3tag_read_func tag_read, id3tag_read_func tag_seek)
+int id3tag_decode(struct st_music_info *info, tag_read_func tag_read, tag_seekcur_func tag_seekcur, tag_seekset_func tag_seekset,
+		  tag_size_func tag_size, tag_tell_func tag_tell)
 {
 	unsigned char tag_header_buf[ID3TAG_HEADER_SIZE];
 	int rt = 0;
@@ -382,6 +376,8 @@ int id3tag_decode(struct st_music_info *info, id3tag_read_func tag_read, id3tag_
 	unsigned int id;
 
 	read_size = 0;
+
+	init_music_info(info);
 
 	// ID3TAG Header
 	rt = tag_read(tag_header_buf, ID3TAG_HEADER_SIZE);
@@ -412,7 +408,7 @@ int id3tag_decode(struct st_music_info *info, id3tag_read_func tag_read, id3tag_
 		// Frame Header
 		rt = tag_read(tag_header_buf, ID3TAG_FRAME_HEADER_SIZE);
 		if(rt < ID3TAG_FRAME_HEADER_SIZE) {
-			tprintf("Frame Read Error(size: %d)\n", rt);
+			eprintf("Frame Read Error(size: %d)\n", rt);
 			return -1;
 		}
 		read_size += rt;
@@ -431,13 +427,13 @@ int id3tag_decode(struct st_music_info *info, id3tag_read_func tag_read, id3tag_
 					  tag_buf[2],
 					  tag_buf[3]);
 				// ヘッダ分ファイルポインタを進めておく
-				tag_seek(tag_buf, header_size - read_size);
-				return header_size;
+				tag_seekcur(header_size - read_size);
+				goto tagend;
 			}
 
 			while(p_id3dec->tag_id[0] != 0) {
 				if(strncomp(tag_header_buf, p_id3dec->tag_id, 4) == 0) {
-					rt = p_id3dec->decode(info, frame_size, tag_read, tag_seek);
+					rt = p_id3dec->decode(info, frame_size, tag_read, tag_seekcur);
 					read_size += rt;
 					break;
 				}
@@ -446,13 +442,46 @@ int id3tag_decode(struct st_music_info *info, id3tag_read_func tag_read, id3tag_
 
 			// 解析できないtag
 			if(p_id3dec->tag_id[0] == 0) {
-				rt = decode_Txxx(info, frame_size, tag_read, tag_seek);
+				rt = decode_Txxx(info, frame_size, tag_read, tag_seekcur);
 				read_size += rt;
 			}
 		}
 	}
 
+tagend:
 	DTPRINTF(0x01, "FRAME READ SIZE %d\n", read_size);
+
+	if(1) {
+		int ssize;
+		int scount;
+		int rtn = 0;
+		unsigned char header[MPEG_FRAME_HEADER_SIZE];
+
+		info->frame_start = tag_tell();
+		DTPRINTF(0x04, "stream start = %d\n", info->frame_start);
+		ssize = tag_size() - info->frame_start;
+
+		rtn = tag_read(header, MPEG_FRAME_HEADER_SIZE);
+		if(rtn != MPEG_FRAME_HEADER_SIZE) {
+			eprintf("MPEG Frame read error(%d)\n", rtn);
+		}
+
+		tag_seekset(info->frame_start);
+		DTPRINTF(0x04, "tag_tell = %d\n", tag_tell());
+
+		rtn = mpeg_frame_header_decode(info, header);
+		if(rtn != 0) {
+			eprintf("MPEG Frame header decode error(%d)\n", rtn);
+		}
+
+		scount = ssize / info->frame_length;
+		info->time_length = ssize * 8 / 128;
+		info->sample_count = scount;
+		DTPRINTF(0x04, "MP3 stream start = %d\n", info->frame_start);
+		DTPRINTF(0x04, "MP3 stream size = %d\n", ssize);
+		DTPRINTF(0x04, "MP3 time length = %d\n", info->time_length);
+		DTPRINTF(0x04, "MP3 sample count = %d\n", scount);
+	}
 
 	return header_size;
 }

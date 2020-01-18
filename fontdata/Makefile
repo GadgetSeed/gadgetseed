@@ -47,6 +47,10 @@ ifeq ($(FONTS_ENABLE_FONT_NUM24X48),YES)
 	OBJS += num24x48/num24x48.o
 endif
 
+ifeq ($(FONTS_ENABLE_FONT_NUM32X48),YES)
+	OBJS += num32x48/num32x48.o
+endif
+
 ifeq ($(FONTS_ENABLE_FONT_NUM48X64),YES)
 	OBJS += num48x64/num48x64.o
 endif
@@ -61,6 +65,10 @@ endif
 
 ifeq ($(FONTS_ENABLE_FONT_JISKAN16),YES)
 	OBJS += jiskan16/jiskan16.o
+endif
+
+ifeq ($(FONTS_ENABLE_FONT_JISKAN16GS),YES)
+	OBJS += jiskan16gs/jiskan16gs.o
 endif
 
 ifeq ($(FONTS_ENABLE_FONT_JISKAN24),YES)
@@ -111,6 +119,9 @@ num24x40/num24x40.o: num24x40/font_num24x40.txt
 num24x48/num24x48.o: num24x48/font_num24x48.txt
 	make -C num24x48 all
 
+num32x48/num32x48.o: num32x48/font_num32x48.txt
+	make -C num32x48 all
+
 num48x64/num48x64.o: num48x64/font_num48x64.txt
 	make -C num48x64 all
 
@@ -122,6 +133,9 @@ knj10/knj10.o:
 
 jiskan16/jiskan16.o:
 	make -C jiskan16 all
+
+jiskan16gs/jiskan16gs.o:
+	make -C jiskan16gs all
 
 jiskan24/jiskan24.o: 12x24/font_12x24.txt
 	make -C jiskan24 all
@@ -140,6 +154,7 @@ clean:
 	make -C num24x32 clean
 	make -C num24x40 clean
 	make -C num24x48 clean
+	make -C num32x48 clean
 	make -C num48x64 clean
 	make -C 8x16 clean
 	make -C 12x16 clean

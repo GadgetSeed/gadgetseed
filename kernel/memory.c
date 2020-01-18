@@ -183,7 +183,13 @@ void * alloc_memory(unsigned int size)
 
 	return (void *)(p+1);
 #else
-	return malloc(size);
+	void *mp = malloc(size);
+
+	if(mp == 0) {
+		SYSERR_PRINT("alloc error(size = %d)\n", size);
+	}
+
+	return mp;
 #endif
 }
 

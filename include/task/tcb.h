@@ -14,15 +14,15 @@
 
 #define	TASK_NAME_LEN	15	///< 最大タスク名長
 
-#define PSTAT_READY		0	///< タスク 実行可能状態
-#define PSTAT_RUN		1	///< タスク 実行状態
-#define PSTAT_TIMER_WAIT	2	///< タスク タイマ待ち状態
-#define PSTAT_EVENT_WAIT	3	///< タスク イベント待ち状態
-#define PSTAT_MUTEX_WAIT	4	///< タスク MUTEXロック解除待ち状態
-#define PSTAT_REQUEST_WAIT	5	///< タスク 起床待ち状態
-#define PSTAT_DORMANT		6	///< タスク 休止状態
+#define PSTAT_DORMANT		0	///< タスク 休止状態
+#define PSTAT_READY		1	///< タスク 実行可能状態
+#define PSTAT_RUN		2	///< タスク 実行状態
+#define PSTAT_TIMER_WAIT	3	///< タスク タイマ待ち状態
+#define PSTAT_EVENT_WAIT	4	///< タスク イベント待ち状態
+#define PSTAT_MUTEX_WAIT	5	///< タスク MUTEXロック解除待ち状態
+#define PSTAT_REQUEST_WAIT	6	///< タスク 起床待ち状態
 
-typedef int (* task_func)(char *arg);	///< タスク関数
+typedef int (* task_func)(void *arg);	///< タスク関数
 
 struct tcb_queue {
 	struct st_queue	queue;	///< キュー
@@ -43,9 +43,10 @@ struct st_tcb {
 	struct st_context ctx;		///< CPUコンテキスト(CPUアーキテクチャ依存)
 
 	task_func main_func;		///< タスク関数
-	char *arg;			///< タスク実行時引数文字列
+	void *arg;			///< タスク実行時引数文字列
 
 	int priority;			///< タスクプライオリティ
+	int next_priority;		///< スイッチ後のタスクプライオリティ
 	unsigned int wup_time;		///< スリープタイムアウト時間
 	int status;			///< タスク状態(PSTAT_*)
 

@@ -11,6 +11,7 @@
 #include "sysconfig.h"
 #include "random.h"
 #include "tkprintf.h"
+#include "net.h"
 #include "task/task.h"
 
 #define TCPIP_THREAD_PRIO	TASK_PRIORITY_NETWORK
@@ -214,9 +215,18 @@ extern void lwip_set_errno(int err);
 #define TCP_QLEN_DEBUG	LWIP_DBG_ON
 #define TCP_RST_DEBUG	LWIP_DBG_ON
 #define HTTPD_DEBUG	LWIP_DBG_ON
+#define SNTP_DEBUG		LWIP_DBG_ON
+#define SNTP_DEBUG_TRACE	LWIP_DBG_ON
+#define SNTP_DEBUG_STATE	LWIP_DBG_ON
+#define SNTP_DEBUG_SERIOUS	LWIP_DBG_ON
+#define SNTP_DEBUG_WARN_STATE	LWIP_DBG_ON
 #endif
 
+#define SNTP_SERVER_DNS		1
+#define SNTP_SET_SYSTEM_TIME_US	sntp_set_system_time
+
 #ifndef GSC_KERNEL_MESSAGEOUT_LOG
+#include "log.h"
 #define LWIP_PLATFORM_DIAG(x)	do {tkprintf x;} while(0)
 #else
 #define LWIP_PLATFORM_DIAG(x)	do {gslogn x;} while(0)
@@ -224,6 +234,6 @@ extern void lwip_set_errno(int err);
 #define LWIP_PLATFORM_ASSERT(x) do {tkprintf("Assertion \"%s\" failed at line %d in %s\n", \
 					     x, __LINE__, __FILE__);} while(0)
 
-#define LWIP_RAND() ((u32_t)genrand_int32())
+#define LWIP_RAND() ((u32_t)gen_random())
 
 #endif /* __LWIPOPTS_H__ */

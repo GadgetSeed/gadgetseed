@@ -147,6 +147,7 @@ void push_event_interrupt(void *sp, struct st_sysevent *event)
 {
 	DKFPRINTF(0x01, "what = %d arg = %d\n", event->what, event->arg);
 
+	event->when = get_kernel_time();
 	event_push_ISR(sp, &evtque, event);
 }
 
@@ -239,5 +240,7 @@ int get_event(struct st_sysevent *event, unsigned int timeout)
 
 no_event:
 	event->what = EVT_NULL;
+	event->when = get_kernel_time();
+
 	return 0;	// イベント無し
 }

@@ -19,11 +19,13 @@
     | dump		| @copybrief com_dev_dump	| @ref com_dev_dump	|
     | ioctl		| @copybrief com_dev_ioctl	| @ref com_dev_ioctl	|
     | seek		| @copybrief com_dev_seek	| @ref com_dev_seek	|
+    | blockwrite	| @copybrief com_dev_blockwrite	| @ref com_dev_blockwrite	|
     | blockread		| @copybrief com_dev_blockread	| @ref com_dev_blockread	|
     | capacity		| @copybrief com_dev_capacity	| @ref com_dev_capacity	|
     | suspend		| @copybrief com_dev_suspend	| @ref com_dev_suspend	|
     | resume		| @copybrief com_dev_resume	| @ref com_dev_resume	|
     | close		| @copybrief com_dev_close	| @ref com_dev_close	|
+    | save		| @copybrief com_dev_save	| @ref com_dev_save	|
 */
 
 #include "shell.h"
@@ -31,6 +33,8 @@
 #include "console.h"
 #include "str.h"
 #include "tprintf.h"
+#include "device/sd_ioctl.h"
+#include "file.h"
 
 #define MAX_DEVWRITECNT	32
 
@@ -435,6 +439,70 @@ static int dev_seek(int argc, uchar *argv[])
 }
 
 
+static int dev_blockwrite(int argc, uchar *argv[]);
+
+/**
+   @brief	デバイスに1ブロックデータを書き込む
+*/
+static const struct st_shell_command com_dev_blockwrite = {
+	.name		= "blockwrite",
+	.command	= dev_blockwrite,
+	.usage_str	= "<device_name> <sector> <data ...>",
+	.manual_str	= "Block write data to device"
+};
+
+static int dev_blockwrite(int argc, uchar *argv[])
+{
+	struct st_device *dev;
+	int i;
+	unsigned char buf[MAX_DEVREADCNT];
+	unsigned char *bp = buf;
+	unsigned int len = 0;
+	unsigned int sector = 0;
+	int rt;
+
+	if(argc < 4) {
+		print_command_usage(&com_dev_blockwrite);
+		return 0;
+	}
+
+	dev = open_device((char *)argv[1]);
+
+	if(dev == 0) {
+		tprintf("Cannot open \"%s\".\n", argv[1]);
+		return 0;
+	}
+
+	sector = hdstoi(argv[2]);
+
+	for(i=0; i<MAX_DEVREADCNT; i++) {
+		buf[i] = 0xff;
+	}
+
+	for(i=3; i<argc; i++) {
+		if(argv[i][0] == '\'') {
+			(void)strncopy(bp, &argv[i][1], MAX_DEVWRITECNT);
+			len += strleng(&argv[i][1]);
+		} else {
+			*bp = (unsigned char)hdstou(argv[i]);
+			bp ++;
+			len ++;
+		}
+	}
+
+	tprintf("sector  : %d\n", sector);
+	tprintf("datalen : %d\n", len);
+
+	rt = block_write_device(dev, buf, sector, 1);
+
+	tprintf("return : %d(0x%08X)\n", rt, rt);
+
+//	close_device(dev);
+
+	return 0;
+}
+
+
 static int dev_blockread(int argc, uchar *argv[]);
 
 /**
@@ -453,6 +521,7 @@ static int dev_blockread(int argc, uchar *argv[])
 	unsigned char buf[MAX_DEVREADCNT];
 	unsigned int sector = 0;
 	unsigned int count = 0;
+	int sectorsize;
 	int rt = 0;
 	int i;
 
@@ -468,6 +537,17 @@ static int dev_blockread(int argc, uchar *argv[])
 		return 0;
 	}
 
+	sectorsize = ioctl_device(dev, IOCMD_SD_GET_SECTOR_SIZE, 0, 0);
+	if(sectorsize < 1) {
+		tprintf("Device sector size error(%d)\n", sectorsize);
+		return 0;
+	} else if(sectorsize > MAX_DEVREADCNT) {
+		tprintf("Device sector size large(%d)\n", sectorsize);
+		return 0;
+	} else {
+		tprintf("Sector size : %d\n", sectorsize);
+	}
+
 	sector = hdstoi(argv[2]);
 	count = hdstoi(argv[3]);
 
@@ -476,7 +556,7 @@ static int dev_blockread(int argc, uchar *argv[])
 		if(rt != 1) {
 			break;
 		} else {
-			xadump(512*i, buf, 512);	// [TODO] 1セクタは512Bytes固定
+			xadump(512*i, buf, sectorsize);
 		}
 	}
 
@@ -705,6 +785,113 @@ static int dev_close(int argc, uchar *argv[])
 }
 
 
+#ifdef GSC_COMP_ENABLE_FATFS
+static int dev_save(int argc, uchar *argv[]);
+
+/**
+   @brief	デバイスからreadした内容をフィルに保存する
+*/
+static const struct st_shell_command com_dev_save = {
+	.name		= "save",
+	.command	= dev_save,
+	.usage_str	= "<device_name> <start> <size> <filename>",
+	.manual_str	= "Save device read data"
+};
+
+static int dev_save(int argc, uchar *argv[])
+{
+	struct st_device *dev;
+	unsigned char buf[MAX_DEVREADCNT];
+	unsigned int start = 0;
+	unsigned int savesize;
+	unsigned int remsize;
+	uchar *fname;
+	int fd;
+	int rt = 0;
+	int i = 0;
+
+	if(argc < 5) {
+		print_command_usage(&com_dev_save);
+		return 0;
+	}
+
+	dev = open_device((char *)argv[1]);
+
+	if(dev == 0) {
+		tprintf("Cannot open \"%s\".\n", argv[1]);
+		return 0;
+	}
+
+	start = hdstoi(argv[2]);
+
+	savesize = (unsigned int)hdstoi(argv[3]);
+
+	fname = argv[4];
+	fd = open_file(fname, FA_WRITE | FA_CREATE_ALWAYS);
+	if(fd < 0) {
+		tprintf("Cannot open \"%s\"\n", fname);
+		return 0;
+	}
+
+	rt = seek_device(dev, start, SEEK_SET);
+	if(rt < 0) {
+		tprintf("Device seek error(%d)\n", rt);
+		goto exit;
+	}
+
+	remsize = savesize;
+	lock_device(dev, 10000);
+
+	while(remsize > 0) {
+		unsigned char rd;
+		unsigned int size;
+
+		if(cgetcnw(&rd) == 0) {
+			if(rd == ASCII_CTRL_C) {
+				tprintf("Abort.\n");
+				goto exit;
+			}
+		}
+
+		if(remsize > MAX_DEVREADCNT) {
+			size = MAX_DEVREADCNT;
+		} else {
+			size = remsize;
+		}
+
+		rt = read_device(dev, buf, size);
+		if(rt < 0) {
+			tprintf("Device read error(%d)\n", rt);
+			goto exit;
+		}
+
+		write_file(fd, buf, rt);
+		if(rt < 0) {
+			tprintf("File write error(%d)\n", rt);
+			goto exit;
+		}
+
+		remsize -= size;
+
+		i++;
+		if(i >= 100) {
+			tprintf(".");
+			i = 0;
+		}
+	}
+
+	unlock_device(dev);
+	tprintf("\n");
+	tprintf("Saved file \"%s\" size %u bytes\n", fname, savesize);
+
+exit:
+	close_file(fd);
+
+	return 0;
+}
+#endif
+
+
 static const struct st_shell_command * const com_device_list[] = {
 	&com_dev_list,
 	&com_dev_open,
@@ -715,12 +902,15 @@ static const struct st_shell_command * const com_device_list[] = {
 	&com_dev_dump,
 	&com_dev_ioctl,
 	&com_dev_seek,
+	&com_dev_blockwrite,
 	&com_dev_blockread,
-//	&com_dev_blockwrite,	// @todo devコマンドにblockwrite追加
 	&com_dev_capacity,
 	&com_dev_suspend,
 	&com_dev_resume,
 	&com_dev_close,
+#ifdef GSC_COMP_ENABLE_FATFS
+	&com_dev_save,
+#endif
 	0
 };
 

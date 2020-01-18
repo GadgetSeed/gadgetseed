@@ -10,7 +10,7 @@
 #include "file.h"
 #include "tprintf.h"
 
-//#define DEBUGTBITS 0x02
+#define DEBUGTBITS 0x08
 #include "dtprintf.h"
 
 
@@ -92,7 +92,7 @@ static int search_dir(unsigned char *path, struct file_ext *ext, fileadd_func fu
 #endif
 	res = f_opendir(&dir, (char *)path);
 	if(res != FR_OK) {
-		eprintf("Cannot open \"%s\".\n", path);
+		eprintf("Cannot open \"%s\"\n", path);
 		return -1;
 	}
 

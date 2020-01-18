@@ -11,6 +11,7 @@
 #include "vtprintf.h"
 #include "tprintf.h"
 #include "tkprintf.h"
+#include "str.h"
 #include "timer.h"
 
 extern io_write kmess_out_func;
@@ -19,8 +20,17 @@ struct st_device *kmess_log_dev;
 io_write kmess_log_func;
 int flg_disp_logtimestamp = 0;
 
-static int record_log_pri = 9;
-static int disp_log_pri = 0;
+#ifndef GSC_LOG_RECORDLOGPRI
+#define GSC_LOG_RECORDLOGPRI	8	// $gsc 記録するログ優先順位
+#endif
+
+#ifndef GSC_LOG_DISPLOGPRI
+#define GSC_LOG_DISPLOGPRI	0	// $gsc 表示するログ優先順位
+#endif
+
+static int record_log_pri = GSC_LOG_RECORDLOGPRI;
+static int disp_log_pri = GSC_LOG_DISPLOGPRI;
+static int flg_log_cr = 1;
 
 
 static int kputs_log(unsigned char *str, unsigned int len)
@@ -138,20 +148,28 @@ int gslog(int pri, const char *fmt, ...)
 	char str[MAXFORMATSTR];	// フォーマットデコードバッファ
 	int pslen = 0;
 
-	if(pri <= record_log_pri) {
-		len = str_timestamp(str);
-		if((flg_disp_logtimestamp != 0) && (pri <= disp_log_pri)) {
-			kmess_out_func((unsigned char *)str, len);
-		} else {
-			kmess_log_func((unsigned char *)str, len);
+	if(flg_log_cr != 0) {
+		if(pri <= record_log_pri) {
+			len = str_timestamp(str);
+			if((flg_disp_logtimestamp != 0) && (pri <= disp_log_pri)) {
+				kmess_out_func((unsigned char *)str, len);
+			} else {
+				kmess_log_func((unsigned char *)str, len);
+			}
+			pslen = tsnprintf(str, MAXFORMATSTR, "(%d) ", pri);
+			if((flg_disp_logtimestamp != 0) && (pri <= disp_log_pri)) {
+				kmess_out_func((unsigned char *)str, pslen);
+			} else {
+				kmess_log_func((unsigned char *)str, pslen);
+			}
+			len += pslen;
 		}
-		pslen = tsnprintf(str, MAXFORMATSTR, "(%d) ", pri);
-		if((flg_disp_logtimestamp != 0) && (pri <= disp_log_pri)) {
-			kmess_out_func((unsigned char *)str, pslen);
-		} else {
-			kmess_log_func((unsigned char *)str, pslen);
-		}
-		len += pslen;
+	}
+
+	if(fmt[strleng((const uchar *)fmt)-1] == '\n') {
+		flg_log_cr = 1;
+	} else {
+		flg_log_cr = 0;
 	}
 
 	va_start(args, fmt);
@@ -185,19 +203,27 @@ int gslogn(const char *fmt, ...)
 	char str[MAXFORMATSTR];	// フォーマットデコードバッファ
 	int pslen = 0;
 
-	len = str_timestamp(str);
-	if(flg_disp_logtimestamp != 0) {
-		kmess_out_func((unsigned char *)str, len);
-	} else {
-		kmess_log_func((unsigned char *)str, len);
+	if(flg_log_cr != 0) {
+		len = str_timestamp(str);
+		if(flg_disp_logtimestamp != 0) {
+			kmess_out_func((unsigned char *)str, len);
+		} else {
+			kmess_log_func((unsigned char *)str, len);
+		}
+		pslen = tsnprintf(str, MAXFORMATSTR, "(%d) ", GSC_DEFAULT_LOGPRIORITY);
+		if(flg_disp_logtimestamp != 0) {
+			kmess_out_func((unsigned char *)str, pslen);
+		} else {
+			kmess_log_func((unsigned char *)str, pslen);
+		}
+		len += pslen;
 	}
-	pslen = tsnprintf(str, MAXFORMATSTR, "(%d) ", GSC_DEFAULT_LOGPRIORITY);
-	if(flg_disp_logtimestamp != 0) {
-		kmess_out_func((unsigned char *)str, pslen);
+
+	if(fmt[strleng((const uchar *)fmt)-1] == '\n') {
+		flg_log_cr = 1;
 	} else {
-		kmess_log_func((unsigned char *)str, pslen);
+		flg_log_cr = 0;
 	}
-	len += pslen;
 
 	va_start(args, fmt);
 	if(GSC_DEFAULT_LOGPRIORITY < disp_log_pri) {

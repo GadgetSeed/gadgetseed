@@ -31,7 +31,7 @@ END {
 		printf("Select : %d\n", keyin);
 		printf("Target system : %s (%s)\n", sysname, confname);
 	} else {
-		printf("Select canseled.\n");
+		printf("Select canceled.\n");
 		exit(1);
 	}
 	gsub(".conf", "", confname);

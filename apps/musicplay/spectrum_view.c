@@ -6,19 +6,22 @@
 */
 
 #include "graphics.h"
+#include "musicinfo_view.h"
 #include "musicplay_view.h"
+#include "settings_view.h"
 #include "spectrum_view.h"
 
-#define POS_X	0
 
 #if GSC_GRAPHICS_DISPLAY_WIDTH >= 800
 #define X_SCALE	256
 #define Y_SCALE	128
-#define POS_Y	200
+#define POS_X	(ART_WIDTH + 8)
+#define POS_Y	204
 #else
 #define X_SCALE	128
 #define Y_SCALE	32
-#define POS_Y	144
+#define POS_X	(ART_WIDTH + 16)
+#define POS_Y	140
 #endif
 
 #define Y_DEV	(256/Y_SCALE)
@@ -59,6 +62,10 @@ void draw_spectrum(struct st_audio_spectrum *asp)
 	if(asp != 0) {
 		pow[0] = &(asp->spectrum[0]);
 		pow[1] = &(asp->spectrum[SPA_ANA_SMP]);
+	}
+
+	if(flg_setting != 0) {
+		return;
 	}
 
 	draw_1ch_spectrum(POS_X, POS_Y, pow[0]);

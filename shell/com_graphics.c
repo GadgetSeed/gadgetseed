@@ -39,6 +39,7 @@
     | jpeg		| @copybrief com_graph_jpeg		| @ref com_graph_jpeg		|
     | png		| @copybrief com_graph_png		| @ref com_graph_png		|
     | vertex4		| @copybrief com_graph_vertex4		| @ref com_graph_vertex4	|
+    | triangle		| @copybrief com_graph_triangle		| @ref com_graph_triangle	|
     | dispframe		| @copybrief com_graph_dispframe	| @ref com_graph_dispframe	|
     | drawframe		| @copybrief com_graph_drawframe	| @ref com_graph_drawframe	|
     | sector		| @copybrief com_graph_sector		| @ref com_graph_sector		|
@@ -186,6 +187,24 @@ static const struct st_shell_command com_graph_cls = {
 	.name		= "cls",
 	.command	= cls,
 	.manual_str	= "Clear screen"
+};
+
+static const struct st_shell_command com_graph_fillscreen;
+
+static int fillscreen(int argc, uchar *argv[])
+{
+	fill_screen();
+
+	return 0;
+}
+
+/**
+   @brief	画面を背景色で塗りつぶす
+*/
+static const struct st_shell_command com_graph_fillscreen = {
+	.name		= "fillscreen",
+	.command	= fillscreen,
+	.manual_str	= "Fill screen with back color"
 };
 
 
@@ -605,7 +624,7 @@ static int drawstr(int argc, uchar *argv[])
 		draw_fixed_width_str(dstoi(argv[1]), dstoi(argv[2]),
 				     (unsigned char *)argv[3], dstoi(argv[4]));
 	} else {
-		draw_str(dstoi(argv[1]), dstoi(argv[2]), (unsigned char *)argv[3]);
+		draw_str(dstoi(argv[1]), dstoi(argv[2]), (unsigned char *)argv[3], 256);
 	}
 
 	return 0;
@@ -979,6 +998,33 @@ static int vertex4_region(int argc, uchar *argv[])
 }
 
 
+static int triangle_region(int argc, uchar *argv[]);
+
+/**
+   @brief	塗りつぶした三角形を描画する
+*/
+static const struct st_shell_command com_graph_triangle = {
+	.name		= "triangle",
+	.command	= triangle_region,
+	.usage_str	= "<x0> <y0> <x1> <y1> <x2> <y2>",
+	.manual_str	= "Draw triangle region"
+};
+
+static int triangle_region(int argc, uchar *argv[])
+{
+	if(argc < 7) {
+		print_command_usage(&com_graph_triangle);
+		return 0;
+	}
+
+	draw_triangle_region(dstoi(argv[1]), dstoi(argv[2]),
+			     dstoi(argv[3]), dstoi(argv[4]),
+			     dstoi(argv[5]), dstoi(argv[6]));
+
+	return 0;
+}
+
+
 static int display_frame(int argc, uchar *argv[]);
 
 /**
@@ -1094,6 +1140,7 @@ static const struct st_shell_command * const com_grap_list[] = {
 	&com_graph_forecolor,
 	&com_graph_backcolor,
 	&com_graph_cls,
+	&com_graph_fillscreen,
 	&com_graph_point,
 	&com_graph_hline,
 	&com_graph_vline,
@@ -1125,6 +1172,7 @@ static const struct st_shell_command * const com_grap_list[] = {
 #endif
 #endif
 	&com_graph_vertex4,
+	&com_graph_triangle,
 	&com_graph_dispframe,
 	&com_graph_drawframe,
 	&com_graph_sector,

@@ -8,6 +8,7 @@
     @author	Takashi SHUDO
 */
 
+#include "sysconfig.h"
 #include "timer.h"
 #include "asm.h"
 #include "str.h"
@@ -19,6 +20,7 @@
 #include "syscall.h"
 #include "calltrace.h"
 #include "interrupt.h"
+#include "sysevent.h"
 
 #include "task_opration.h"
 #include "queue_opration.h"
@@ -47,12 +49,12 @@ static struct st_queue ready_queue_head[GSC_KERNEL_MAX_TASK_PRIORITY];// 実行�
 
 
 static struct st_tcb idle_tcb;
-static unsigned int idle_stack[GSC_KERNEL_IDLE_TASK_STACK_SIZE/sizeof(unsigned int)];
+static unsigned int idle_stack[GSC_KERNEL_IDLE_TASK_STACK_SIZE/sizeof(unsigned int)] ATTR_STACK;
 
 /* NOT API
    @brief	IDLE(何もしない)タスク
 */
-static int idle_task(char *arg)
+static int idle_task(void *arg)
 {
 	DKFPRINTF(0x01, "idle_task start\n");
 
@@ -99,7 +101,7 @@ static void task_startup(void)
 
 	task_exit();
 
-	// 戻り値を親タスクに渡す(予定)
+	// [TODO] 戻り値を親タスクに渡す(予定)
 }
 
 /* NOT API
@@ -153,13 +155,13 @@ static void print_tcb_queue(struct tcb_queue *queue)
 }
 
 const char status_str[][8] = {
+	"DRMNT",
 	"READY",
 	"RUN",
 	"TIMER",
 	"EVENT",
 	"MUTEX",
-	"REQUEST",
-	"DRMNT"
+	"REQUEST"
 };
 
 /**
@@ -313,6 +315,7 @@ static void dispatch_task(struct st_tcb *task, int status)
 	run_task->status = status;
 
 	run_task->run_time += (now_time - run_task->meas_time);
+	run_task->priority = run_task->next_priority;
 	run_task = task;
 	run_task->meas_time = now_time;
 
@@ -477,6 +480,7 @@ static struct st_tcb * task_init(task_func func,
 	new_task_id ++;
 	(void)strncopy((unsigned char *)task->name, (unsigned char *)name, TASK_NAME_LEN);
 	task->priority = priority;
+	task->next_priority = priority;
 	task->wup_time = 0;
 	task->arg = arg;
 	task->stdin_dev = con_in_dev;
@@ -513,7 +517,7 @@ static struct st_tcb * task_init(task_func func,
    @remarks	割り込みハンドラからのみ実行可能
 */
 void task_exec_ISR(task_func func, char *name, int priority, struct st_tcb *tcb,
-		   void *stack, int stack_size, char *arg)
+		   void *stack, int stack_size, void *arg)
 {
 	struct st_tcb *task;
 
@@ -539,7 +543,7 @@ void task_exec_ISR(task_func func, char *name, int priority, struct st_tcb *tcb,
    @remarks	割り込みハンドラからのみ実行可能
 */
 void task_add_ISR(task_func func, char *name, int priority, struct st_tcb *tcb,
-		  void *stack, int stack_size, char *arg)
+		  void *stack, int stack_size, void *arg)
 {
 	struct st_tcb *task;
 
@@ -727,6 +731,39 @@ void task_sleep_ISR(void *sp, unsigned int sleep_time)
 	sleepqueue_add(run_task, sleep_time, systime);
 
 	dispatch_task(search_next_task(), PSTAT_TIMER_WAIT);
+}
+
+/* NOT API
+   @brief	タスクの優先度を設定する
+
+   @param[in]	id	タスクID
+   @param[in]	priority	優先度
+*/
+void task_priority_ISR(int id, int priority)
+{
+	struct tcb_queue *queue = (struct tcb_queue *)&task_list_head;
+	struct st_queue *tmp = ((struct st_queue *)queue)->next;
+
+	DKFPRINTF(0x01, "Priorty ID = %d priorty = %d\n", id, priorty);
+
+	if(id == run_task->id) {
+		run_task->next_priority = priority;
+		return;
+	}
+
+	if(check_queue((struct st_queue *)queue) != 0) {
+		while(tmp->next != ((struct st_queue *)queue)->next) {
+			struct tcb_queue *tq = (struct tcb_queue *)tmp;
+			struct st_tcb *tcb = tq->tcb;
+			if(tcb->id == id) {
+				tcb->priority = priority;
+				tcb->next_priority = priority;
+				tkprintf("ID %d \"%s\" : %d\n", tcb->id, tcb->name, tcb->priority);
+				return;
+			}
+			tmp = tmp->next;
+		}
+	}
 }
 
 /* NOT API
@@ -984,8 +1021,17 @@ void event_wakeup_ISR(void *sp, struct st_event *evtque, void *arg)
 			tmpp = &tmp;
 		}
 		if(write_fifo(&evtque->event, tmpp, evtque->size) != evtque->size) {
-			SYSERR_PRINT("\"%s\" event fifo full(arg=%p)\n", evtque->name, arg);
-			DKFPRINTF(0x01, "event fifo full\n");
+			static unsigned long long last_fifofull_time = 0;
+			unsigned long long fifofull_time = get_kernel_time();
+			if((last_fifofull_time + 500) < fifofull_time) {
+				last_fifofull_time = fifofull_time;
+				SYSERR_PRINT("\"%s\" event fifo full(arg=%p)\n", evtque->name, arg);
+				DKFPRINTF(0x01, "event fifo full\n");
+				if(strcomp((const uchar *)evtque->name, (const uchar *)"sysevent") == 0) { // sysevent
+					struct st_sysevent *event = (struct st_sysevent *)arg;
+					SYSERR_PRINT(" what = %d, arg = %d\n", event->what, event->arg);
+				}
+			}
 		}
 		record_calltrace(SYSCALL_EVTQUE_WAKEUP, 0, evtque, 0, fifo_size(&evtque->event), sp);
 	}

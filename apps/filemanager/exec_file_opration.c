@@ -20,11 +20,17 @@ static int do_mp3_file(uchar *str, uchar *arg)
 {
 	int rt = 0;
 
+	rt = exec_command((uchar *)"sound stop");
+	rt = exec_command((uchar *)"sound close");
 	escaped_str(fname, str);
 	sjisstr_to_utf8str(cname, str, FF_MAX_LFN);
 	tprintf("Play MP3 File \"%s\"\n", cname);
 	tsprintf((char *)cmd, "sound %s mp3 %s", arg, fname);
 	rt = exec_command(cmd);
+	tprintf("rt = %d\n", rt);
+	if(rt > 0) {
+		rt = exec_command((uchar *)"sound play");
+	}
 
 	return rt;
 }
@@ -38,11 +44,17 @@ static int do_m4a_file(uchar *str, uchar *arg)
 {
 	int rt = 0;
 
+	rt = exec_command((uchar *)"sound stop");
+	rt = exec_command((uchar *)"sound close");
 	escaped_str(fname, str);
 	sjisstr_to_utf8str(cname, (unsigned char *)str, FF_MAX_LFN);
 	tprintf("Play M4A File \"%s\"\n", cname);
 	tsprintf((char *)cmd, "sound %s m4a %s", arg, fname);
 	rt = exec_command(cmd);
+	tprintf("rt = %d\n", rt);
+	if(rt > 0) {
+		rt = exec_command((uchar *)"sound play");
+	}
 
 	return rt;
 }
@@ -60,7 +72,7 @@ static void wait_next_event(void)
 		struct st_sysevent event;
 		if(get_event(&event, 50)) {
 			switch(event.what) {
-			case EVT_TOUCHSTART:
+			case EVT_TOUCHEND:
 			case EVT_KEYDOWN:
 				goto end;
 				break;

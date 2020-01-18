@@ -16,6 +16,7 @@
     | dir		| @copybrief com_file_dir	| @ref com_file_dir	|
     | delete		| @copybrief com_file_delete	| @ref com_file_delete	|
     | fdump		| @copybrief com_file_fdump	| @ref com_file_fdump	|
+    | fview		| @copybrief com_file_fview	| @ref com_file_fview	|
     | operation		| @copybrief com_file_operation	| @ref com_file_operation |
     | batch		| @copybrief com_file_batch	| @ref com_file_batch	|
 */
@@ -381,7 +382,7 @@ static int diskfree(int argc, uchar *argv[])
 	return 0;
 }
 
-#if FF_USE_MKFS != 0
+
 static int format(int argc, uchar *argv[]);
 
 /**
@@ -416,9 +417,8 @@ static int format(int argc, uchar *argv[])
 
 	return 0;
 }
-#endif
 
-#if FF_USE_CHMOD != 0
+
 static int chmod(int argc, uchar *argv[]);
 
 /**
@@ -448,7 +448,6 @@ static int chmod(int argc, uchar *argv[])
 
 	return 0;
 }
-#endif
 
 static int dir(int argc, uchar *argv[]);
 
@@ -768,6 +767,91 @@ exit:
 }
 
 
+static int fview(int argc, uchar *argv[]);
+
+/**
+   @brief	ファイルの内容をテキストとして表示する
+*/
+static const struct st_shell_command com_file_fview = {
+	.name		= "fview",
+	.command	= fview,
+	.usage_str	= "<file_name> [start [end]]"
+};
+
+static int fview(int argc, uchar *argv[])
+{
+	int fd;
+	unsigned char fdbuf[16+1];
+	unsigned int st = 0;
+	unsigned int ed = st + FDSIZE - 1;
+	unsigned int dp;
+
+	if(argc < 2) {
+		print_command_usage(&com_file_fview);
+		return 0;
+	}
+
+	if(argc > 1) {
+		fd = open_file((unsigned char *)argv[1], FA_READ);
+		if(fd < 0) {
+			tprintf("Cannot open \"%s\"\n", argv[1]);
+			goto exit;
+		}
+	}
+
+	//ed = seek_file(fd, 0, SEEK_END);
+
+	if(argc > 2) {
+		st = hstou(argv[2]);
+		if(argc > 3) {
+			ed = hstou(argv[3]);
+			if(ed <= st) {
+				goto exit;
+			}
+		}
+	}
+
+	if(st != 0) {
+		(void)seek_file(fd, st, SEEK_SET);
+	}
+
+	for(dp=st; dp<=ed; dp+=16) {
+		unsigned char *p;
+		int fr;
+		uchar rd;
+		int rlen = 16;
+
+		if(((ed+1) - dp) < 16) {
+			rlen = ((ed+1) - dp);
+		}
+
+		fr = read_file(fd, fdbuf, rlen);
+		if(fr < 0) {
+			tprintf("Cannot read \"%s\"\n", argv[1]);
+			goto close;
+		} else if(fr == 0) {
+			goto close;
+		}
+
+		fdbuf[fr] = 0;
+		p=fdbuf;
+		tprintf("%s", p);
+
+		if(cgetcnw(&rd) != 0) {
+			if(rd == ASCII_CTRL_C) {
+				tprintf("Abort.\n");
+				goto close;
+			}
+		}
+	}
+
+close:
+	close_file(fd);
+exit:
+	return 0;
+}
+
+
 static int fsize(int argc, uchar *argv[]);
 
 /**
@@ -859,7 +943,7 @@ static int batch(int argc, uchar *argv[])
 	return rt;
 }
 
-//#define GSC_SHELL_USE_FWTEST
+#define GSC_SHELL_USE_FWTEST
 #ifdef GSC_SHELL_USE_FWTEST	// $gsc ファイル書き込みテストコマンド(fwtest)を有効にする
 static int fwtest(int argc, uchar *argv[]);
 
@@ -871,8 +955,8 @@ static const struct st_shell_command com_file_fwtest = {
 	.command	= fwtest,
 };
 
-#define FWSIZE	1024
-#define FWNAME	"fwtest.dat"
+#define FWSIZE	128
+#define FWNAME	"1:qspitest.dat"
 
 static int fwtest(int argc, uchar *argv[])
 {
@@ -914,16 +998,13 @@ static const struct st_shell_command * const com_file_list[] = {
 	&com_file_mount,
 	&com_file_umount,
 	&com_file_diskfree,
-#if FF_USE_MKFS != 0
 	&com_format,
-#endif
-#if FF_USE_CHMOD != 0
 	&com_chmod,
-#endif
 	&com_file_dir,
 	&com_file_dirv,
 	&com_file_delete,
 	&com_file_fdump,
+	&com_file_fview,
 	&com_file_fsize,
 	&com_file_operation,
 	&com_file_batch,

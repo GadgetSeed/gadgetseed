@@ -7,14 +7,29 @@
 
 #include "graphics.h"
 #include "tprintf.h"
-#include "ui_scrollbar.h"
 #include "sysevent.h"
+
+#include "ui_style.h"
+#include "ui_scrollbar.h"
 
 //#define DEBUGTBITS 0x02
 #include "dtprintf.h"
 
 
 #define SCRBAR_H	3
+
+static const struct st_graph_object sb_normal_view[] = {
+	{ GO_TYPE_FORECOLOR,	{ UI_NORMAL_FORE_COLOR } },
+	{ GO_TYPE_BACKCOLOR,	{ UI_NORMAL_BACK_COLOR } },
+	{ 0, { 0, 0, 0, 0 }}
+};
+
+static const struct st_graph_object sb_select_view[] = {
+	{ GO_TYPE_FORECOLOR,	{ UI_ACTIVE_FORE_COLOR } },
+	{ GO_TYPE_BACKCOLOR,	{ UI_ACTIVE_BACK_COLOR } },
+	{ 0, { 0, 0, 0, 0 }}
+};
+
 
 void draw_ui_scrollbar(struct st_ui_scrollbar *scrollbar)
 {
@@ -58,18 +73,24 @@ void draw_ui_scrollbar(struct st_ui_scrollbar *scrollbar)
 	sb->under_knob_area.pos.y = py + b_bottom;
 	sb->under_knob_area.sur.height = sb->view_area.sur.height - b_bottom - 2;
 
-	if(sb->normal_view != 0) {
+	if(sb->normal_view == 0) {
+		draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb_normal_view);
+	} else {
 		draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb->normal_view);
 	}
 
 	draw_box(&(sb->view_area));
 
 	if(sb->status == UI_SCB_ST_SEL_UPONKNOB) {
-		if(sb->selected_view != 0) {
-			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb->selected_view);
+		if(sb->select_view == 0) {
+			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb_select_view);
+		} else {
+			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb->select_view);
 		}
 	} else {
-		if(sb->normal_view != 0) {
+		if(sb->normal_view == 0) {
+			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb_normal_view);
+		} else {
 			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb->normal_view);
 		}
 	}
@@ -77,11 +98,15 @@ void draw_ui_scrollbar(struct st_ui_scrollbar *scrollbar)
 	draw_fill_box(&(sb->upon_knob_area));
 
 	if(sb->status == UI_SCB_ST_SEL_KNOB) {
-		if(sb->selected_view != 0) {
-			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb->selected_view);
+		if(sb->select_view == 0) {
+			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb_select_view);
+		} else {
+			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb->select_view);
 		}
 	} else {
-		if(sb->normal_view != 0) {
+		if(sb->normal_view == 0) {
+			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb_normal_view);
+		} else {
 			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb->normal_view);
 		}
 	}
@@ -89,11 +114,15 @@ void draw_ui_scrollbar(struct st_ui_scrollbar *scrollbar)
 	draw_fill_box(&(sb->knob_area));
 
 	if(sb->status == UI_SCB_ST_SEL_UNDERKNOB) {
-		if(sb->selected_view != 0) {
-			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb->selected_view);
+		if(sb->select_view == 0) {
+			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb_select_view);
+		} else {
+			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb->select_view);
 		}
 	} else {
-		if(sb->normal_view != 0) {
+		if(sb->normal_view == 0) {
+			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb_normal_view);
+		} else {
 			draw_graph_object(sb->view_area.pos.x, sb->view_area.pos.y, sb->normal_view);
 		}
 	}
@@ -192,9 +221,16 @@ int proc_ui_scrollbar(struct st_ui_scrollbar *scrollbar, struct st_sysevent *eve
 		break;
 
 	case EVT_TOUCHEND:
-		sb->status = UI_SCB_ST_STILL;
-		draw_ui_scrollbar(sb);
 		DTPRINTF(0x01, "SB STILL\n");
+		switch(sb->status) {
+		case UI_SCB_ST_SEL_KNOB:
+			sb->status = UI_SCB_ST_STILL;
+			draw_ui_scrollbar(sb);
+			break;
+
+		default:
+			break;
+		}
 		break;
 
 	default:

@@ -8,6 +8,7 @@ MEMORY {
 	ram(xwr)	: ORIGIN = 0x20010000, LENGTH =  368k+64k
 	mem(xwr)	: ORIGIN = 0x2007C000, LENGTH =   16k
 	nvram(wr)	: ORIGIN = 0x40024000, LENGTH =    4k
+	qspi(rx)	: ORIGIN = 0x90000000, LENGTH =   64M
 	sdram(xrw)	: ORIGIN = 0xC0000000, LENGTH =   16M
 }
 
@@ -121,4 +122,15 @@ SECTIONS {
 	} >sdram
 
 _heap_end = ORIGIN(sdram)+LENGTH(sdram)-4;	/* due to 4byte alignments */
+
+    /* This is the QSPI-ROM section */
+	/*.qspirom (NOLOAD) :*/
+	.qspirom :
+	{
+		PROVIDE (qspirom = .);
+		PROVIDE (_qspirom = .);
+		*(.qspirom .qspirom.*)
+		*(.QSPIROM)
+		. = ALIGN(4);
+	} >qspi
 }

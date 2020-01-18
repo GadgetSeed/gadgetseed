@@ -116,6 +116,7 @@ extern int get_draw_frame(void);
 extern void get_screen_info(short *width, short *height);
 
 extern void clear_screen(void);
+extern void fill_screen(void);
 extern void set_forecolor(unsigned int color);
 extern unsigned int get_forecolor(void);
 extern void set_backcolor(unsigned int color);
@@ -124,7 +125,9 @@ extern void set_draw_mode(unsigned char mode);
 extern unsigned char get_draw_mode(void);
 
 extern void and_rect(struct st_rect *a, struct st_rect *s1, struct st_rect *s2);
-extern short empty_rect(struct st_rect *r);
+extern void or_rect(struct st_rect *a, struct st_rect *s1, struct st_rect *s2);
+extern short empty_rect(struct st_rect *rect);
+extern short empty_box(struct st_box *box);
 extern void correct_rect(struct st_rect *rect);
 extern void clear_clip_rect(void);
 extern void set_clip_rect(struct st_rect *rect);
@@ -156,6 +159,7 @@ extern void draw_round_box(struct st_box *box, short r);
 extern void draw_fill_box(struct st_box *box);
 extern void draw_round_fill_box(struct st_box *box, short r);
 extern void draw_vertex4_region(short x0, short y0, short x1, short y1, short x2, short y2, short x3, short y3);
+extern void draw_triangle_region(short x0, short y0, short x1, short y1, short x2, short y2);
 
 extern void draw_round_rect(struct st_rect *rect, short r);
 extern void draw_round_fill_rect(struct st_rect *rect, short r);

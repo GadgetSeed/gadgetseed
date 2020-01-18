@@ -8,12 +8,14 @@
 #ifndef FILELIST_H
 #define FILELIST_H
 
+#include "sysconfig.h"
 #include "filesearch.h"
+#include "str.h"
 
-#define MAX_TITLE_LEN	63
+#define MAX_TITLE_LEN	64
 #define INIT_ALBUM_MUSIC_NUM	16
 
-struct file_item {
+struct sdmusic_item {
 	unsigned char fname[MAX_PATHNAME_LEN+1];
 	unsigned char artist[MAX_TITLE_LEN+1];
 	unsigned char album[MAX_TITLE_LEN+1];
@@ -22,7 +24,7 @@ struct file_item {
 	int time;
 	unsigned char track;
 	unsigned char last_track;
-	struct file_item *next;
+	struct sdmusic_item *next;
 };
 
 struct track_filenum {
@@ -38,13 +40,29 @@ struct album_item {
 	struct album_item *next_album;
 };
 
-extern struct file_item **item_list;
+extern struct sdmusic_item **sdmusic_list;
 extern struct album_item **album_list;
 extern int music_file_count;
 extern int music_album_count;
 
+#ifdef GSC_ENABLE_MUSICPLAY_INTERNETRADIO
+struct radio_item {
+	uchar fname[MAX_PATHNAME_LEN+1];
+	uchar broadcaster_name[MAX_TITLE_LEN+1];
+	uchar url[MAX_TITLE_LEN+1];
+	struct radio_item *next;
+};
+
+extern int radio_count;
+extern struct radio_item **radio_list;
+#endif
+
+extern unsigned short minfo_crc;
+
 int get_album_file_count(int album_num);
 int get_music_file_num(int album_num, int music_num);
-int create_filelist(unsigned char *path, struct file_ext *ext);
+int load_filelist(void);
+int create_filelist(void);
+void dispose_filelist(void);
 
 #endif // FILELIST_H

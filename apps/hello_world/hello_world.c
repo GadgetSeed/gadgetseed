@@ -8,7 +8,7 @@
 #include "task/syscall.h"
 #include "tprintf.h"
 
-int hello_world_task(char *arg)
+int hello_world_task(void *arg)
 {
 	tprintf("Hello, world!\n");
 
@@ -17,7 +17,7 @@ int hello_world_task(char *arg)
 
 #define SIZEOFAPPTS	(1024*2)
 static struct st_tcb tcb;
-static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)];
+static unsigned int stack[SIZEOFAPPTS/sizeof(unsigned int)] ATTR_STACK;
 
 void startup_hello_world(void)
 {

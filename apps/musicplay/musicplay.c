@@ -5,293 +5,139 @@
     @auther	Takashi SHUDO
 */
 
-#include "shell.h"
-#include "tprintf.h"
-#include "storage.h"
-#include "file.h"
-#include "sysevent.h"
-#include "key.h"
-#include "console.h"
-#include "str.h"
-#include "memory.h"
-#include "random.h"
-#include "tkprintf.h"
 #include "log.h"
 #include "task/syscall.h"
+#include "device.h"
+#include "device/input_ioctl.h"
 
 #include "musicplay_view.h"
 #include "musicplay.h"
 #include "filelist.h"
-#include "play_view.h"
+#include "sdmusic.h"
+#include "sdmusic_ctrl_view.h"
+#include "musicinfo_view.h"
+#include "playtime_slider.h"
 #include "list_view.h"
 #include "volume_view.h"
 #include "spectrum_view.h"
+#include "appsetting.h"
+#include "storage.h"
+#include "device/qspi_ioctl.h"
+#include "config_view.h"
+#include "settings_view.h"
+#include "clock_view.h"
+#ifdef GSC_ENABLE_MUSICPLAY_INTERNETRADIO	/// $gsc インターネットラジオアプリを有効にする
+#include "radio.h"
+#include "mode_view.h"
+#include "radio_ctrl_view.h"
+#include "radiolist_view.h"
+#include "dialogbox/netset/netset.h"
+#endif
 
-//#define DEBUGTBITS 0x02
+#include "soundplay.h"
+
+#ifdef GSC_COMP_ENABLE_GSFFS
+#define MUSICPLAY_CONFFILE	"1:musiplay.cfg"
+#else
+#define MUSICPLAY_CONFFILE	"0:musiplay.cfg"
+#endif
+
+//#define DEBUGTBITS 0x01
 #include "dtprintf.h"
 
+unsigned short backup_crc;
 
-static const struct file_ext audio_file_ext[] = {
-	{ "MP3" },
-	{ "M4A" },
-//	{ "AAC" },
-//	{ "WAV" },
-	{ "" }
+struct st_conf_header musicplay_conf[] = {
+	{ "VOLUME", CFGTYPE_INT, &volume },
+	{ "MUTE", CFGTYPE_INT, &flg_mute },
+	{ "SDDISP", CFGTYPE_BYTE, &sd_disp_mode },
+	{ "SDALBUMNUM", CFGTYPE_INT, &play_album_num },
+	{ "SDTRACKNUM", CFGTYPE_INT, &play_track_num },
+	{ "SDFILENUM", CFGTYPE_INT, &play_file_num },
+	{ "SDSHUFFLE", CFGTYPE_INT, &flg_shuffle },
+	{ "SDREPEAT", CFGTYPE_INT, &flg_repeat },
+	{ "SDPLAYBACKPOS", CFGTYPE_INT, &playbackpos },
+//	{ "SDPLAYSTATUS", CFGTYPE_INT, &sdmusicplay_status },
+#ifdef GSC_ENABLE_MUSICPLAY_INTERNETRADIO
+	{ "MODE", CFGTYPE_BYTE, &musicplay_mode },
+	{ "RADIODISP", CFGTYPE_BYTE, &radio_disp_mode },
+	{ "RADIONUM", CFGTYPE_INT, &select_radio_num },
+//	{ "RADIOSTATUS", CFGTYPE_INT, &radioplay_status },
+#endif
+	{ "MINFOCRC", CFGTYPE_HWORD, &backup_crc },
+	{ 0, 0, 0 }
 };
-
-int disp_mode = MODE_PLAY;
-
-int musicplay_status = MUSICPLAY_STAT_STOP;
-
-int play_album_num = 0;
-int play_track_num = 0;
-int play_file_num = 0;
 
 static struct st_tcb tcb;
 #define SIZEOFSTACK	(1024*8)
 static unsigned int stack[SIZEOFSTACK/sizeof(unsigned int)] ATTR_STACK;
 
-void disp_track(void)
+void save_config(void)
 {
-	gslog(1, "Track %d/%d\n", play_file_num+1, music_file_count);
+	DTPRINTF(0x01, "Save config\n");
+
+	playbackpos = soundplay_playbackpos();
+
+	save_appsetting((uchar *)MUSICPLAY_CONFFILE, musicplay_conf);
 }
 
-void set_play_file_num(void)
-{
-	play_file_num = get_music_file_num(play_album_num, play_track_num);
-
-	//set_album_num_album_view(play_album_num);
-	set_play_album_music_num_list_view(play_album_num, play_track_num);
-}
-
-void analyze_now_music(void)
+int sound_proc(struct st_sysevent *event)
 {
 	int rt = 0;
 
-	if(music_file_count == 0) {
-		return;
-	}
-
-	set_play_file_num();
-
-	DTPRINTF(0x01, "Analyze file \"%s\"", sj2utf8(item_list[play_file_num]->fname));
-
-	exec_command((uchar *)"sound artwork 1");
-
-	rt = do_file_operation(item_list[play_file_num]->fname, (uchar *)"analyze");
-	(void)rt;
-
-	DTPRINTF(0x01, " Result %d\n",rt);
-}
-
-void start_music_play(void)
-{
-	if(music_file_count == 0) {
-		return;
-	}
-
-	set_play_file_num();
-
-	disp_track();
-
-	do_file_operation(item_list[play_file_num]->fname, (uchar *)"play");
-}
-
-void ff_music_play(void)
-{
-	if(music_file_count == 0) {
-		return;
-	}
-
-	if(flg_shuffle == 0) {
-		play_track_num ++;
-
-		if(play_track_num >= get_album_file_count(play_album_num)) {
-			play_track_num = 0;
-			play_album_num ++;
-			if(play_album_num >= music_album_count) {
-				play_album_num = 0;
-			}
-		}
-	} else {
-		play_album_num = genrand_int32() % music_album_count;
-		DTPRINTF(0x01, "play_album_num = %d\n", play_album_num);
-		play_track_num = genrand_int32() % get_album_file_count(play_album_num);
-		DTPRINTF(0x01, "play_track_num = %d\n", play_track_num);
-	}
-
-	set_play_file_num();
-}
-
-void fr_music_play(void)
-{
-	if(music_file_count == 0) {
-		return;
-	}
-
-	play_track_num --;
-
-	if(play_track_num < 0) {
-		play_album_num --;
-		if(play_album_num < 0) {
-			play_album_num = (music_album_count - 1);
-		}
-		play_track_num = (get_album_file_count(play_album_num) - 1);
-	}
-
-	set_play_file_num();
-}
-
-void stop_music_play(void)
-{
-	if(music_file_count == 0) {
-		return;
-	}
-
-	exec_command((uchar *)"sound stop");
-
-	set_play_album_music_num_list_view(play_album_num, play_track_num);
-}
-
-void pause_music_play(void)
-{
-	if(music_file_count == 0) {
-		return;
-	}
-
-	exec_command((uchar *)"sound pause");
-
-	set_play_album_music_num_list_view(play_album_num, play_track_num);
-}
-
-void continue_music_play(void)
-{
-	if(music_file_count == 0) {
-		return;
-	}
-
-	exec_command((uchar *)"sound continue");
-
-	set_play_album_music_num_list_view(play_album_num, play_track_num);
-}
-
-extern int flg_frame_move;
-
-static void sound_proc(struct st_sysevent *event)
-{
-	switch(event->what) {
-	case EVT_SOUND_ANALYZE:
-		{
-			struct st_audio_spectrum *asp = (struct st_audio_spectrum *)event->private_data;
-			if(disp_mode == MODE_PLAY) {
-				//tprintf("F:%ld\n", asp->frame_num);
-				draw_spectrum(asp);
-			}
-
-			if(flg_frame_move == 0) {
-				set_playtime_slider(asp->frame_num);
-			} else {
-				flg_frame_move = 0;
-			}
-		}
+#ifdef GSC_ENABLE_MUSICPLAY_INTERNETRADIO
+	switch(musicplay_mode) {
+	case SDCARD:
+		rt = sdmusic_sound_proc(event);
 		break;
 
-	case EVT_SOUND_PREPARE:
-		gslog(1, "Prepare start success\n");
-		set_music_info((struct st_music_info *)(event->private_data));
-		set_playtime_slider(0);
+	case RADIO:
+		rt = radio_sound_proc(event);
 		break;
-
-	case EVT_SOUND_START:
-		gslog(1, "Play start success\n");
-		set_music_info((struct st_music_info *)(event->private_data));
-		musicplay_status = MUSICPLAY_STAT_PLAY;
-		set_play_album_music_num_list_view(play_album_num, play_track_num);
-		set_play_button_playing();
-		break;
-
-	case EVT_SOUND_END:
-		gslog(1, "Play end\n");
-		if(musicplay_status != MUSICPLAY_STAT_STOP) {
-			ff_music_play();
-			task_sleep(10);	// soudplayタスクが終了するまで待つ(暫定対策)
-			start_music_play();
-		}
-		break;
-
-	case EVT_SOUND_STOP:
-		gslog(1, "Play stop success\n");
-		if(disp_mode == MODE_PLAY) {
-			draw_spectrum(0);
-		}
-		if(musicplay_status != MUSICPLAY_STAT_STOP) {
-			task_sleep(10);	// soudplayタスクが終了するまで待つ(暫定対策)
-			start_music_play();
-		}
-		break;
-
-	case EVT_SOUND_PAUSE:
-		gslog(1, "Play pause success\n");
-		musicplay_status = MUSICPLAY_STAT_PAUSE;
-		if(disp_mode == MODE_PLAY) {
-			draw_spectrum(0);
-		}
-		break;
-
-	case EVT_SOUND_CONTINUE:
-		gslog(1, "Play continue success\n");
-		musicplay_status = MUSICPLAY_STAT_PLAY;
-		break;
-
-	case EVT_SOUND_STATUS:
-		set_playtime(*(unsigned long *)event->private_data);
-		break;
-
-	case EVT_KEYDOWN:
-	case EVT_KEYDOWN_REPEAT:
-		switch(event->arg) {
-		case KEY_GB_ESC:
-		case KEY_GB_BS:
-		case KEY_GB_SPACE:
-			gslog(1, "Play stop\n");
-			stop_music_play();
-			break;
-
-		default:
-			break;
-		}
 
 	default:
 		break;
 	}
+#else
+	rt = sdmusic_sound_proc(event);
+#endif
+
+	return rt;
 }
 
-int musicplay_proc(void)
+static int musicplay_proc(void)
 {
-	analyze_now_music();
-
-	set_volume(VOL_DEF);
-
 	while(1) {
 		struct st_sysevent event;
 
-		if(get_event(&event, 50)) {
-			switch(disp_mode) {
-			case MODE_PLAY:
+//		if(get_event(&event, 50))
+		get_event(&event, 50);
+		{
+			config_proc(&event);
+
+#ifdef GSC_ENABLE_MUSICPLAY_INTERNETRADIO
+			mode_proc(&event);
+
+			switch(musicplay_mode) {
+			case SDCARD:
+				sdmusic_proc(&event);
 				break;
 
-			case MODE_ALBUM_SEL:
-			case MODE_MUSIC_SEL:
-				list_view_proc(&event);
+			case RADIO:
+				radio_proc(&event);
 				break;
 
 			default:
 				break;
 			}
+#else
+			sdmusic_proc(&event);
+#endif
 
-			play_proc(&event);
-			sound_proc(&event);
+			musicinfo_proc(&event);
+			playtime_slider_proc(&event);
 			volume_proc(&event);
+			clock_proc(&event);
 		}
 	}
 
@@ -300,21 +146,169 @@ int musicplay_proc(void)
 	return 0;
 }
 
-static int musicplay_task(char *arg)
+const struct st_rect screen_rect = { 0, 0, GSC_GRAPHICS_DISPLAY_WIDTH, GSC_GRAPHICS_DISPLAY_HEIGHT };
+extern const unsigned int fore_color;
+extern const unsigned int back_color;
+
+void init_musicplay_view(void)
 {
-	init_musicplay_view();
-	draw_searching();
+	clear_screen();
+	set_draw_mode(GRP_DRAWMODE_NORMAL);
 
-	gslog(1, "Audio File searching...\n");
-	create_filelist((unsigned char *)"0:", (struct file_ext *)audio_file_ext);
+	set_forecolor(back_color);
+	draw_fill_rect((struct st_rect *)&screen_rect);
 
-	init_list_view();
-	init_play_view();
-	init_volume_view();
+	set_forecolor(fore_color);
+	set_backcolor(back_color);
+}
 
-	draw_play_view();
+void init_settings_volume(void)
+{
+	volume = VOL_DEF;
+	flg_mute = 0;
+}
+
+void init_settings_playmode(void)
+{
+	sd_disp_mode = MODE_SD_INFO;
+	flg_shuffle = 0;
+	flg_repeat = REPERAT_OFF;
+}
+
+void init_settings_playmusic(void)
+{
+	play_album_num = 0;
+	play_track_num = 0;
+	play_file_num = 0;
+	playbackpos = 0;
+}
+
+void reset_musicplay(void)
+{
+#ifdef GSC_ENABLE_MUSICPLAY_INTERNETRADIO
+	if(musicplay_mode == SDCARD) {
+		stop_sdmusic_play();
+		do_sdmusic_pause();
+	} else {
+		off_radio_play();
+	}
+#else
+	stop_sdmusic_play();
+	do_sdmusic_pause();
+#endif
+}
+
+void draw_musicplay_view(void)
+{
+
+#ifdef GSC_ENABLE_MUSICPLAY_INTERNETRADIO
+	init_radio();
+	init_mode_view();
+
+	draw_mode_view();
+
+	if(musicplay_mode == RADIO) {
+		draw_radio();
+	} else {
+		draw_sdmusic();
+	}
+#else
+	draw_sdmusic();
+#endif
+
 	draw_volume_view();
-	draw_spectrum(0);
+	draw_config_view();
+	draw_clock_view();
+}
+
+static void prepare_filelist(void)
+{
+	int rt = 0;
+
+#ifndef GSC_TARGET_SYSTEM_EMU
+	struct st_device *dev;
+
+	dev = open_device(DEF_DEV_NAME_INPUT);
+	if(dev != 0) {
+		int keybits = ioctl_device(dev, IOCMD_INPUT_SCAN_LINE, 0, 0);
+		if(keybits != 0) {
+			rt = 1;
+			gslog(0, "Force create music file data\n");
+		} else {
+			rt = load_filelist();
+		}
+	} else {
+		gslog(0, "Cannot scan key\n");
+		rt = 1;
+	}
+#else
+	rt = load_filelist();
+//	create_filelist();
+//	rt = 0;
+#endif
+
+	if(rt != 0) {
+		create_filelist();
+	}
+}
+
+static int musicplay_task(void *arg)
+{
+	int rtn;
+
+	init_musicplay_view();
+
+	rtn = load_appsetting((uchar *)MUSICPLAY_CONFFILE, musicplay_conf);
+	if(rtn < 0) {
+		save_config();
+	}
+	// [TODO] musicplay_confの値に異常がないかチェック
+
+#ifdef GSC_ENABLE_MUSICPLAY_INTERNETRADIO
+	load_network_setting();
+#endif
+
+	prepare_filelist();
+
+	if(backup_crc == minfo_crc) {
+		// SDカードの情報を合っている
+	} else {
+		// SDカードの情報を合っていないので再生ファイル状態は初期化
+		gslog(1, "Reset play file number(CRC:%04X,%04X)\n", backup_crc, minfo_crc);
+		backup_crc = minfo_crc;
+		init_settings_playmusic();
+#ifdef GSC_ENABLE_MUSICPLAY_INTERNETRADIO
+		select_radio_num = 0;
+#endif
+		backup_crc = minfo_crc;
+		save_config();
+	}
+
+	init_sdmusic();
+
+	init_musicinfo_view();
+	init_volume_view();
+	init_config_view();
+	init_settings_view();
+	init_clock_view();
+
+#ifdef GSC_ENABLE_MUSICPLAY_INTERNETRADIO
+	init_radio_ctrl_view();
+
+	if(musicplay_mode == SDCARD) {
+		open_now_sdmusic();
+		if(playbackpos != 0) {
+			soundplay_seek(playbackpos);
+		}
+	}
+#else
+	open_now_sdmusic();
+	if(playbackpos != 0) {
+		soundplay_seek(playbackpos);
+	}
+#endif
+
+	draw_musicplay_view();
 
 	musicplay_proc();
 
@@ -323,6 +317,10 @@ static int musicplay_task(char *arg)
 
 void startup_musicplay(void)
 {
-	task_exec(musicplay_task, "musicplay", TASK_PRIORITY_APP_LOW, &tcb,
+#ifdef GSC_COMP_ENABLE_GSFFS
+	mount_storage(1, DEF_DEV_NAME_QSPI, FSNAME_GSFFS);
+#endif
+
+	task_exec(musicplay_task, "musicplay", TASK_PRIORITY_APP_MID, &tcb,
 		  stack, SIZEOFSTACK, 0);
 }

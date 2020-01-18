@@ -106,7 +106,7 @@ static int netio_read(struct st_device *dev, void *data, unsigned int count)
 	err_t err;
 	long rtn = 0;
 
-	netconn_set_recvtimeout(newconn, nread_timout);//!!!
+	netconn_set_recvtimeout(newconn, nread_timout);
 
 	err = netconn_recv(newconn, &inbuf);
 
@@ -268,7 +268,7 @@ extern struct st_shell_command * const com_list[];
 extern int shell_com_count;
 struct st_shell_command * net_com_list[12]; // [TODO]
 
-int telnetd_task(char *arg)
+int telnetd_task(void *arg)
 {
 	err_t err;
 	int i;

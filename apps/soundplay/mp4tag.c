@@ -13,6 +13,7 @@
 #include "memory.h"
 #include "graphics.h"
 #include "charcode.h"
+#include "artwork.h"
 
 //#define DEBUGTBITS 0x01
 #include "dtprintf.h"
@@ -20,7 +21,7 @@
 
 #define MAX_MP4TAG_BUFSIZE	256
 
-static int box_decode(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek);
+static int box_decode(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur);
 
 static unsigned char tag_header_buf[MP4TAG_HEADER_SIZE];
 static unsigned char tag_buf[MAX_MP4TAG_BUFSIZE + 1];
@@ -54,7 +55,7 @@ static int mp4tag_box_header_decode(unsigned char *tag)
 
 struct st_mp4tag_decode {
 	char box_name[5];
-	int (* decode)(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek);
+	int (* decode)(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur);
 };
 
 static int decode_tag_str(unsigned char *str, unsigned char *tag, int len)
@@ -76,7 +77,7 @@ static int decode_tag_str(unsigned char *str, unsigned char *tag, int len)
 }
 
 
-static int read_data(unsigned char *dest, int box_size, mp4tag_read_func tag_read)
+static int read_data(unsigned char *dest, int box_size, tag_read_func tag_read)
 {
 	int size = 0;
 	int rt = 0;
@@ -90,7 +91,7 @@ static int read_data(unsigned char *dest, int box_size, mp4tag_read_func tag_rea
 	return size;
 }
 
-static int read_box_data(int box_size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int read_box_data(int box_size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
 	int size = 0;
 	int rt = 0;
@@ -102,7 +103,7 @@ static int read_box_data(int box_size, mp4tag_read_func tag_read, mp4tag_read_fu
 			tprintf("box Read Error(size: %d)\n", rt);
 		}
 		size += rt;
-		rt = tag_seek(tag_buf, box_size - MAX_MP4TAG_BUFSIZE);
+		rt = tag_seekcur(box_size - MAX_MP4TAG_BUFSIZE);
 		size += rt;
 	} else {
 		rt = read_data(tag_buf, box_size, tag_read);
@@ -117,7 +118,7 @@ static int read_box_data(int box_size, mp4tag_read_func tag_read, mp4tag_read_fu
 
 static unsigned char *malloc_ptr;
 
-static int malloc_read_box_data(int box_size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int malloc_read_box_data(int box_size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
 	int size = 0;
 	int rt = 0;
@@ -143,36 +144,36 @@ static int malloc_read_box_data(int box_size, mp4tag_read_func tag_read, mp4tag_
  * 各boxデコード
  */
 
-static int decode_ftyp(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_ftyp(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_box_data(size, tag_read, tag_seek);
+	int rt = read_box_data(size, tag_read, tag_seekcur);
 
 	XDUMP(0x02, tag_buf, rt);
 
 	return rt;
 }
 
-static int decode_free(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_free(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_box_data(size, tag_read, tag_seek);
+	int rt = read_box_data(size, tag_read, tag_seekcur);
 
 	XDUMP(0x02, tag_buf, 64);
 
 	return rt;
 }
 
-static int decode_moov(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_moov(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
 	int rt;
 
-	rt = box_decode(info, size, tag_read, tag_seek);
+	rt = box_decode(info, size, tag_read, tag_seekcur);
 
 	return rt;
 }
 
-static int decode_mvhd(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_mvhd(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_box_data(size, tag_read, tag_seek);
+	int rt = read_box_data(size, tag_read, tag_seekcur);
 
 	info->sampling_rate =
 			(((int)tag_buf[12]) << 24) +
@@ -185,9 +186,9 @@ static int decode_mvhd(struct st_music_info *info, int size, mp4tag_read_func ta
 	return rt;
 }
 
-static int decode_stts(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_stts(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_box_data(size, tag_read, tag_seek);
+	int rt = read_box_data(size, tag_read, tag_seekcur);
 
 	XDUMP(0x02, tag_buf, rt);
 
@@ -212,9 +213,55 @@ static int decode_stts(struct st_music_info *info, int size, mp4tag_read_func ta
 	return rt;
 }
 
-static int decode_stsz(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_stsd(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_box_data(12, tag_read, tag_seek);
+	int rsize = 0;
+	int rt;
+
+	rt = read_box_data(8, tag_read, tag_seekcur);
+	rsize += rt;
+	rt = box_decode(info, size, tag_read, tag_seekcur);
+	rsize += rt;
+
+	return rsize;
+}
+
+static int decode_mp4a(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
+{
+	int rsize = 0;
+	int rt;
+
+	rt = read_box_data(28, tag_read, tag_seekcur);
+	rsize += rt;
+	rt = box_decode(info, size, tag_read, tag_seekcur);
+	rsize += rt;
+
+	return rsize;
+}
+
+static int decode_esds(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
+{
+	int rt = read_box_data(size, tag_read, tag_seekcur);
+	int bitrate = 0;
+
+	XDUMP(0x02, tag_buf, rt);
+
+	bitrate =
+			(((int)tag_buf[26]) << 24) +
+			(((int)tag_buf[27]) << 16) +
+			(((int)tag_buf[28]) <<  8) +
+			(((int)tag_buf[29]) <<  0);
+
+	info->bit_rate = bitrate/1000;
+
+	DTPRINTF(0x01, "Bitrate : %d\n", info->bit_rate);
+
+	return rt;
+}
+
+static int decode_stsz(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
+{
+	int rt = read_box_data(12, tag_read, tag_seekcur);
 
 	info->sample_count =
 			(((int)tag_buf[ 8]) << 24) +
@@ -252,40 +299,40 @@ static int decode_stsz(struct st_music_info *info, int size, mp4tag_read_func ta
 	return rt;
 }
 
-static int decode_meta(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_meta(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
 	int rsize = 0;
 	int rt;
 
-	rt = read_box_data(4, tag_read, tag_seek);
+	rt = read_box_data(4, tag_read, tag_seekcur);
 	rsize += rt;
-	rt = box_decode(info, size, tag_read, tag_seek);
+	rt = box_decode(info, size, tag_read, tag_seekcur);
 	rsize += rt;
 
 	return rsize;
 }
 
-static int decode_ilst(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_ilst(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
 	int rt;
 
-	rt = box_decode(info, size, tag_read, tag_seek);
+	rt = box_decode(info, size, tag_read, tag_seekcur);
 
 	return rt;
 }
 
-static int decode_hifn(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_hifn(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_box_data(size, tag_read, tag_seek);
+	int rt = read_box_data(size, tag_read, tag_seekcur);
 
 	XDUMP(0x02, tag_buf, 64);
 
 	return rt;
 }
 
-static int decode_name(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_name(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_box_data(size, tag_read, tag_seek);
+	int rt = read_box_data(size, tag_read, tag_seekcur);
 
 	tag_buf[rt] = 0;
 	DTPRINTF(0x01, "Title : %s\n", (char *)&tag_buf[16]);
@@ -295,9 +342,9 @@ static int decode_name(struct st_music_info *info, int size, mp4tag_read_func ta
 	return rt;
 }
 
-static int decode_art(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_art(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_box_data(size, tag_read, tag_seek);
+	int rt = read_box_data(size, tag_read, tag_seekcur);
 
 	tag_buf[rt] = 0;
 	DTPRINTF(0x01, "Artist : %s\n", (char *)&tag_buf[16]);
@@ -307,9 +354,9 @@ static int decode_art(struct st_music_info *info, int size, mp4tag_read_func tag
 	return rt;
 }
 
-static int decode_alb(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_alb(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_box_data(size, tag_read, tag_seek);
+	int rt = read_box_data(size, tag_read, tag_seekcur);
 
 	tag_buf[rt] = 0;
 	DTPRINTF(0x01, "Album : %s\n", (char *)&tag_buf[16]);
@@ -319,9 +366,9 @@ static int decode_alb(struct st_music_info *info, int size, mp4tag_read_func tag
 	return rt;
 }
 
-static int decode_trkn(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_trkn(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
-	int rt = read_box_data(size, tag_read, tag_seek);
+	int rt = read_box_data(size, tag_read, tag_seekcur);
 
 	DTPRINTF(0x01, "Track : %d/%d\n", (int)tag_buf[19], (int)tag_buf[21]);
 
@@ -348,69 +395,75 @@ void set_mp4_decode_artwork(int flg_env)
 #include "pngdec.h"
 #endif
 
-static int decode_covr(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+//#define DISABLE_DECODE_MULTTASK
+
+static int decode_covr(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
 	int rt;
 
 	if(flg_mp4_decode_artwork != 0) {
 		unsigned char *cover_ptr;
-		rt = malloc_read_box_data(size, tag_read, tag_seek);
+		rt = malloc_read_box_data(size, tag_read, tag_seekcur);
 		cover_ptr = malloc_ptr+16;
 		XDUMP(0x01, cover_ptr, 64);
 
 		if((cover_ptr[0] == 0xff) && (cover_ptr[1] == 0xd8)) {
 			// JPEG
-			DTPRINTF(0x01, "JPEG Decode\n");
+			DTPRINTF(0x04, "JPEG Decode\n");
 #ifdef GSC_LIB_ENABLE_PICOJPEG
-			pjpeg_image_info_t jpeginfo;
-
-			get_jpeg_data_info(cover_ptr, &jpeginfo, 0);
-			DTPRINTF(0x01, "Width = %d, Height = %d\n", jpeginfo.m_width, jpeginfo.m_height);
-			//draw_jpeg(0, 0);
-			void *image = alloc_memory(jpeginfo.m_width * jpeginfo.m_height * sizeof(PIXEL_DATA));
-			decode_jpeg(image);
-			//draw_image(0, 0, jpeginfo.m_width, jpeginfo.m_height, image, jpeginfo.m_width);
-			resize_image(info->artwork, ART_WIDTH, ART_HEIGHT, image, jpeginfo.m_width, jpeginfo.m_height);
-			//draw_image(0, 0, ART_WIDTH, ART_HEIGHT, info->artwork, ART_WIDTH);
-			free_memory(image);
-			info->flg_have_artwork = 1;
+#ifdef DISABLE_DECODE_MULTTASK
+			decode_jpeg_artwork(info, cover_ptr);
+#else
+			decode_jpeg_artwork_bg(info, cover_ptr, malloc_ptr);
+#endif
 #endif
 		} else if(strncomp((const uchar *)cover_ptr, (const uchar *)"\211PNG", 4) == 0) {
 			// PNG
-			DTPRINTF(0x01, "PNG Decode\n");
+			DTPRINTF(0x04, "PNG Decode\n");
 #ifdef GSC_LIB_ENABLE_LIBPNG
-			short width, height;
-
-			get_png_data_info(cover_ptr, &width, &height);
-			DTPRINTF(0x01, "Width = %d, Height = %d\n", width, height);
-			//draw_png(0, 0);
-			void *image = alloc_memory(width * height * 4);
-			decode_png(image);
-			resize_image(info->artwork, ART_WIDTH, ART_HEIGHT, image, width, height);
-			//draw_image(0, 0, ART_WIDTH, ART_HEIGHT, info->artwork, ART_WIDTH);
-			free_memory(image);
-			dispose_png_info();
-			info->flg_have_artwork = 1;
+#ifdef DISABLE_DECODE_MULTTASK
+			decode_png_artwork(info, cover_ptr);
+#else
+			decode_png_artwork_bg(info, cover_ptr, malloc_ptr);
+#endif
 #endif
 		} else {
-			DTPRINTF(0x01, "Unknow format\n");
+			DTPRINTF(0x04, "Unknow format\n");
 		}
+#ifdef DISABLE_DECODE_MULTTASK
 		free_memory(malloc_ptr);
+#endif
 	} else {
-		rt = read_box_data(size, tag_read, tag_seek);
+		rt = read_box_data(size, tag_read, tag_seekcur);
 	}
 
 	return rt;
 }
 
-static int decode_mdat(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_mdat(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
+	int rt = 0;
+	unsigned char buf[MP4TAG_HEADER_SIZE + 4 + 4];
+
 	DTPRINTF(0x01, "Find mdat(%d)\n", size);
 
-	return 0;	// 以後オーディオデータ
+	// "mdat"->"wide" 暫定対策 [TODO]
+	rt = read_data(buf, MP4TAG_HEADER_SIZE + 4 + 4, tag_read);
+	XDUMP(0x01, buf, 16);
+
+	if(strncomp((const uchar *)&buf[4], (const uchar *)"wide", 4) == 0) {
+		DTPRINTF(0x01, "mdat box\n");
+		rt = 0;
+	} else {
+		DTPRINTF(0x01, "mdat no box\n");
+		tag_seekcur(-(MP4TAG_HEADER_SIZE + 4 + 4));
+		rt = 0;
+	}
+
+	return rt;	// 以後オーディオデータ
 }
 
-static int decode_unknown(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int decode_unknown(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
 	int rt;
 	int dsize = 64;
@@ -422,7 +475,7 @@ static int decode_unknown(struct st_music_info *info, int size, mp4tag_read_func
 		 tag_header_buf[7],
 		 size);
 
-	rt = read_box_data(size, tag_read, tag_seek);
+	rt = read_box_data(size, tag_read, tag_seekcur);
 
 	if(rt < dsize) {
 		dsize = rt;
@@ -443,6 +496,9 @@ static struct st_mp4tag_decode mp4tag_decode_list[] = {
 	      { "mdhd", decode_mvhd },
 	      { "minf", decode_moov },
 	        { "stbl", decode_moov },
+	          { "stsd", decode_stsd },
+	            { "mp4a", decode_mp4a },
+	              { "esds", decode_esds },
 	          { "stts", decode_stts },
 	          { "stsz", decode_stsz },
 	  { "udta", decode_moov },
@@ -459,7 +515,7 @@ static struct st_mp4tag_decode mp4tag_decode_list[] = {
 	{ {0, 0, 0, 0, 0}, 0 }
 };
 
-static int box_decode(struct st_music_info *info, int size, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+static int box_decode(struct st_music_info *info, int size, tag_read_func tag_read, tag_seekcur_func tag_seekcur)
 {
 	int rt = 0;
 	int box_size = 0;
@@ -499,7 +555,7 @@ static int box_decode(struct st_music_info *info, int size, mp4tag_read_func tag
 
 			while(p_mp4dec->box_name[0] != 0) {
 				if(strncomp(&tag_header_buf[4], (const unsigned char *)p_mp4dec->box_name, 4) == 0) {
-					rt = p_mp4dec->decode(info, box_size, tag_read, tag_seek);
+					rt = p_mp4dec->decode(info, box_size, tag_read, tag_seekcur);
 					if(rt == 0) {
 						// mdat検出
 						goto end;
@@ -517,7 +573,7 @@ static int box_decode(struct st_music_info *info, int size, mp4tag_read_func tag
 			}
 			// 解析できないbox
 			if(p_mp4dec->box_name[0] == 0) {
-				rt = decode_unknown(info, box_size, tag_read, tag_seek);
+				rt = decode_unknown(info, box_size, tag_read, tag_seekcur);
 				read_size += rt;
 			}
 		}
@@ -529,15 +585,23 @@ end:
 	return read_size;
 }
 
-int mp4tag_decode(struct st_music_info *info, mp4tag_read_func tag_read, mp4tag_read_func tag_seek)
+int mp4tag_decode(struct st_music_info *info, tag_read_func tag_read, tag_seekcur_func tag_seekcur, tag_tell_func tag_tell)
 {
+	int rtn;
+
 	read_size = 0;
 
 	init_music_info(info);
 
 	info->format = MUSIC_FMT_AAC;
 
-	return box_decode(info, 0, tag_read, tag_seek);
+	rtn = box_decode(info, 0, tag_read, tag_seekcur);
+
+	info->frame_start = tag_tell();
+
+	DTPRINTF(0x01, "info->frame_start %d\n", info->frame_start);
+
+	return rtn;
 }
 
 void mp4tag_dispose(struct st_music_info *info)

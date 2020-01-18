@@ -54,6 +54,10 @@ OBJS    = \
 	$(LWIPSRCDIR)/api/sockets.o \
 	$(LWIPSRCDIR)/api/tcpip.o
 
+ifeq ($(TCPIP_ENABLE_SNTP),YES)
+	OBJS +=	$(LWIPSRCDIR)/apps/sntp/sntp.o
+endif
+
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
 

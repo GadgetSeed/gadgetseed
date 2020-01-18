@@ -121,6 +121,7 @@
     これは、実験的な試みです。
 */
 
+#include "sysconfig.h"
 #include "font.h"
 #include "graphics.h"
 #include "str.h"
@@ -135,6 +136,11 @@ extern const struct st_fontset * const * const font_list[];
 
 static struct st_fontset *now_fontset;
 static int font_dmode;
+
+#ifdef GSC_DEV_QSPI_MEMORYMAP
+void lock_qspi(void);
+void unlock_qspi(void);
+#endif
 
 void init_font(void)
 {
@@ -276,7 +282,7 @@ static struct st_font *get_fontdata(unsigned short code)
 		if(now_fontset->w_font != 0) {
 			ft = now_fontset->w_font;
 		} else {
-			ft = now_fontset->font;
+			ft = 0;	//ft = now_fontset->font;
 		}
 #endif
 	}
@@ -287,18 +293,31 @@ static struct st_font *get_fontdata(unsigned short code)
 static signed char *get_char_bitmap(unsigned short code, struct st_font *ft)
 {
 	signed char *fontp = 0;
-	int cseg = (code >> 8);
+	int cseg;
 	int start, end;
-	int lcode = (code & 0xff);
+	int lcode;
 	unsigned int **indexp, *index;
 	unsigned int offset;
 
+	/*
+	  jiskan16から変換した"〜"は0xFF5Eに割当たらない
+	  暫定的に0x301Cの"〜"で描画する
+	  [TODO] bdfフォント変換で"〜"を何とかする？
+	 */
+	if(code == 0xff5e) {
+		DTPRINTF(0x08, "index=0 : code=%04x, cseg=%x\n", code, cseg);
+		code = 0x301c;
+	}
+
+	cseg = (code >> 8);
 	DTPRINTF(0x01, "SEG : %d %04X\n", cseg, code);
 
+	lcode = (code & 0xff);
 	indexp = (unsigned int **)ft->index;
 	index = indexp[cseg];
 	DTPRINTF(0x01, "INDEX : %p\n", index);
 	if(index == 0) {
+		DTPRINTF(0x08, "index=0 : code=%04x, cseg=%x\n", code, cseg);
 		return 0;
 	}
 
@@ -341,6 +360,12 @@ static unsigned char *create_font_bitmap(signed char *fdata, short fwidth, short
 	int slbytes = 0;
 	int i, j;
 
+#ifdef GSC_DEV_QSPI_MEMORYMAP
+#ifdef GSC_COMP_ENABLE_GSFFS
+	lock_qspi();
+#endif
+#endif
+
 	dwidth	= (short)(*(fdata + 0));
 	width	= (short)(*(fdata + 1));
 	height	= (short)(*(fdata + 2));
@@ -349,6 +374,11 @@ static unsigned char *create_font_bitmap(signed char *fdata, short fwidth, short
 
 	if((fwidth == width) && (ox == 0) && (oy == 0)) {
 		DTPRINTF(0x01, "No need to create font bitmap data\n");
+#ifdef GSC_DEV_QSPI_MEMORYMAP
+#ifdef GSC_COMP_ENABLE_GSFFS
+		unlock_qspi();
+#endif
+#endif
 		return (unsigned char *)(fdata + 5);
 	}
 
@@ -408,6 +438,12 @@ static unsigned char *create_font_bitmap(signed char *fdata, short fwidth, short
 		sdata += slbytes;
 	}
 
+#ifdef GSC_DEV_QSPI_MEMORYMAP
+#ifdef GSC_COMP_ENABLE_GSFFS
+	unlock_qspi();
+#endif
+#endif
+
 	// 下の空白
 	if((top+height) < fheight) {
 		int count = (fheight-(top+height)) * dlbytes; 
@@ -461,9 +497,27 @@ unsigned short draw_char(short x, short y, unsigned short ch)
 	}
 
 	dwidth	= (short)(*(ip + 0));
+	if(dwidth < 0) {
+		// フォントデータが壊れているかも
+		return 0;
+	}
 
 	fp = create_font_bitmap(ip, ft->width, ft->height);
+#ifdef GSC_DEV_QSPI_MEMORYMAP
+#ifdef GSC_COMP_ENABLE_GSFFS
+	if(fp >= (unsigned char *)0x90000000) {
+		lock_qspi();
+	}
+#endif
+#endif
 	draw_bitdata(x, y, dwidth, ft->height, fp, (dwidth+7)/8);
+#ifdef GSC_DEV_QSPI_MEMORYMAP
+#ifdef GSC_COMP_ENABLE_GSFFS
+	if(fp >= (unsigned char *)0x90000000) {
+		unlock_qspi();
+	}
+#endif
+#endif
 
 #if DEBUGTBITS > 0
 	{
@@ -489,24 +543,30 @@ unsigned short draw_char(short x, short y, unsigned short ch)
 
    @param[in]	x	描画X座標
    @param[in]	y	描画Y座標
-   @param[in]	ch	描画文字列(UTF-16)
+   @param[in]	ch	描画文字列(UTF-8)
+   @param[in]	maxlen	描画する最大文字列バイト数
 */
-void draw_str(short x, short y, uchar *str)
+void draw_str(short x, short y, uchar *str, unsigned int maxlen)
 {
 	ushort code;
 	int len = 0;
 
 	while((*str) != 0) {
+		int clen = 0;
 		XDUMP(0x02, str, 3);
 #ifdef GSC_FONTS_ENABLE_KANJI
-		len = utf8code_to_utf16code(&code, str);
+		clen = utf8code_to_utf16code(&code, str);
 		DTFPRINTF(0x02, "0x%04X\n", (int)code);
 #else
 		code = *str;
-		len = 1;
+		clen = 1;
 #endif
+		len += clen;
+		if(len > maxlen) {
+			break;
+		}
+		str += clen;
 		x += draw_char(x, y, code);
-		str += len;
 	}
 }
 
@@ -515,7 +575,8 @@ void draw_str(short x, short y, uchar *str)
 
    @param[in]	x	描画X座標
    @param[in]	y	描画Y座標
-   @param[in]	ch	描画文字列(UTF-16)
+   @param[in]	ch	描画文字列(UTF-8)
+   @param[in]	width	描画幅
 */
 void draw_fixed_width_str(short x, short y, uchar *str, short width)
 {
@@ -581,21 +642,22 @@ void draw_wstr(short x, short y, ushort *wstr)
    @param[in]	box	描画範囲四角形
    @param[in]	hattr	横方向属性
    @param[in]	vattr	縦方向属性
-   @param[in]	ch	描画文字列(UTF-16)
+   @param[in]	ch	描画文字列(UTF-8)
 
    @info hattr は @ref FONT_HATTR_LEFT または @ref FONT_HATTR_CENTER または @ref FONT_HATTR_RIGHT が設定可能
    @info vattr は @ref FONT_VATTR_TOP または @ref FONT_VATTR_CENTER または @ref FONT_VATTR_BOTTOM が設定可能
 */
-void draw_str_in_box(struct st_box *box, int hattr, int vattr, unsigned char *str)
+void draw_str_in_box(struct st_box *box, unsigned char hattr, unsigned char vattr, uchar *str)
 {
 	int str_w = 0, str_h = 0;
 	short x = 0, y = 0;
+	int swidth;
 
 	str_w = str_width(str);
 	str_h = font_height();
 
 	DTPRINTF(0x02, "X= %d, Y= %d, W= %d, H= %d\n", box->pos.x, box->pos.y, box->sur.width, box->sur.height);
-	DTPRINTF(0x02, "STR_W= %d, STR_H= %d\n", str_w, str_h);
+	DTPRINTF(0x10, "STR_W= %d, STR_H= %d\n", str_w, str_h);
 
 	switch(hattr) {
 	case FONT_HATTR_LEFT:
@@ -635,7 +697,13 @@ void draw_str_in_box(struct st_box *box, int hattr, int vattr, unsigned char *st
 
 	DTPRINTF(0x02, "DX= %d, DY= %d\n", x, y);
 
-	draw_str(x, y, str);
+	if(box->sur.width > str_w) {
+		swidth = str_w;
+	} else {
+		swidth = box->sur.width;
+	}
+
+	draw_fixed_width_str(x, y, str, swidth);
 }
 
 /**
@@ -670,7 +738,7 @@ unsigned short font_width(unsigned short ch)
 /**
    @brief	カレントフォントセットの文字列幅を取得する
 
-   @param	str	文字列幅を取得する文字の文字コード(UTF-16)
+   @param	str	文字列幅を取得する文字の文字コード(UTF-8)
 
    @return	文字列幅
 */

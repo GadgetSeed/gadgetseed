@@ -16,13 +16,14 @@
 
 #ifdef GSC_TARGET_SYSTEM_STM32F769IDISCOVERY
 #include "stm32f769i_discovery_sd.h"
+#define ENABLE_SDMMC_DMA	/// DMA転送を使用する
 #define SDMMC_IRQn	SDMMC2_IRQn
 #elif defined(GSC_TARGET_SYSTEM_STM32F746GDISCOVERY)
 #include "stm32746g_discovery_sd.h"
+//#define ENABLE_SDMMC_DMA	/// DMA転送を使用する(STM32F746GはなぜかEtherと同時に使うと？正しく読めない。キャッシュの問題？)
 #define SDMMC_IRQn	SDMMC1_IRQn
 #endif
 
-#define ENABLE_SDMMC_DMA	/// DMA転送を使用する
 #define SD_TIMEOUT (3*1000)
 
 //#define DEBUGKBITS 0x13
@@ -345,14 +346,14 @@ static int sdmmc_ioctl(struct st_device *dev, unsigned int com, unsigned int arg
 
 	BSP_SD_GetCardInfo(&cardInfo);
 
-	DKPRINTF(0x02, "CardType     = %u\n", cardInfo.CardType);
-	DKPRINTF(0x02, "CardVersion  = %u\n", cardInfo.CardVersion);
-	DKPRINTF(0x02, "Class        = %u\n", cardInfo.Class);
-	DKPRINTF(0x02, "RelCardAdd   = %u\n", cardInfo.RelCardAdd);
-	DKPRINTF(0x02, "BlockNbr     = %u\n", cardInfo.BlockNbr);
-	DKPRINTF(0x02, "BlockSize    = %u\n", cardInfo.BlockSize);
-	DKPRINTF(0x02, "LogBlockNbr  = %u\n", cardInfo.LogBlockNbr);
-	DKPRINTF(0x02, "LogBlockSize = %u\n", cardInfo.LogBlockSize);
+	DKPRINTF(0x02, "CardType     = %u\n", (unsigned int)cardInfo.CardType);
+	DKPRINTF(0x02, "CardVersion  = %u\n", (unsigned int)cardInfo.CardVersion);
+	DKPRINTF(0x02, "Class        = %u\n", (unsigned int)cardInfo.Class);
+	DKPRINTF(0x02, "RelCardAdd   = %u\n", (unsigned int)cardInfo.RelCardAdd);
+	DKPRINTF(0x02, "BlockNbr     = %u\n", (unsigned int)cardInfo.BlockNbr);
+	DKPRINTF(0x02, "BlockSize    = %u\n", (unsigned int)cardInfo.BlockSize);
+	DKPRINTF(0x02, "LogBlockNbr  = %u\n", (unsigned int)cardInfo.LogBlockNbr);
+	DKPRINTF(0x02, "LogBlockSize = %u\n", (unsigned int)cardInfo.LogBlockSize);
 
 	switch(com) {
 	case IOCMD_SD_GET_SECTOR_COUNT:
