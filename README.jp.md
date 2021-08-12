@@ -45,11 +45,20 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
 
 | ハードウェア                          | MCU           | アーキテクチャ |
 |---------------------------------------|---------------|----------------|
+| [32H747IDISCOVERY](#32H747IDISCOVERY) | STM32H747XIH6 | ARM Cortex-H7  |
 | [32F769IDISCOVERY](#32F769IDISCOVERY) | STM32F769NIH6 | ARM Cortex-M7  |
 | [32F746GDISCOVERY](#32F746GDISCOVERY) | STM32F746NGH6 | ARM Cortex-M7  |
 | [32F469IDISCOVERY](#32F469IDISCOVERY) | STM32F469NIH6 | ARM Cortex-M4  |
 | [NUCLEO-F411RE](#NUCLEO-F4x1RE)       | STM32F411RET6 | ARM Cortex-M4  |
 | [NUCLEO-L152RE](#NUCLEO-L152RE)       | STM32L152RET6 | ARM Cortex-M3  |
+
+<a name="32H747IDISCOVERY"></a>
+### 32H747IDISCOVERY
+
+![32H747IDISCOVERY](https://www.st.com/bin/ecommerce/api/image.PF265379.en.feature-description-include-personalized-no-cpn-medium.jpg)
+
+<https://www.st.com/en/evaluation-tools/stm32h747i-disco.html>[English]  
+<https://www.st.com/ja/evaluation-tools/stm32h747i-disco.html>[Japanese]
 
 <a name="32F769IDISCOVERY"></a>
 ### 32F769IDISCOVERY
@@ -62,7 +71,7 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
 <a name="32F746GDISCOVERY"></a>
 ### 32F746GDISCOVERY
 
-![STM32F746G-Discovery](https://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/group0/ea/c4/6d/73/c3/f5/46/e2/stm32f746g-disco/files/stm32f746g-disco.jpg/_jcr_content/translations/en.stm32f746g-disco.jpg)
+![STM32F746G-Discovery](https://www.st.com/bin/ecommerce/api/image.PF261641.en.feature-description-include-personalized-no-cpn-medium.jpg)
 
 <https://www.st.com/en/evaluation-tools/32f746gdiscovery.html>[English]  
 <https://www.st.com/ja/evaluation-tools/32f746gdiscovery.html>[Japanese]
@@ -104,7 +113,7 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
 
    ![GadgetSeed](gadgetseed_devenv.png)
 
-### Ubuntu 18.04の場合
+### Ubuntu 20.04の場合
 
 1. STM32Cube HAL + LL Driversのインストール
 
@@ -113,6 +122,7 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
    ```sh
    mkdir -p ~/STM32Cube/Repository
    cd ~/STM32Cube/Repository
+   git clone https://github.com/STMicroelectronics/STM32CubeH7.git
    git clone https://github.com/STMicroelectronics/STM32CubeF7.git
    git clone https://github.com/STMicroelectronics/STM32CubeF4.git
    git clone https://github.com/STMicroelectronics/STM32CubeL1.git
@@ -128,23 +138,23 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
 
    <https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads>
 
-   上記サイトから GNU Arm Embedded Toolchain("gcc-arm-none-eabi-8-2018-q4-major-linux.tar.bz2") をダウンロードしてください。
+   上記サイトから GNU Arm Embedded Toolchain("gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2") をダウンロードしてください。
 
    インストール
    ```sh
-   sudo tar xvfj gcc-arm-none-eabi-8-2018-q4-major-linux.tar.bz2 -C /opt
+   sudo tar xvfj gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2 -C /opt
    ```
 
    実行パスの設定
    ```sh
-   PATH=$PATH:/opt/gcc-arm-none-eabi-8-2018-q4-major/bin
+   PATH=$PATH:/opt/gcc-arm-none-eabi-10-2020-q4-major/bin
    ```
    上記は .bash_aliases 等に追記することを推奨します。
 
 1. make gcc openocd picocom等ツールのインストール
 
    ```sh
-   sudo apt install -y git make gcc unzip openocd picocom otf2bdf p7zip-full
+   sudo apt install -y git make gcc unzip openocd picocom otf2bdf p7zip-full gawk
    ```
 
 <!--

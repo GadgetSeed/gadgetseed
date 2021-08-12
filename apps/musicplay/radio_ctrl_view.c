@@ -7,6 +7,7 @@
 
 #include "sysconfig.h"
 #include "str.h"
+#include "key.h"
 #include "graphics.h"
 #include "graphics_object.h"
 #include "font.h"
@@ -442,6 +443,40 @@ void do_on_off_radio(void)
 	}
 }
 
+static void do_next_radio(void)
+{
+	tprintf("RADIO NEXT\n");
+	next_radio_play();
+	draw_track_view();
+	switch(radio_disp_mode) {
+	case MODE_RADIO_INFO:
+		draw_musicinfo_view();
+		break;
+
+	case MODE_RADIO_SEL:
+		draw_radiolist_view();
+		break;
+	}
+	save_config();
+}
+
+static void do_prev_radio(void)
+{
+	tprintf("RADIO PREV\n");
+	prev_radio_play();
+	draw_track_view();
+	switch(radio_disp_mode) {
+	case MODE_RADIO_INFO:
+		draw_musicinfo_view();
+		break;
+
+	case MODE_RADIO_SEL:
+		draw_radiolist_view();
+		break;
+	}
+	save_config();
+}
+
 void radio_ctrl_proc(struct st_sysevent *event)
 {
 	struct st_button_event obj_evt;
@@ -457,37 +492,13 @@ void radio_ctrl_proc(struct st_sysevent *event)
 
 		case UO_ID_RADIO_NEXT:
 			if(obj_evt.what == UI_BUTTON_EVT_PUSH) {
-				tprintf("RADIO NEXT\n");
-				next_radio_play();
-				draw_track_view();
-				switch(radio_disp_mode) {
-				case MODE_RADIO_INFO:
-					draw_musicinfo_view();
-					break;
-
-				case MODE_RADIO_SEL:
-					draw_radiolist_view();
-					break;
-				}
-				save_config();
+				do_next_radio();
 			}
 			break;
 
 		case UO_ID_RADIO_PREV:
 			if(obj_evt.what == UI_BUTTON_EVT_PUSH) {
-				tprintf("RADIO PREV\n");
-				prev_radio_play();
-				draw_track_view();
-				switch(radio_disp_mode) {
-				case MODE_RADIO_INFO:
-					draw_musicinfo_view();
-					break;
-
-				case MODE_RADIO_SEL:
-					draw_radiolist_view();
-					break;
-				}
-				save_config();
+				do_prev_radio();
 			}
 			break;
 
@@ -522,5 +533,23 @@ void radio_ctrl_proc(struct st_sysevent *event)
 		default:
 			break;
 		}
+	}
+
+
+	switch(event->what) {
+	case EVT_KEYDOWN:
+		switch(event->arg) {
+		case KEY_GB_LEFT:
+			do_prev_radio();
+			break;
+
+		case KEY_GB_RIGHT:
+			do_next_radio();
+			break;
+
+		default:
+			break;
+		}
+		break;
 	}
 }

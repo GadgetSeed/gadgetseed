@@ -1,5 +1,7 @@
 include $(PRJ_DIR)/common.mk
 
+TARGET_HAL_VER = "FW.F4.1.26.0"
+
 ifdef STM32CUBE_HAL_ARCH	# $gsc STM32Cubeターゲット指定
 CFLAGS	+= -D$(STM32CUBE_HAL_ARCH)
 endif
@@ -96,6 +98,9 @@ ifeq ($(TARGET_SYSTEM_32F469IDISCOVERY),YES)
 LCD_SRC  = $(HAL_DIR)/Drivers/BSP/Components/otm8009a/otm8009a.c
 LCD_OBJ  = $(addprefix $(OBJDIR)/, $(notdir $(LCD_SRC:.c=.o)))
 OBJS     += $(LCD_OBJ)
+LCD2_SRC  = $(HAL_DIR)/Drivers/BSP/Components/nt35510/nt35510.c
+LCD2_OBJ  = $(addprefix $(OBJDIR)/, $(notdir $(LCD2_SRC:.c=.o)))
+OBJS     += $(LCD2_OBJ)
 
 TSD_SRC  = $(HAL_DIR)/Drivers/BSP/Components/ft6x06/ft6x06.c
 TSD_OBJ  = $(addprefix $(OBJDIR)/, $(notdir $(TSD_SRC:.c=.o)))
@@ -119,6 +124,9 @@ $(TSD_OBJ): $(TSD_SRC)
 $(LCD_OBJ): $(LCD_SRC)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
+$(LCD2_OBJ): $(LCD2_SRC)
+	$(CC) $(CFLAGS) -o $@ -c $<
+
 .c.o:
 	$(CC) $(CFLAGS) -o $@ -c $<
 
@@ -129,14 +137,18 @@ inthdr.s: mkinthdr.awk
 	awk -f mkinthdr.awk > $@
 
 halver.c:
+	echo $(TARGET_HAL_VER)
 	echo "const char hal_ver[] = \"$(HAL_VER)\";" > halver.c
+	@if grep $(TARGET_HAL_VER) halver.c ; then echo "HAL version OK"; else echo "\033[0;31mwarning: HAL version is unmatch\n" \
+		"Target HAL Version      :" $(TARGET_HAL_VER) "\n" \
+		"Development environment :" $(HAL_VER) "\033[0;39m" ; fi
 
 $(LIB): $(OBJS) $(SOBJS) $(SYSOBJ) $(HALOBJS) $(MAKECONFIGSYS)
 	$(AR) rc $(LIB) $(OBJS) $(SOBJS) $(SYSOBJ) $(HALOBJS)
 	$(RANLIB) $(LIB)
 
 clean:
-	rm -f -r inthdr.[os] $(OBJS) $(SOBJS) $(SYSOBJ) $(HALOBJS) $(LIB) $(DEPEND)
+	rm -f -r inthdr.[os] $(OBJS) $(SOBJS) $(SYSOBJ) $(HALOBJS) $(LIB) $(DEPEND) halver.c
 
 include $(PRJ_DIR)/rules.mk
 

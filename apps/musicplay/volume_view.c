@@ -13,6 +13,7 @@
 #include "font.h"
 #include "tprintf.h"
 #include "shell.h"
+#include "key.h"
 #include "ui_button.h"
 #include "ui_seekbar.h"
 #include "ui_statictext.h"
@@ -356,6 +357,30 @@ void set_volume(unsigned short vol)
 	set_now_volume(volume);
 }
 
+static void up_volune(void)
+{
+	if(volume < VOL_MAX) {
+		volume ++;
+		set_now_volume(volume);
+		if(flg_mute != 0) {
+			flg_mute = 0;
+			set_mute_button_notmute();
+		}
+	}
+}
+
+static void down_volume(void)
+{
+	if(VOL_MIN < volume) {
+		volume --;
+		set_now_volume(volume);
+		if(flg_mute != 0) {
+			flg_mute = 0;
+			set_mute_button_notmute();
+		}
+	}
+}
+
 void volume_proc(struct st_sysevent *event)
 {
 	struct st_button_event obj_evt;
@@ -368,14 +393,7 @@ void volume_proc(struct st_sysevent *event)
 			switch(obj_evt.what) {
 			case UI_BUTTON_EVT_PUSH:
 			case UI_BUTTON_EVT_REPEAT:
-				if(volume < VOL_MAX) {
-					volume ++;
-					set_now_volume(volume);
-					if(flg_mute != 0) {
-						flg_mute = 0;
-						set_mute_button_notmute();
-					}
-				}
+				up_volune();
 				break;
 			}
 			switch(obj_evt.what) {
@@ -389,14 +407,7 @@ void volume_proc(struct st_sysevent *event)
 			switch(obj_evt.what) {
 			case UI_BUTTON_EVT_PUSH:
 			case UI_BUTTON_EVT_REPEAT:
-				if(VOL_MIN < volume) {
-					volume --;
-					set_now_volume(volume);
-					if(flg_mute != 0) {
-						flg_mute = 0;
-						set_mute_button_notmute();
-					}
-				}
+				down_volume();
 				break;
 			}
 			switch(obj_evt.what) {
@@ -451,6 +462,22 @@ void volume_proc(struct st_sysevent *event)
 	}
 
 	switch(event->what) {
+	case EVT_KEYDOWN:
+	case EVT_KEYDOWN_REPEAT:
+		switch(event->arg) {
+		case KEY_GB_UP:
+			up_volune();
+			break;
+
+		case KEY_GB_DOWN:
+			down_volume();
+			break;
+
+		default:
+			break;
+		}
+		break;
+
 	case EVT_SOUND_VOLUME:
 		DTPRINTF(0x01, "volume = %d\n", event->arg);
 		set_disp_volume(event->arg);

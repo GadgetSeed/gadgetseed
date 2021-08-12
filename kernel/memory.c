@@ -45,7 +45,7 @@
 #include "tkprintf.h"
 #include "str.h"
 
-//#define DEBUGKBITS 0x03
+//#define DEBUGKBITS 0x10
 #include "dkprintf.h"
 
 
@@ -183,7 +183,9 @@ void * alloc_memory(unsigned int size)
 
 	return (void *)(p+1);
 #else
+	DKPRINTF(0x10, "alloc size = %08X(%u)\n", size, size);
 	void *mp = malloc(size);
+	DKPRINTF(0x10, "alloc addr = %p\n", mp);
 
 	if(mp == 0) {
 		SYSERR_PRINT("alloc error(size = %d)\n", size);
@@ -233,6 +235,7 @@ void free_memory(void *ptr)
 	}
 	freep = p;
 #else
+	DKPRINTF(0x10, "free addr = %p\n", ptr);
 	free(ptr);
 #endif
 }

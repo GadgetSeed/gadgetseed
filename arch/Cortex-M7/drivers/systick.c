@@ -14,7 +14,11 @@
 #include "tkprintf.h"
 #include "task/task.h"
 
+#ifdef GSC_TARGET_SYSTEM_STM32H747IDISCOVERY
+#include "stm32h7xx_hal.h"
+#else
 #include "stm32f7xx_hal.h"
+#endif
 
 static unsigned long long timer_count = 0;
 
@@ -44,7 +48,8 @@ void inthdr_systick(unsigned int intnum, void *sp)
 */
 static void start_systick(void)
 {
-	int clock = HAL_RCC_GetHCLKFreq();
+	//int clock = HAL_RCC_GetHCLKFreq();
+	int clock = HAL_RCC_GetSysClockFreq();
 
 	HAL_SYSTICK_Config(clock/1000 * GSC_KERNEL_TIMER_INTERVAL_MSEC);
 	tkprintf("System Clock : %d MHz\n", clock/1000000);

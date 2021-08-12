@@ -74,6 +74,11 @@ KERNEL_LIB = $(KERNEL_DIR)/kernel.a
 ARCH_DIR = arch/$(ARCH)
 ARCH_LIB = $(ARCH_DIR)/arch.a
 
+ifeq ($(TARGET_SYSTEM_STM32H747IDISCOVERY),YES)
+ARCH_LIB += $(HOME)/STM32Cube/Repository/STM32CubeH7/Projects/STM32H747I-DISCO/Demonstrations/STemWin/Modules/audio_player/Addons/PDM/Lib/libPDMFilter_CM7_GCC_wc32.a
+endif
+
+
 DRIVERS_DIR = drivers
 DRIVERS_LIB = $(DRIVERS_DIR)/drivers.a
 
@@ -414,6 +419,7 @@ configclean:
 	rm -f $(ARCHHEADER) $(SYSCONFHEADER) $(TARGETCONFIGMAKE)
 
 objclean:
+	rm -f $(OBJS) $(LIB) $(DEPEND)
 ifdef APPLICATION
 	make -C $(APPS_DIR)/$(APPLICATION) clean
 endif
@@ -478,7 +484,7 @@ endif
 	rm -f -r $(DEPEND)
 
 progclean:
-	rm -f -r $(PROGRAM)
+	rm -f -r $(PROGRAM) $(PROGRAM:.elf=.hex)
 
 clean:
 	make objclean
@@ -510,7 +516,7 @@ distclean:
 	rm -f -r $(DEPEND)
 
 binclean:
-	rm -f *.elf *.hex gs-emu-* gadgetseed
+	rm -f *.elf *.hex *.map gs-emu-* gadgetseed
 
 logclean:
 	rm -f *.log *.k

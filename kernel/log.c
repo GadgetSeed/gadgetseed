@@ -25,7 +25,7 @@ int flg_disp_logtimestamp = 0;
 #endif
 
 #ifndef GSC_LOG_DISPLOGPRI
-#define GSC_LOG_DISPLOGPRI	0	// $gsc 表示するログ優先順位
+#define GSC_LOG_DISPLOGPRI	1	// $gsc 表示するログ優先順位
 #endif
 
 static int record_log_pri = GSC_LOG_RECORDLOGPRI;

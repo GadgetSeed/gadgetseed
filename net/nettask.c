@@ -57,11 +57,13 @@
 #define NETWORK_STATCHECK_INTARVAL	500
 
 
-struct netif netif;
+struct netif gv_netif;
 static ip_addr_t ipaddr, netmask, gateway, dnsserver[DNS_MAX_SERVERS];
 
 static void init_netifs(void)
 {
+	struct netif *netif;
+
 #ifdef GSC_TCPIP_DEFAULT_IPADDR	// $gsc TCP/IPデフォルトIPアドレス
 	DKPRINTF(0x01, "IP Address      : %s\n", GSC_TCPIP_DEFAULT_IPADDR);
 	ip4addr_aton(GSC_TCPIP_DEFAULT_IPADDR, &ipaddr);
@@ -75,12 +77,15 @@ static void init_netifs(void)
 	ip4addr_aton(GSC_TCPIP_DEFAULT_GATEWAY, &gateway);
 #endif
 
-	netif_set_default(netif_add(&netif, &ipaddr, &netmask, &gateway,
-				    NULL,
-				    devif_init,
-				    tcpip_input
-				    )
-			  );
+	netif = netif_add(&gv_netif, &ipaddr, &netmask, &gateway, NULL,
+			  devif_init,
+			  tcpip_input);
+	if(netif == NULL) {
+		SYSERR_PRINT("netif_add error");
+		return;
+	}
+
+	netif_set_default(netif);
 
 #ifdef GSC_TCPIP_DEFAULT_DNSSERVER	// $gsc DNSサーバアドレス
 	DKPRINTF(0x01, "DNS Address     : %s\n", GSC_TCPIP_DEFAULT_DNSSERVER);
@@ -94,7 +99,7 @@ static void init_netifs(void)
 #endif
 	dns_setserver(1, &dnsserver[1]);
 
-	netif_set_up(&netif);
+	netif_set_up(netif);
 }
 
 static void tcpip_init_done(void *arg)
@@ -108,7 +113,7 @@ static void start_dhcp(void)
 {
 	err_t rt = ERR_OK;
 
-	dhcp_start(&netif);
+	dhcp_start(&gv_netif);
 
 	if(rt == ERR_OK) {
 		gslog(0, "DHCP Start\n");
@@ -119,7 +124,7 @@ static void start_dhcp(void)
 
 static void stop_dhcp(void)
 {
-	dhcp_release_and_stop(&netif);
+	dhcp_release_and_stop(&gv_netif);
 
 	gslog(0, "DHCP Stop\n");
 }
@@ -227,9 +232,9 @@ int net_task(void *arg)
 			      (stat & IORTN_BIT_ETHER_FULLDUPLEX) ? "Full" : "Half");
 
 			if(stat & IORTN_BIT_ETHER_LINK_UP) {
-				netif_set_link_up(&netif);
+				netif_set_link_up(&gv_netif);
 			} else {
-				netif_set_link_down(&netif);
+				netif_set_link_down(&gv_netif);
 			}
 
 			if(stat & IORTN_BIT_ETHER_LINK_UP) {
@@ -241,7 +246,7 @@ int net_task(void *arg)
 			flg_link_stat = stat;
 		}
 
-		stat = dhcp_supplied_address(&netif);
+		stat = dhcp_supplied_address(&gv_netif);
 		if(flg_dhcp_stat != stat) {
 			if(stat != 0) {
 				gslog(0, "DHCP Bound\n");

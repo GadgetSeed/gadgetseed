@@ -11,7 +11,11 @@
 #include "tkprintf.h"
 #include "system.h"
 
+#ifdef GSC_TARGET_SYSTEM_STM32H747IDISCOVERY
+#include "stm32h7xx_hal.h"
+#else
 #include "stm32f7xx_hal.h"
+#endif
 
 //#define DEBUGKBITS 0x03
 #include "dkprintf.h"
@@ -27,12 +31,33 @@ void MX_RTC_Init(void)
 	RTC_DateTypeDef sDate;
 	RTC_AlarmTypeDef sAlarm;
 #endif
+#ifndef GSC_TARGET_SYSTEM_STM32H747IDISCOVERY
 	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
 
 	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
 	PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
 	HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
-  
+#else
+	RCC_OscInitTypeDef        RCC_OscInitStruct;
+	RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
+
+	RCC_OscInitStruct.OscillatorType =  RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_LSE;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+	RCC_OscInitStruct.LSIState = RCC_LSI_OFF;
+	if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+		SYSERR_PRINT("HAL_RCC_OscConfig ERROR\n");
+	}
+
+	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+	PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
+	if(HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
+		SYSERR_PRINT("HAL_RCCEx_PeriphCLKConfig ERROR\n");
+	}
+	/* Configures the External Low Speed oscillator (LSE) drive capability */
+	__HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_HIGH);
+#endif
+
 	/**Initialize RTC and set the Time and Date 
 	 */
 	hrtc.Instance = RTC;

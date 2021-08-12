@@ -80,7 +80,7 @@ void display_bunner(void)
 
 	tkprintf(NORMAL_COLOR "\n");
 	tkprintf("GadgetSeed Ver. %s\n", os_version);
-	tkprintf("(c)2010-2020 Takashi SHUDO\n");
+	tkprintf("(c)2010-2021 Takashi SHUDO\n");
 	tkprintf("CPU ARCH     : %s\n", arch_name);
 	tkprintf("CPU NAME     : %s\n", cpu_name);
 	tkprintf("SYSTEM       : %s\n", system_name);
@@ -91,7 +91,6 @@ void display_bunner(void)
 #endif
 }
 
-extern void init_sect(void);
 extern int initial_task(void *arg);
 
 static struct st_tcb init_task_tcb;

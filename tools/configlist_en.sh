@@ -1,6 +1,7 @@
 sh ./tools/configsearch.sh n > cfgname.tmp
 sh ./tools/configsearch.sh d > cfgdisc.tmp
-/usr/local/bin/trans -b ja:en -e bing -i cfgdisc.tmp > cfgdisc_en.tmp
+/usr/local/bin/trans -b ja:en -i cfgdisc.tmp > cfgdisc_en.tmp
+#/usr/local/bin/trans -b ja:en -e bing -i cfgdisc.tmp > cfgdisc_en.tmp
 paste -d , cfgname.tmp cfgdisc_en.tmp > cfglist.tmp
 
 echo "# GadgetSeed Configuration\n"

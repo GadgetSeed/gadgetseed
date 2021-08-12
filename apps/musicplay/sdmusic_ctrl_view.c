@@ -7,6 +7,7 @@
 
 #include "sysconfig.h"
 #include "str.h"
+#include "key.h"
 #include "graphics.h"
 #include "graphics_object.h"
 #include "font.h"
@@ -412,6 +413,24 @@ void do_play_pause(void)
 	}
 }
 
+static void do_ff_sdmusic(void)
+{
+	tprintf("FF\n");
+	stop_sdmusic_play();
+	ff_sdmusic_play();
+	open_now_sdmusic();
+	//save_config();
+}
+
+static void do_fr_sdmusic(void)
+{
+	tprintf("FR\n");
+	stop_sdmusic_play();
+	fr_sdmusic_play();
+	open_now_sdmusic();
+	//save_config();
+}
+
 void sdmusic_ctrl_proc(struct st_sysevent *event)
 {
 	struct st_button_event obj_evt;
@@ -427,21 +446,13 @@ void sdmusic_ctrl_proc(struct st_sysevent *event)
 
 		case UO_ID_FF:
 			if(obj_evt.what == UI_BUTTON_EVT_PUSH) {
-				tprintf("FF\n");
-				stop_sdmusic_play();
-				ff_sdmusic_play();
-				open_now_sdmusic();
-				//save_config();
+				do_ff_sdmusic();
 			}
 			break;
 
 		case UO_ID_FR:
 			if(obj_evt.what == UI_BUTTON_EVT_PUSH) {
-				tprintf("FR\n");
-				stop_sdmusic_play();
-				fr_sdmusic_play();
-				open_now_sdmusic();
-				//save_config();
+				do_fr_sdmusic();
 			}
 			break;
 
@@ -485,5 +496,22 @@ void sdmusic_ctrl_proc(struct st_sysevent *event)
 		default:
 			break;
 		}
+	}
+
+	switch(event->what) {
+	case EVT_KEYDOWN:
+		switch(event->arg) {
+		case KEY_GB_LEFT:
+			do_fr_sdmusic();
+			break;
+
+		case KEY_GB_RIGHT:
+			do_ff_sdmusic();
+			break;
+
+		default:
+			break;
+		}
+		break;
 	}
 }

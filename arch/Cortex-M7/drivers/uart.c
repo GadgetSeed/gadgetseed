@@ -32,6 +32,8 @@
 #include "stm32f7xx_hal_uart.h"
 #include "stm32f7xx_hal_uart_ex.h"
 
+#define DEFAULT_BAUDRATE	115200
+
 #if defined(GSC_TARGET_SYSTEM_STM32F769IDISCOVERY)
  #define USART_TxPin	GPIO_PIN_9
  #define USART_RxPin	GPIO_PIN_10
@@ -99,6 +101,7 @@ static void init_gpio_uart6(void)
 #define	MAXBUFSIZE	256
 
 struct st_uart_data {
+	unsigned char rdata;
 	struct st_fifo rfifo;
 	unsigned char rbuf[MAXBUFSIZE];
 
@@ -108,12 +111,34 @@ struct st_uart_data {
 	struct st_event tx_evq;
 
 	UART_HandleTypeDef huart;
+
+	unsigned char flg_txc;
+	unsigned char flg_rxc;
 };
 
 const struct st_device uart1_device;
 const struct st_device uart6_device;
 
 static struct st_uart_data uart_data[3];
+
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart == &(uart_data[0].huart)) {
+		uart_data[0].flg_txc = 1;
+	} else if(huart == &(uart_data[2].huart)) {
+		uart_data[2].flg_txc = 1;
+	}
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart == &(uart_data[0].huart)) {
+		uart_data[0].flg_rxc = 1;
+	} else if(huart == &(uart_data[2].huart)) {
+		uart_data[2].flg_rxc = 1;
+	}
+}
 
 static void init_uart(struct st_uart_data *uart_dt, USART_TypeDef *uart, int speed)
 {
@@ -138,61 +163,40 @@ static void init_uart(struct st_uart_data *uart_dt, USART_TypeDef *uart, int spe
 
 void inthdr_uart(unsigned int intnum, void *sp)
 {
-	unsigned char rd;
 	struct st_uart_data *uart_dt;
 	UART_HandleTypeDef *huart;
-	USART_TypeDef *uart;
 
 	//tkprintf("UART int(%ld)\n", intnum);
 	if(intnum == IRQ2VECT(USART1_IRQn)) {
 		uart_dt = &uart_data[0];
 	} else if(intnum == IRQ2VECT(USART6_IRQn)) {
-		uart_dt = &uart_data[1];
+		uart_dt = &uart_data[2];
 	} else {
 		return;
 	}
 	huart = &(uart_dt->huart);
-	uart = huart->Instance;
 
-	if(uart->ISR & USART_ISR_RXNE) {
-		uart->ICR = USART_ICR_ORECF | USART_ICR_NCF | USART_ICR_FECF | USART_ICR_PECF;
-		rd = uart->RDR;
-		if(write_fifo(&(uart_dt->rfifo), &rd, 1) == 0) {	// FIFOへ格納
+	HAL_UART_IRQHandler(huart);
+
+	if(uart_dt->flg_txc != 0) {
+		uart_dt->flg_txc = 0;
+		if(uart_dt->flg_rxc == 0) {
+			event_wakeup_ISR(sp, &(uart_dt->tx_evq), 0);
+		} else {
+			event_push_ISR(sp, &(uart_dt->tx_evq), 0);
+		}
+	}
+
+	if(uart_dt->flg_rxc != 0) {
+		uart_dt->flg_rxc = 0;
+		if(write_fifo(&(uart_dt->rfifo), &(uart_dt->rdata), 1) == 0) {	// FIFOへ格納
 			// SYSERR_PRINT("FIFO Over Flow\n");
 		}
-
-#if 0	// DEBUG
-		if(uart_dt == &uart_data[1]) {
-			tkprintf("%c", rd);
-		}
-#endif
+		HAL_UART_Receive_IT(&(uart_data->huart), &(uart_dt->rdata), 1);
 		event_wakeup_ISR(sp, &(uart_dt->rx_evq), 0);
 	}
 
-	if(uart->ISR & USART_ISR_PE) {
-		uart->ISR &= ~(USART_ISR_PE);
-		// SYSERR_PRINT("USART Parity Error\n");
-	}
-
-	if(uart->ISR & USART_ISR_FE) {
-		uart->ISR &= ~(USART_ISR_FE);
-		// SYSERR_PRINT("USART Framing Error\n");
-	}
-
-	if(uart->ISR & USART_ISR_NE) {
-		uart->ISR &= ~(USART_ISR_NE);
-		// SYSERR_PRINT("USART Noise Error\n");
-	}
-
-	if(uart->ISR & USART_ISR_ORE) {
-		uart->ISR &= ~(USART_ISR_ORE);
-		// SYSERR_PRINT("USART OverRun Error\n");
-	}
-
-	if(uart->ISR & USART_ISR_TXE) {
-		uart->CR1 &= ~(USART_CR1_TXEIE);
-		event_wakeup_ISR(sp, &(uart_dt->tx_evq), 0);
-	}
+	return;
 }
 
 /*
@@ -223,7 +227,9 @@ static int uart_init(struct st_device *dev, char *param)
 
 		init_rcc_uart1();
 		init_gpio_uart1();
-		init_uart(uart_data, USART1, 115200);
+		init_uart(uart_data, USART1, DEFAULT_BAUDRATE);
+
+		HAL_UART_Receive_IT(&(uart_data->huart), &(uart_data->rdata), 1);
 	} else if(dev == &uart6_device) {
 		eventqueue_register_ISR(&(uart_data->rx_evq),
 					uart_rx_eventqueue_name[1], 0, 0, 0);
@@ -234,7 +240,9 @@ static int uart_init(struct st_device *dev, char *param)
 
 		init_rcc_uart6();
 		init_gpio_uart6();
-		init_uart(uart_data, USART6, 115200);
+		init_uart(uart_data, USART6, DEFAULT_BAUDRATE);
+
+		HAL_UART_Receive_IT(&(uart_data->huart), &(uart_data->rdata), 1);
 	} else {
 		return -1;
 	}
@@ -262,30 +270,27 @@ static int uart_getc(struct st_device *dev, unsigned char *rd)
 
 static int uart_putc(struct st_device *dev, unsigned char td)
 {
-	USART_TypeDef *uart = ((struct st_uart_data *)(dev->private_data))->huart.Instance;
-#if 1
+	struct st_uart_data *uart_data = (dev->private_data);
+	UART_HandleTypeDef *huart;
+	HAL_StatusTypeDef res = HAL_BUSY;
 	int timeout = UART_TC_TIMEOUT;
 
-	while(!(uart->ISR & USART_ISR_TC)) {
+	huart = &(uart_data->huart);
+
+	while(res == HAL_BUSY) {
+		res = HAL_UART_Transmit_IT(huart, &td, 1);
 		timeout --;
 		if(timeout == 0) {
 			SYSERR_PRINT("UART TC timeout\n");
 			break;
 		}
 	}
-	uart->TDR = td;
-#endif
-
-#if 1	// 送信完了割り込み使用
-	uart->CR1 |= USART_CR1_TXEIE;	// 送信データエンプティ割り込み許可
-//	uart->TDR = td;
 
 	if(event_wait(&(((struct st_uart_data *)(dev->private_data))->tx_evq), 0, UART_TE_TIMEOUT) < 0) {
 		if(UART_TE_TIMEOUT != 0) {
 			SYSERR_PRINT("UART TXE timeout\n");
 		}
 	}
-#endif
 
 	return 1;
 }
@@ -337,7 +342,7 @@ static int uart_init_low(struct st_device *dev, char *param)
 	init_gpio_uart1();
 
 	huart_low.Instance = USART1;
-	huart_low.Init.BaudRate = 115200;
+	huart_low.Init.BaudRate = DEFAULT_BAUDRATE;
 	huart_low.Init.WordLength = UART_WORDLENGTH_8B;
 	huart_low.Init.StopBits = UART_STOPBITS_1;
 	huart_low.Init.Parity = UART_PARITY_NONE;
@@ -373,25 +378,17 @@ static int uart_getc_low(struct st_device *dev, unsigned char *rd)
 */
 static int uart_putc_low(struct st_device *dev, unsigned char td)
 {
-	int timeout = UART_TC_TIMEOUT;
-	USART_TypeDef *uart = huart_low.Instance;
+	HAL_StatusTypeDef res = HAL_BUSY;
+	int count = 0;
 
-	while(!(uart->ISR & USART_ISR_TC)) {
-		timeout --;
-		if(timeout == 0) {
+	while(res == HAL_BUSY) {
+		res = HAL_UART_Transmit(&huart_low, &td, 1, UART_TE_TIMEOUT);
+		count ++;
+		if(count > UART_TE_TIMEOUT) {
 			break;
 		}
 	}
-	uart->TDR = td;
 
-#if 1 // 送信完了待ち
-	while(!(uart->ISR & USART_ISR_TC)) {
-		timeout --;
-		if(timeout == 0) {
-			break;
-		}
-	}
-#endif
 	return 1;
 }
 

@@ -493,6 +493,28 @@ int block_write_device(struct st_device *dev, const void *buf, unsigned int sect
 	return -1;
 }
 
+int epbuf_get(struct st_device *dev, void **buf)
+{
+	if(dev != 0) {
+		if(dev->epbuf_get) {
+			return dev->epbuf_get(dev, buf);
+		}
+	}
+
+	return -1;
+}
+
+int epbuf_release(struct st_device *dev, void *buf)
+{
+	if(dev != 0) {
+		if(dev->epbuf_release) {
+			return dev->epbuf_release(dev, buf);
+		}
+	}
+
+	return -1;
+}
+
 /**
    @brief	デバイスにデータを1バイト書き込む
 

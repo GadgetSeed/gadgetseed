@@ -450,21 +450,25 @@ void sys_mbox_set_invalid(sys_mbox_t *mbox)
 /*
   Protect/Unprotect
 */
+static struct st_mutex lwip_sys_mtx;
 
 sys_prot_t sys_arch_protect(void)
 {
 	DKFPRINTF(0x08, "\n");
 
-	disable_interrupt();
+//	disable_interrupt();
+	mutex_lock(&lwip_sys_mtx, 0);
 
-	return 0;
+//	return 0;
+	return (sys_prot_t)1;
 }
 
 void sys_arch_unprotect(sys_prot_t pval)
 {
 	DKFPRINTF(0x08, "\n");
 
-	enable_interrupt();
+//	enable_interrupt();
+	mutex_unlock(&lwip_sys_mtx);
 }
 
 #define MAX_THREAD_NUM	4
@@ -525,6 +529,7 @@ void sys_init(void)
 	mutex_register(&lwip_semapho_mtx, "lwip_semapho");
 	mutex_register(&lwip_mbox_mtx, "lwip_mbox");
 	mutex_register(&lwip_thread_mtx, "lwip_thread");
+	mutex_register(&lwip_sys_mtx, "lwip_sys");
 
 	for(i=0; i<MAX_NET_MUTEX; i++) {
 		net_sys_mutex[i].use = 0;
@@ -539,7 +544,7 @@ void sys_init(void)
 	}
 }
 
-uint32_t sys_now(void)
+u32_t sys_now(void)
 {
 	uint32_t ntime;
 

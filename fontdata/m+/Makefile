@@ -1,8 +1,8 @@
 FONTNAME = mplus_p2_p18
 FONTFILE = mplus-2p-regular
 
-TTFFONTARC	= mplus-TESTFLIGHT-063.tar.xz
-TTFFONT		= mplus-TESTFLIGHT-063/$(FONTFILE).ttf
+TTFFONTARC	= mplus-TESTFLIGHT-063a.tar.xz
+TTFFONT		= mplus-TESTFLIGHT-063a/$(FONTFILE).ttf
 BDFFONT		= $(FONTNAME).bdf
 
 $(TTFFONTARC):

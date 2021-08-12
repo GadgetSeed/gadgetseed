@@ -15,7 +15,7 @@ OBJS	= soundplay.o \
 	  fft.o
 
 CFLAGS += -I$(PRJ_DIR)/$(EXTLIBS_DIR)/libmad/libmad-0.15.1b
-CFLAGS += -I$(PRJ_DIR)/$(EXTLIBS_DIR)/faad2/faad2-2.7/include
+CFLAGS += -I$(PRJ_DIR)/$(EXTLIBS_DIR)/faad2/faad2-2.8.8/include
 
 ifeq ($(LIB_ENABLE_PICOJPEG),YES)
 CFLAGS += -I$(PRJ_DIR)/$(EXTLIBS_DIR)/picojpeg

@@ -16,6 +16,7 @@
     | status		| @copybrief com_qspi_status	| @ref com_qspi_status		|
     | indirect		| @copybrief com_qspi_indirect	| @ref com_qspi_indirect	|
     | memorymap		| @copybrief com_qspi_memorymap	| @ref com_qspi_memoryumap	|
+    | init		| @copybrief com_qspi_init	| @ref com_qspi_init	|
 */
 
 #include "shell.h"
@@ -215,12 +216,49 @@ static int memorymap(int argc, uchar *argv[])
 }
 
 
+/*
+  memorymap
+*/
+static int qspiinit(int argc, uchar *argv[]);
+
+/**
+   @brief	QSPI FLASH ROMデバイスを初期化する
+*/
+static const struct st_shell_command com_qspi_init = {
+	.name		= "init",
+	.command	= qspiinit,
+	.usage_str	= "",
+	.manual_str	= "Initialize mode QSPI FLASH ROM device",
+};
+
+static int qspiinit(int argc, uchar *argv[])
+{
+	int rtn = 0;
+	struct st_device *qspi_dev;
+
+	qspi_dev = open_device(DEF_DEV_NAME_QSPI);
+	if(qspi_dev == 0) {
+		tprintf("Cannot open device \"%s\"\n", DEF_DEV_NAME_QSPI);
+		return -1;
+	}
+
+	rtn = ioctl_device(qspi_dev, IOCMD_QSPI_INIT, 0, 0);
+
+	tprintf("Result : %02X\n", rtn);
+
+	close_device(qspi_dev);
+
+	return rtn;
+}
+
+
 static const struct st_shell_command * const com_qspi_list[] = {
 	&com_qspi_info,
 	&com_qspi_eraseblock,
 	&com_qspi_status,
 	&com_qspi_indirect,
 	&com_qspi_memoryumap,
+	&com_qspi_init,
 	0
 };
 

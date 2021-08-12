@@ -74,11 +74,15 @@ uint8_t Rx_Buff[ETH_RXBUFNB][ETH_RX_BUF_SIZE] __attribute__((section(".RxBUF")))
 uint8_t Tx_Buff[ETH_TXBUFNB][ETH_TX_BUF_SIZE] __attribute__((section(".TxBUF")));/* Ethernet Transmit Buffer */
 
 
+int eth_rx_count = 0;
+
 void HAL_ETH_RxCpltCallback(ETH_HandleTypeDef *heth)
 {
 	DKFPRINTF(0x01, "\n");
 
 	flgs_int |= FLG_RX;
+
+	eth_rx_count ++;
 }
 
 void HAL_ETH_TxCpltCallback(ETH_HandleTypeDef *heth)

@@ -14,7 +14,8 @@ $(OBFONTBDF): $(FONTARC)
 	touch $(OBFONTBDF) $(DBFONTBDF)
 
 $(FONTARC):
-	wget http://hp.vector.co.jp/authors/VA013391/fonts/$(FONTARC)
+	wget http://ftp.lip6.fr/pub/minix/distfiles/backup/$(FONTARC)
+#	wget http://hp.vector.co.jp/authors/VA013391/fonts/$(FONTARC)
 
 include $(PRJ_DIR)/$(FONTDATA_DIR)/bdf2dbfont.mk
 

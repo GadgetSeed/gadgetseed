@@ -1,5 +1,7 @@
 include $(PRJ_DIR)/common.mk
 
+TARGET_HAL_VER = "FW.L1.1.10.0"
+
 ifdef STM32CUBE_HAL_ARCH	# $gsc STM32Cubeターゲット指定
 CFLAGS	+= -D$(STM32CUBE_HAL_ARCH)
 endif
@@ -78,14 +80,18 @@ inthdr.s: mkinthdr.awk
 	awk -f mkinthdr.awk > $@
 
 halver.c:
+	echo $(TARGET_HAL_VER)
 	echo "const char hal_ver[] = \"$(HAL_VER)\";" > halver.c
+	@if grep $(TARGET_HAL_VER) halver.c ; then echo "HAL version OK"; else echo "\033[0;31mwarning: HAL version is unmatch\n" \
+		"Target HAL Version      :" $(TARGET_HAL_VER) "\n" \
+		"Development environment :" $(HAL_VER) "\033[0;39m" ; fi
 
 $(LIB): $(OBJS) $(SOBJS) $(SYSOBJ) $(HALOBJS) $(MAKECONFIGSYS)
 	$(AR) rc $(LIB) $(OBJS) $(SOBJS) $(SYSOBJ) $(HALOBJS)
 	$(RANLIB) $(LIB)
 
 clean:
-	rm -f -r inthdr.[os] $(OBJS) $(SOBJS) $(SYSOBJ) $(HALOBJS) $(LIB) $(DEPEND)
+	rm -f -r inthdr.[os] $(OBJS) $(SOBJS) $(SYSOBJ) $(HALOBJS) $(LIB) $(DEPEND) halver.c
 
 include $(PRJ_DIR)/rules.mk
 

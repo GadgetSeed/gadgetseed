@@ -5,7 +5,8 @@ LIB	= liblwip.a
 LWIP = lwip-$(LWIP_VER)
 
 #LWIPURL = http://download.savannah.nongnu.org/releases/lwip/
-LWIPURL = http://mirror.lihnidos.org/GNU/savannah/lwip
+#LWIPURL = http://mirror.lihnidos.org/GNU/savannah/lwip
+LWIPURL = https://download-mirror.savannah.gnu.org/releases/lwip
 
 LWIPARC = $(LWIP).zip
 
@@ -56,6 +57,10 @@ OBJS    = \
 
 ifeq ($(TCPIP_ENABLE_SNTP),YES)
 	OBJS +=	$(LWIPSRCDIR)/apps/sntp/sntp.o
+endif
+
+ifeq ($(TCPIP_ENABLE_IPERF),YES)
+	OBJS +=	$(LWIPSRCDIR)/apps/lwiperf/lwiperf.o
 endif
 
 .c.o:

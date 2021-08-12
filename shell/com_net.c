@@ -46,7 +46,7 @@
 #include "dtprintf.h"
 
 
-extern struct netif netif;
+extern struct netif gv_netif;
 
 
 static int arp(int argc, uchar *argv[]);
@@ -106,12 +106,12 @@ static int ip(int argc, uchar *argv[])
 	ip4_addr_t ipaddr = {.addr = 0}, netmask = {.addr = 0}, gateway = {.addr = 0};
 
 	tprintf("MAC Address : %02X:%02X:%02X:%02X:%02X:%02X\n",
-		netif.hwaddr[0],
-		netif.hwaddr[1],
-		netif.hwaddr[2],
-		netif.hwaddr[3],
-		netif.hwaddr[4],
-		netif.hwaddr[5]);
+		gv_netif.hwaddr[0],
+		gv_netif.hwaddr[1],
+		gv_netif.hwaddr[2],
+		gv_netif.hwaddr[3],
+		gv_netif.hwaddr[4],
+		gv_netif.hwaddr[5]);
 
 	if(argc == 1) {
 		int stat;
@@ -122,11 +122,11 @@ static int ip(int argc, uchar *argv[])
 			(stat & IORTN_BIT_ETHER_100M) ? "100" : "10",
 			(stat & IORTN_BIT_ETHER_FULLDUPLEX) ? "Full" : "Half");
 
-		addr = netif_ip4_addr(&netif);
+		addr = netif_ip4_addr(&gv_netif);
 		tprintf("IP Address  : %s\n", ip4addr_ntoa(addr));
-		addr = netif_ip4_netmask(&netif);
+		addr = netif_ip4_netmask(&gv_netif);
 		tprintf("Netmask     : %s\n", ip4addr_ntoa(addr));
-		addr = netif_ip4_gw(&netif);
+		addr = netif_ip4_gw(&gv_netif);
 		tprintf("Gateway     : %s\n", ip4addr_ntoa(addr));
 
 		return 0;
@@ -164,24 +164,24 @@ static int ip(int argc, uchar *argv[])
 	if(ipaddr.addr != 0) {
 		tprintf("IP = %s\n", ip4addr_ntoa(&ipaddr));
 	} else {
-		addr = netif_ip4_addr(&netif);
+		addr = netif_ip4_addr(&gv_netif);
 		ipaddr = *addr;
 	}
 	if(netmask.addr != 0) {
 		tprintf("MASK = %s\n", ip4addr_ntoa(&netmask));
 	} else {
-		addr = netif_ip4_addr(&netif);
+		addr = netif_ip4_addr(&gv_netif);
 		netmask = *addr;
 	}
 	if(gateway.addr != 0) {
 		tprintf("GW = %s\n", ip4addr_ntoa(&gateway));
 	} else {
-		addr = netif_ip4_addr(&netif);
+		addr = netif_ip4_addr(&gv_netif);
 		gateway = *addr;
 	}
 
 
-	netif_set_addr(&netif, &ipaddr, &netmask, &gateway);
+	netif_set_addr(&gv_netif, &ipaddr, &netmask, &gateway);
 
 	return 0;
 
@@ -206,7 +206,7 @@ static const struct st_shell_command com_net_dhcp = {
 static int dhcp(int argc, uchar *argv[])
 {
 	err_t rt = ERR_OK;
-	dhcp_start(&netif);
+	dhcp_start(&gv_netif);
 	if(rt == ERR_OK) {
 		tprintf("DHCP OK\n");
 	} else {
@@ -539,6 +539,81 @@ static int com_sntp(int argc, uchar *argv[])
 }
 #endif // GSC_TCPIP_ENABLE_SNTP
 
+#ifdef GSC_TCPIP_ENABLE_STATS	// $gsc TCP/IP統計情報を有効にする
+
+#ifndef GSC_TARGET_SYSTEM_EMU
+extern int eth_rx_count;
+#endif
+
+static int net_stats_ip(int argc, uchar *argv[])
+{
+	IP_STATS_DISPLAY();
+
+#ifndef GSC_TARGET_SYSTEM_EMU
+	tprintf("eth_rx_count = %d\n", eth_rx_count);
+#endif
+
+	return 0;
+}
+
+static const struct st_shell_command com_stats_ip = {
+	.name		= "ip",
+	.command	= net_stats_ip,
+	.manual_str	= "Display IP Statistics"
+};
+
+static int net_stats_tcp(int argc, uchar *argv[])
+{
+	TCP_STATS_DISPLAY();
+
+	return 0;
+}
+
+static const struct st_shell_command com_stats_tcp = {
+	.name		= "tcp",
+	.command	= net_stats_tcp,
+	.manual_str	= "Display TCP Statistics"
+};
+
+static int net_stats_udp(int argc, uchar *argv[])
+{
+	UDP_STATS_DISPLAY();
+
+	return 0;
+}
+
+static const struct st_shell_command com_stats_udp = {
+	.name		= "udp",
+	.command	= net_stats_udp,
+	.manual_str	= "Display UDP Statistics"
+};
+
+static const struct st_shell_command * const com_stats_sub[] = {
+	&com_stats_ip,
+	&com_stats_tcp,
+	&com_stats_udp,
+	0
+};
+
+static int com_stats(int argc, uchar *argv[]);
+
+/**
+   @brief	統計表示
+*/
+static const struct st_shell_command com_net_stats = {
+	.name		= "stats",
+	.command	= com_stats,
+	.manual_str	= "Display statistics",
+	.sublist	= com_stats_sub
+};
+
+static int com_stats(int argc, uchar *argv[])
+{
+	stats_display();
+
+	return 0;
+}
+#endif // GSC_TCPIP_ENABLE_STATS
 
 static const struct st_shell_command * const com_net_list[] = {
 	&com_net_arp,
@@ -550,6 +625,9 @@ static const struct st_shell_command * const com_net_list[] = {
 	&com_net_httpget,
 #ifdef GSC_TCPIP_ENABLE_SNTP
 	&com_net_sntp,
+#endif
+#ifdef GSC_TCPIP_ENABLE_STATS
+	&com_net_stats,
 #endif
 	0
 };

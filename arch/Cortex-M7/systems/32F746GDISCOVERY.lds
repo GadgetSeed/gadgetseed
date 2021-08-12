@@ -54,7 +54,8 @@ SECTIONS {
 
 	_sidata = .;
 
-	.data : AT (_sidata) {	FILL(0xff)
+/*	.data : AT (_sidata) {	FILL(0xff)*/
+	.data : {	FILL(0xff)
 		. = ALIGN(4);
 		_sdata = .;
 		*(.data .data.*)
@@ -62,7 +63,7 @@ SECTIONS {
 		. = ALIGN(4);
 		_edata = .;
 		PROVIDE(edata = .);
-	} >ram
+	} >ram AT> rom
 
 	.bss (NOLOAD) : ALIGN(4) {
 		_sbss = .;

@@ -14,6 +14,8 @@
 #include "net.h"
 #include "task/task.h"
 
+#define LWIP_NO_STDINT_H	1
+
 #define TCPIP_THREAD_PRIO	TASK_PRIORITY_NETWORK
 
 /**
@@ -51,14 +53,21 @@ a lot of data that needs to be copied, this should be set high. */
 /* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active
    timeouts. */
 #define MEMP_NUM_SYS_TIMEOUT    10
+//#define MEMP_NUM_SYS_TIMEOUT    100
 
+//!!!
+#define LWIP_SUPPORT_CUSTOM_PBUF 1
+#define PBUF_POOL_BUFSIZE 1528
+//#define PBUF_POOL_SIZE 0
+//!!!
 
 /* ---------- Pbuf options ---------- */
 /* PBUF_POOL_SIZE: the number of buffers in the pbuf pool. */
-#define PBUF_POOL_SIZE          8
+//!!!#define PBUF_POOL_SIZE          8
+#define PBUF_POOL_SIZE          16
 
 /* PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. */
-#define PBUF_POOL_BUFSIZE       1524
+//!!!#define PBUF_POOL_BUFSIZE       1524
 
 /* ---------- IPv4 options ---------- */
 #define LWIP_IPV4                1
@@ -85,6 +94,12 @@ a lot of data that needs to be copied, this should be set high. */
 /* TCP receive window. */
 //#define TCP_WND                 (2*TCP_MSS)
 #define TCP_WND                 (3*TCP_MSS)
+//#define TCP_WND                 (4*TCP_MSS)
+//#define TCP_WND                 (6*TCP_MSS)
+//#define TCP_WND                 (8*TCP_MSS)
+//#define TCP_WND                 (10*TCP_MSS)
+//#define TCP_WND                 (12*TCP_MSS)
+//#define TCP_WND                 (2*TCP_MSS+TCP_MSS/2)
 
 
 /* ---------- ICMP options ---------- */
@@ -101,7 +116,13 @@ a lot of data that needs to be copied, this should be set high. */
 
 
 /* ---------- Statistics options ---------- */
+#ifdef GSC_TCPIP_ENABLE_STATS
+#define LWIP_STATS 1
+#define LWIP_STATS_DISPLAY 1
+#define LWIP_STATS_LARGE 1
+#else
 #define LWIP_STATS 0
+#endif
 
 /* ---------- link callback options ---------- */
 /* LWIP_NETIF_LINK_CALLBACK==1: Support a callback function from an interface
@@ -225,12 +246,18 @@ extern void lwip_set_errno(int err);
 #define SNTP_SERVER_DNS		1
 #define SNTP_SET_SYSTEM_TIME_US	sntp_set_system_time
 
-#ifndef GSC_KERNEL_MESSAGEOUT_LOG
-#include "log.h"
-#define LWIP_PLATFORM_DIAG(x)	do {tkprintf x;} while(0)
+#ifdef GSC_KERNEL_MESSAGEOUT_LOG
+# ifdef GSC_TCPIP_ENABLE_DIAG_LOG
+#  include "log.h"
+#  define LWIP_PLATFORM_DIAG(x)	do {gslogn x;} while(0)
+# else
+#  define LWIP_PLATFORM_DIAG(x)	do {tkprintf x;} while(0)
+# endif
 #else
-#define LWIP_PLATFORM_DIAG(x)	do {gslogn x;} while(0)
+//# define LWIP_PLATFORM_DIAG(x)	do {tkprintf x;} while(0)
+# define LWIP_PLATFORM_DIAG(x)	do {tprintf x;} while(0)
 #endif
+
 #define LWIP_PLATFORM_ASSERT(x) do {tkprintf("Assertion \"%s\" failed at line %d in %s\n", \
 					     x, __LINE__, __FILE__);} while(0)
 

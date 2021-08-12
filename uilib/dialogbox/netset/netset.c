@@ -438,7 +438,7 @@ static ip_addr_t	subnetmask;
 static ip_addr_t	default_gateway;
 static ip_addr_t	dns_server[DNS_MAX_SERVERS];
 
-extern struct netif netif;
+extern struct netif gv_netif;
 
 static void get_network_setting(void)
 {
@@ -452,13 +452,13 @@ static void get_network_setting(void)
 		flg_enable_dhcp = 0;
 	}
 
-	addr = netif_ip4_addr(&netif);
+	addr = netif_ip4_addr(&gv_netif);
 	ipaddress.addr = addr->addr;
 
-	addr = netif_ip4_netmask(&netif);
+	addr = netif_ip4_netmask(&gv_netif);
 	subnetmask.addr = addr->addr;
 
-	addr = netif_ip4_gw(&netif);
+	addr = netif_ip4_gw(&gv_netif);
 	default_gateway.addr = addr->addr;
 
 	for(i=0; i<DNS_MAX_SERVERS; i++) {
@@ -476,7 +476,7 @@ static void set_network_setting(void)
 	} else {
 		int i;
 		disable_dhcp();
-		netif_set_addr(&netif,
+		netif_set_addr(&gv_netif,
 			       &ipaddress,
 			       &subnetmask,
 			       &default_gateway);

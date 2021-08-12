@@ -1,12 +1,12 @@
-# GadgetSeed Command Shell
+# GadgetSeed command shell
 
-GadgetSeed has a command shell primarily for debugging systems and applications.
+GadgetSeed has a command shell primarily intended for system and application debugging.
 
-## How to use
+## How to Use
 
-Command shells are usually available from the serial interface.
-Please connect via the serial terminal software from the PC.
-The following is an example of launching the STM32F769NIH6 command shell:
+The command shell is usually available from the serial interface.
+Please connect from the PC via the serial terminal software.
+The following is an example of starting the command shell of STM32F769NIH6.
 
 ```
 GadgetSeed Ver. 0.9.9
@@ -31,21 +31,21 @@ Link Down, 100Mb/s, Half
 : 
 ```
 
-The command prompt is ": ".
+The command prompt is ":".
 
-## Basic operations
+## basic operation
 
-Type a command from the keyboard, and then type the enter key to execute the command.
+Enter a command from the keyboard and execute the command by entering the enter key.
 
-You can enter the commands that you entered in the past again by entering the cursor key up and down.
+You can re-enter the previously entered command by pressing the cursor keys up and down.
 
-You can use the TAB key to complete the executable command string.
+The executable command string can be completed with the TAB key.
 
 ## Main commands
 
 ### help
 
-Displays a list of commands that can be executed.
+Displays a list of executable commands.
 
 ```
 : help  
@@ -95,7 +95,7 @@ HAL Version: FW.F7.1.15.0
 
 ### dev list
 
-Displays a list of device drivers registered with the system.
+Displays a list of device drivers registered in the system.
 
 ```
 : dev list 
@@ -120,7 +120,7 @@ audio     : STM32F7xxx-Disc Audio Out
 
 ### task list
 
-Displays a list of task information that is running.
+Displays a list of running task information.
 
 ```
 : task list 
@@ -142,7 +142,7 @@ PID Name       Pri Status Entry    PC       Stack(size)    SP       SleepTime
 
 ### task top
 
-Continues to display the CPU usage of running tasks at 1-second intervals.
+Continues to display the CPU usage of running tasks at 1 second intervals.
 
 ```
 PID TASK-NAME       PRI RUN-TIME(us)   %CPU
@@ -158,12 +158,12 @@ PID TASK-NAME       PRI RUN-TIME(us)   %CPU
   9 musicplay         5       657714  64.51
 ```
 
-The display will continue to refresh until any keys are entered.
+The display will continue to update until you enter any key.
 
 ### file dir
 
-Displays a list of files for the storage device.
-Available only if the file system is enabled.
+Displays a list of files on the storage device.
+Only available if the file system is enabled.
 
 ```
 : file dir 
@@ -187,7 +187,7 @@ D 18/01/06         MOUNTA~1 Mountain Dance
 D 14/08/17         RIDEON~1 RIDE ON TIME (Remaster)
 D 17/01/22         SAYITW~1 Say It with Silence
 D 18/07/30         YELLOW~1.) Yellow Magic Orchestra(US Ver.)
-D 10/05/15 ______-1 Synchronishinteen
+D 10/05/15         ______~1 シンクロニシティーン
 0:/ OK
    5 File  331.5K
   16 Dir   493.2M free

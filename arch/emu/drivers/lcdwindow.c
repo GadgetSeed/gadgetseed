@@ -503,7 +503,7 @@ int open_lcdwindow(int *argc, char ***argv)
 			(char *)strerror(status));
 	}
 
-	gtk_timeout_add(20, (GtkFunction)task_lcd_draw, NULL);
+	g_timeout_add(20, (GSourceFunc)task_lcd_draw, NULL);
 
 	unblock_timer_interrupt();
 
