@@ -20,8 +20,8 @@
 unsigned char lcd_f_buffer_main[LCD_WIDTH * LCD_HEIGHT * 2] __ATTR_FRAMEBUFFER;
 unsigned char lcd_f_buffer_sub [LCD_WIDTH * LCD_HEIGHT * 2] __ATTR_FRAMEBUFFER;
 
-LTDC_HandleTypeDef	hltdc_discovery;
-DSI_HandleTypeDef	hdsi_discovery;
+extern LTDC_HandleTypeDef	hltdc_discovery;
+extern DSI_HandleTypeDef	hdsi_discovery;
 
 static void init_framebuf(void)
 {

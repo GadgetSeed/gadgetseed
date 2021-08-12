@@ -41,11 +41,12 @@ static void unreg_inthdr(unsigned int intnum, void *sp)
 }
 
 #define CFSR	(*(volatile unsigned int *)0xE000ED28)
-#define MMSR	(*(volatile unsigned char *)0xE000ED28)
+#define MMFSR	(*(volatile unsigned char *)0xE000ED28)
 #define BFSR	(*(volatile unsigned char *)0xE000ED29)
 #define UFSR	(*(volatile unsigned short *)0xE000ED2A)
 #define HFSR	(*(volatile unsigned int *)0xE000ED2C)
 #define DFSR	(*(volatile unsigned int *)0xE000ED30)
+#define MMFAR	(*(volatile unsigned int *)0xE000ED34)
 #define AFSR	(*(volatile unsigned int *)0xE000ED3C)
 
 #define DHCSR	(*(volatile unsigned int *)0xE000EDF0)
@@ -56,11 +57,12 @@ static void unreg_inthdr(unsigned int intnum, void *sp)
 void disp_debug_info(void)
 {
 	tkprintf("CFSR  = %08X\n", CFSR);
-	tkprintf(" MMSR = %02X\n", MMSR);
+	tkprintf(" MMFSR= %02X\n", MMFSR);
 	tkprintf(" BFSR = %02X\n", BFSR);
 	tkprintf(" UFSR = %04X\n", UFSR);
 	tkprintf("HFSR  = %08X\n", HFSR);
 	tkprintf("DFSR  = %08X\n", DFSR);
+	tkprintf("MMFAR = %08X\n", MMFAR);
 	tkprintf("AFSR  = %08X\n", AFSR);
 
 	tkprintf("DHCSR = %08X\n", DHCSR);
@@ -105,7 +107,7 @@ void fault_inthdr(unsigned int intnum, void *sp)
 
 	print_task();
 
-	print_stack();
+//	print_stack();
 
 	print_queues();
 

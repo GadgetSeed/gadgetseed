@@ -11,12 +11,9 @@ typedef unsigned   char    u8_t;
 typedef signed     char    s8_t;
 typedef unsigned   short   u16_t;
 typedef signed     short   s16_t;
-#ifdef GSC_TARGET_SYSTEM_EMU
 typedef unsigned   int     u32_t;
 typedef signed     int     s32_t;
-
 typedef unsigned long mem_ptr_t;
-#endif
 
 /* Define (sn)printf formatters for these lwIP types */
 #define X8_F  "02x"

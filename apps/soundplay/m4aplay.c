@@ -39,10 +39,19 @@ static unsigned int sample_size(int pos)
 	} else if(pos > music_info.sample_count) {
 		ssize = 0;
 	} else {
-		ssize = ((int)music_info.sample_size_data[pos*4 + 0] << 24) +
-				((int)music_info.sample_size_data[pos*4 + 1] << 16) +
-				((int)music_info.sample_size_data[pos*4 + 2] <<  8) +
-				((int)music_info.sample_size_data[pos*4 + 3] <<  0);
+		if(music_info.sample_size_data == 0) {
+			tprintf("M4A no sample size data\n");
+			ssize = 0;
+		} else {
+			ssize =
+					((int)music_info.sample_size_data[pos*4 + 0] << 24) +
+					((int)music_info.sample_size_data[pos*4 + 1] << 16) +
+					((int)music_info.sample_size_data[pos*4 + 2] <<  8) +
+					((int)music_info.sample_size_data[pos*4 + 3] <<  0);
+			if(ssize > MAX_FILEBUF) {
+				tprintf("M4A sample size over %u\n", ssize);
+			}
+		}
 	}
 
 	return ssize;
@@ -63,6 +72,9 @@ void m4afile_seek(int pos)
 	soundfile_seekset(new_pos);
 }
 
+#define M4AFINISH_STOP	0
+#define M4AFINISH_END	1
+
 static int m4a_play_proc(void)
 {
 	int rtn = 0;
@@ -72,6 +84,7 @@ static int m4a_play_proc(void)
 	NeAACDecFrameInfo hInfo;
 	int buf_count = 0;
 	static unsigned char dbuf[4] = { 0x12, 0x10, 0, 0 }; // "\022\020"
+	int finish_event = M4AFINISH_STOP;
 
 	unsigned long cap = NeAACDecGetCapabilities();
 	// Check if decoder has the needed capabilities
@@ -121,8 +134,8 @@ static int m4a_play_proc(void)
 			break;
 
 		case SOUND_EVENT_STOP:
-			soundio_stop_sound();
 			DTPRINTF(0x01, "m4aplay force stop\n");
+			finish_event = M4AFINISH_STOP;
 			goto end;
 			break;
 
@@ -155,7 +168,7 @@ static int m4a_play_proc(void)
 		rtn = soundfile_read(comp_audio_data, ssize);
 		if(rtn != ssize) {
 			eprintf("m4aplay read file error(ssize=%ld, rtn=%d)\n", ssize, rtn);
-			soundio_end_sound();
+			finish_event = M4AFINISH_END;
 			goto end;
 		}
 		DTPRINTF(0x01, "%6d %4ld ", audio_frame_count, ssize);
@@ -190,14 +203,24 @@ static int m4a_play_proc(void)
 		disp_play_time(audio_play_time);
 	};
 
-	soundio_end_sound();
-end:
+	finish_event = M4AFINISH_END;
 
+end:
 	NeAACDecClose(hAac);
 
 	mp4tag_dispose(&music_info);
 
 	soundplay_status = SOUND_STAT_END;
+
+	switch(finish_event) {
+	case M4AFINISH_STOP:
+		break;
+
+	case M4AFINISH_END:
+	default:
+		soundio_end_sound();
+		break;
+	}
 
 	return 1;
 }

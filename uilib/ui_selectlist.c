@@ -146,6 +146,7 @@ static void calc_layout_selectlist(struct st_ui_selectlist *selectlist, int last
 		struct st_box vbox;
 
 		vbox.pos.x = sl->view_area.pos.x;
+		vbox.pos.y = sl->view_area.pos.y + (sl->item_height * (sl->select_item_num - sl->top_item_num));
 		vbox.sur.width = sl->view_area.sur.width;
 		vbox.sur.height = sl->item_height;
 

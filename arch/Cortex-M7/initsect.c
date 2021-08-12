@@ -5,15 +5,15 @@
     @author	Takashi SHUDO
 */
 
-extern long *BSS_START;
-extern long *BSS_END;
-extern long *DATAROM_START;
-extern long *DATARAM_START;
-extern long *DATARAM_END;
+extern int *BSS_START;
+extern int *BSS_END;
+extern int *DATAROM_START;
+extern int *DATARAM_START;
+extern int *DATARAM_END;
 
 void init_sect(void)
 {
-	long *s, *d;
+	int *s, *d;
 
 	for(d=BSS_START; d<BSS_END; d++) {
 		*d = 0;

@@ -26,6 +26,8 @@
 #include "stm32746g_discovery_audio.h"
 #elif defined(GSC_TARGET_SYSTEM_STM32F769IDISCOVERY)	// $gsc ターゲットシステムは32F769IDISCOVERY
 #include "stm32f769i_discovery_audio.h"
+#elif defined(GSC_TARGET_SYSTEM_STM32H747IDISCOVERY)	// $gsc ターゲットシステムは32H747IDISCOVERY
+#include "stm32h747i_discovery_audio.h"
 #endif
 
 static struct st_device *ts_dev = 0;
@@ -243,7 +245,7 @@ static int audio_ioctl(struct st_device *dev, unsigned int com, unsigned int arg
 		break;
 
 	case IOCMD_AUDIO_PLAY_START:
-		if(flg_play == 0) {
+		if((flg_play == 0) || (flg_bs_chg != 0)) {
 			flg_play = 1;
 			//audio_init(volume, sampling_rate);
 			if(flg_audio_start == 0) {

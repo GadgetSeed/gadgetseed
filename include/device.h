@@ -41,6 +41,8 @@ struct st_device {
 	int (* seek)(struct st_device *dev, int offset, int whence);
 	int (* block_read)(struct st_device *dev, void *buf, unsigned int sector, unsigned int blkcount);
 	int (* block_write)(struct st_device *dev, const void *buf, unsigned int sector, unsigned int blkcount);
+	int (* epbuf_get)(struct st_device *dev, void **buf);
+	int (* epbuf_release)(struct st_device *dev, void *buf);
 	int (* sync)(struct st_device *dev);
 	int (* select)(struct st_device *dev, unsigned int timeout);
 	int (* suspend)(struct st_device *dev);
@@ -65,6 +67,8 @@ extern int ioctl_device(struct st_device *dev, unsigned int com, unsigned int ar
 extern int seek_device(struct st_device *dev, int offset, int whence);
 extern int block_read_device(struct st_device *dev, void *buf, unsigned int sector, unsigned int blkcount);
 extern int block_write_device(struct st_device *dev, const void *buf, unsigned int sector, unsigned int blkcount);
+extern int epbuf_get(struct st_device *dev, void **buf);
+extern int epbuf_release(struct st_device *dev, void *buf);
 extern int sync_device(struct st_device *dev);
 extern int select_device(struct st_device *dev, unsigned int timeout);
 extern int suspend_device(struct st_device *dev);

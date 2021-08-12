@@ -8,7 +8,7 @@
 #include "event_opration.h"
 #include "queue_opration.h"
 
-//#define DEBUGKBITS 0x03
+//#define DEBUGKBITS 0x01
 #include "dkprintf.h"
 
 
@@ -102,7 +102,7 @@ struct st_tcb *_eventqueue_wakeup(struct st_event *evtque)
 	wup_tcb = (struct st_tcb *)del_next_queue(&evtque->proc_head);
 
 	DKPRINTF(0x02, "Event wakeup PID=%d \"%s\"\n", wup_tcb->id, wup_tcb->name);
-	DKPRINTF(0x02, "  wup = %ld\n", wup_tcb->wup_time);
+	DKPRINTF(0x02, "  wup = %u\n", wup_tcb->wup_time);
 
 	return wup_tcb;
 }

@@ -17,3 +17,4 @@ cd $halpath
 git clone https://github.com/STMicroelectronics/STM32CubeF7.git
 git clone https://github.com/STMicroelectronics/STM32CubeF4.git
 git clone https://github.com/STMicroelectronics/STM32CubeL1.git
+git clone https://github.com/STMicroelectronics/STM32CubeH7.git

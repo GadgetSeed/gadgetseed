@@ -184,7 +184,7 @@
 #define MAC_ADDR4   0U
 #define MAC_ADDR5   0U
 
-/* Definition of the Ethernet driver buffers size and count */   
+/* Definition of the Ethernet driver buffers size and count */
 #define ETH_RX_BUF_SIZE                ETH_MAX_PACKET_SIZE /* buffer size for receive               */
 #define ETH_TX_BUF_SIZE                ETH_MAX_PACKET_SIZE /* buffer size for transmit              */
 #if 0

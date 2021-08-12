@@ -10,7 +10,9 @@
 #include "sysevent.h"
 #include "memory.h"
 #include "jpegdec.h"
+#ifdef GSC_LIB_ENABLE_LIBPNG
 #include "pngdec.h"
+#endif
 #define GSLOG_PREFIX	"ART: "
 #include "log.h"
 #include "artwork.h"
@@ -66,6 +68,7 @@ void decode_jpeg_artwork(struct st_music_info *info, void *jpegdata)
 	free_memory(image);
 }
 
+#ifdef GSC_LIB_ENABLE_LIBPNG
 void decode_png_artwork(struct st_music_info *info, void *pngdata)
 {
 	short width, height;
@@ -105,6 +108,7 @@ void decode_png_artwork(struct st_music_info *info, void *pngdata)
 
 	dispose_png_info();
 }
+#endif
 
 static int artwork_task(void *arg)
 {
@@ -122,11 +126,13 @@ static int artwork_task(void *arg)
 		DTFPRINTF(0x01, "JPEG decode end\n");
 		break;
 
+#ifdef GSC_LIB_ENABLE_LIBPNG
 	case 1:
 		DTFPRINTF(0x01, "PNG decode start\n");
 		decode_png_artwork(artwork.info, artwork.data);
 		DTFPRINTF(0x01, "PNG decode end\n");
 		break;
+#endif
 
 	default:
 		DTFPRINTF(0x01, "Kind error\n");
@@ -174,9 +180,11 @@ void decode_jpeg_artwork_bg(struct st_music_info *info, void *data, void *freeme
 	startup_artwork_task(0, info, data, freemem);
 }
 
+#ifdef GSC_LIB_ENABLE_LIBPNG
 void decode_png_artwork_bg(struct st_music_info *info, void *data, void *freemem)
 {
 	DTFPRINTF(0x01, "info = %p, data = %p, free = %p\n", info, data, freemem);
 
 	startup_artwork_task(1, info, data, freemem);
 }
+#endif

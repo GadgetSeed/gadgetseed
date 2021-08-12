@@ -7,10 +7,10 @@ BEGIN {
 {
 	desc = "";
 	sysname = "";
-	cmd = sprintf("cat $SYSCONF_DIR/%s | grep @description | cut -d ' ' -f 3-", $1);
+	cmd = sprintf("cat $SYSCONF_DIR/%s | grep ^@description | cut -d ' ' -f 2-", $1);
 	cmd | getline desc;
 	close(cmd);
-	cmd = sprintf("cat $SYSCONF_DIR/%s | grep @system | cut -d ' ' -f 3-", $1);
+	cmd = sprintf("cat $SYSCONF_DIR/%s | grep ^@system | cut -d ' ' -f 2-", $1);
 	cmd | getline sysname;
 	close(cmd);
 	printf("%3d : %-30s : %-45s : %s\n", num, sysname, desc, $1);

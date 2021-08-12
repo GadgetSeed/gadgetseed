@@ -283,16 +283,17 @@ static int decode_stsz(struct st_music_info *info, int size, tag_read_func tag_r
 		return -1;
 	}
 
+//	xdump(info->sample_size_data, info->sample_count * 4);
 #if 0
 	int i;
 
 	for(i=0; i<info->sample_count; i++) {
-		unsigned long ssize =
+		unsigned int ssize =
 				((long)info->sample_size_data[i*4 + 0] << 24) +
 				((long)info->sample_size_data[i*4 + 1] << 16) +
 				((long)info->sample_size_data[i*4 + 2] <<  8) +
 				((long)info->sample_size_data[i*4 + 3] <<  0);
-		DTPRINTF(0x01, "Sample size[%d] : %ld\n", i+1, ssize);
+		tprintf("Sample size[%d] : %u\n", i+1, ssize);
 	}
 #endif
 

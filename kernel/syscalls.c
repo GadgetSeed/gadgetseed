@@ -105,7 +105,15 @@ void * _sbrk_r(struct _reent *_s_r, ptrdiff_t nbytes)
 
 unsigned int system_heap_size(void)
 {
-	return (unsigned int)_heap_end - (unsigned int)heap_ptr;
+	unsigned int size;
+
+	if(heap_ptr == 0) {
+		size = (unsigned int)_heap_end - (unsigned int)end;
+	} else {
+		size = (unsigned int)_heap_end - (unsigned int)heap_ptr;
+	}
+
+	return size;
 }
 
 unsigned int system_heap_total_size(void)

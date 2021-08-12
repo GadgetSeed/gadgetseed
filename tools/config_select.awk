@@ -7,7 +7,7 @@ BEGIN {
 {
 	desc = "";
 	targets = "";
-	cmd = sprintf("cat $CONFIGS_DIR/%s | grep description | cut -d ' ' -f 3-", $1);
+	cmd = sprintf("cat $CONFIGS_DIR/%s | grep ^@description | cut -d ' ' -f 2-", $1);
 	cmd | getline desc;
 	close(cmd);
 	printf("%3d : %-40s : %s\n", num, desc, $1);

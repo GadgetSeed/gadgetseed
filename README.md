@@ -4,34 +4,34 @@
 
 ![GadgetSeed](gadgetseed_logo.png)
 
-GadgetSeed is a multitasking operating system for embedded devices.
+GadgetSeed is a multitasking OS for embedded devices.
 
-## Features
+## feature
 
 * Multitasking kernel
-* Shell commands to assist in debugging
-* Standardized Device Driver API
-* Support for [FatFS](http://elm-chan.org/fsw/ff/00index_e.html) file systems
-* [LwIP](https://savannah.nongnu.org/projects/lwips/) TCP/IP protocol stack supported
+* Shell commands to help with debugging
+* Standardized device driver API
+* [FatFS](http://elm-chan.org/fsw/ff/00index_e.html) Supports file system
+* [LwIP](https://savannah.nongnu.org/projects/lwip/) TCP/IP Supports protocol stack
 * Graphics drawing, character font drawing
 
 ## Sample application
 
-   Sample applications such as Internet radio and MP3 player can be operated.
+   You can run sample applications such as Internet radio and MP3 players.
 
-   The following image is a screen snapshot of an Internet radio player running on 32F746GDISCOVERY.
+   The image below is a screen snapshot of an internet radio player running on the 32F746GDISCOVERY.
 
    ![Internet radio](apps/internetradio_lr.png)
 
-   The following image is a screen snapshot of the MP3 player running on 32F769IDISCOVERY.
+   The image below is a screen snapshot of an MP3 player running on the 32F769IDISCOVERY.
 
    ![Internet radio](apps/internetradio.png)
 
-   For other sample applications, see:
+   See below for other sample applications.
 
    [apps/APPLICATIONS.md](apps/APPLICATIONS.md)
 
-## Support MCU Architecture
+## Support MCU architecture
 
    GadgetSeed can work with the following architectures:
 
@@ -41,15 +41,24 @@ GadgetSeed is a multitasking operating system for embedded devices.
 
 ## Support hardware
 
-   GadgetSeed can work with the following hardware:
+   GadgetSeed can run on the following hardware:
 
-| Hardware | MCU Architectures | Architectures |
+| Hardware | MCU | Architecture |
 |---------------------------------------|---------------|----------------|
+| [32H747IDISCOVERY](#32H747IDISCOVERY) | STM32H747XIH6 | ARM Cortex-H7  |
 | [32F769IDISCOVERY](#32F769IDISCOVERY) | STM32F769NIH6 | ARM Cortex-M7  |
 | [32F746GDISCOVERY](#32F746GDISCOVERY) | STM32F746NGH6 | ARM Cortex-M7  |
 | [32F469IDISCOVERY](#32F469IDISCOVERY) | STM32F469NIH6 | ARM Cortex-M4  |
 | [NUCLEO-F411RE](#NUCLEO-F4x1RE)       | STM32F411RET6 | ARM Cortex-M4  |
 | [NUCLEO-L152RE](#NUCLEO-L152RE)       | STM32L152RET6 | ARM Cortex-M3  |
+
+<a name="32H747IDISCOVERY"></a>
+### 32H747IDISCOVERY
+
+![32H747IDISCOVERY](https://www.st.com/bin/ecommerce/api/image.PF265379.en.feature-description-include-personalized-no-cpn-medium.jpg)
+
+<https://www.st.com/en/evaluation-tools/stm32h747i-disco.html>[English]  
+<https://www.st.com/ja/evaluation-tools/stm32h747i-disco.html>[Japanese]
 
 <a name="32F769IDISCOVERY"></a>
 ### 32F769IDISCOVERY
@@ -62,7 +71,7 @@ GadgetSeed is a multitasking operating system for embedded devices.
 <a name="32F746GDISCOVERY"></a>
 ### 32F746GDISCOVERY
 
-![STM32F746G-Discovery](https://www.st.com/content/ccc/fragment/product_related/rpn_information/board_photo/group0/ea/c4/6d/73/c3/f5/46/e2/stm32f746g-disco/files/stm32f746g-disco.jpg/_jcr_content/translations/en.stm32f746g-disco.jpg)
+![STM32F746G-Discovery](https://www.st.com/bin/ecommerce/api/image.PF261641.en.feature-description-include-personalized-no-cpn-medium.jpg)
 
 <https://www.st.com/en/evaluation-tools/32f746gdiscovery.html>[English]  
 <https://www.st.com/ja/evaluation-tools/32f746gdiscovery.html>[Japanese]
@@ -98,27 +107,28 @@ GadgetSeed is a multitasking operating system for embedded devices.
 <https://www.st.com/ja/evaluation-tools/nucleo-l152re.html>[Japanese]
 
 
-## Build a development environment
+## Building a development environment
 
 ### Operating environment configuration
 
    ![GadgetSeed](gadgetseed_devenv.png)
 
-### For Ubuntu 18.04
+### For Ubuntu 20.04
 
 1. Install STM32Cube HAL + LL Drivers
 
-   Install the STM32Cube HAL + LL driver from stMicroelectronics github under the directory "$HOME/STM32Cube/Repository".
+   Install the STM32Cube HAL + LL driver from STMicroelectronics' github under the directory "$ HOME / STM32Cube / Repository".
 
    ```sh
    mkdir -p ~/STM32Cube/Repository
    cd ~/STM32Cube/Repository
+   git clone https://github.com/STMicroelectronics/STM32CubeH7.git
    git clone https://github.com/STMicroelectronics/STM32CubeF7.git
    git clone https://github.com/STMicroelectronics/STM32CubeF4.git
    git clone https://github.com/STMicroelectronics/STM32CubeL1.git
    ```
 
-   In the GadgetSeed source tree, there is a script (tools/install_hal.sh) that does the above. The following is an example of execution:
+   There is a script (tools / install_hal.sh) that does the above in the GadgetSeed source tree. The following is an execution example.
 
    ```sh
    sh ./tools/install_hal.sh
@@ -128,23 +138,23 @@ GadgetSeed is a multitasking operating system for embedded devices.
 
    <https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads>
 
-   Download GNU Arm Embedded Toolchain ("gcc-arm-none-eabi-8-2018-q4-major-major-linux.tar.bz2") from the above site.
+   Download the GNU Arm Embedded Toolchain ("gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2") from the above site.
 
-   Install
+   install
    ```sh
-   sudo tar xvfj gcc-arm-none-eabi-8-2018-q4-major-linux.tar.bz2 -C /opt
+   sudo tar xvfj gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2 -C /opt
    ```
 
-   Set the execution path
+   Execution path setting
    ```sh
-   PATH=$PATH:/opt/gcc-arm-none-eabi-8-2018-q4-major/bin
+   PATH=$PATH:/opt/gcc-arm-none-eabi-10-2020-q4-major/bin
    ```
-   It is recommended to add the above to .bash_aliases, etc.
+   It is recommended to add the above to .bash_aliases etc.
 
 1. Install tools such as make gcc openocd picocom
 
    ```sh
-   sudo apt install -y git make gcc unzip openocd picocom otf2bdf p7zip-full
+   sudo apt install -y git make gcc unzip openocd picocom otf2bdf p7zip-full gawk
    ```
 
 <!--
@@ -165,7 +175,7 @@ GadgetSeed is a multitasking operating system for embedded devices.
    <http://www.st.com/en/development-tools/stm32cubeprog.html>[English]  
    <http://www.st.com/ja/development-tools/stm32cubeprog.html>[Japanese]
 
-   Install if necessary.
+   Please install if necessary.
 
    ```sh
    sudo apt-get -y install libusb-1.0.0-dev
@@ -174,19 +184,19 @@ GadgetSeed is a multitasking operating system for embedded devices.
    ```
 -->
 
-## Building the executable
+## Executable build
 
-1. Run the make command
+1. Execute the make command
 
-   Run the make command in the directory where you expanded the source tree.
+   Execute the make command in the directory where you extracted the source tree.
 
    ```sh
    make
    ```
 
-1. Selecting a System by Configuration
+1. System selection by configuration
 
-   When you see the following, select the system you want to build. Enter a number from 1 to 11 to select the system.
+   When the following content is displayed, select the system to build. Enter a number from 1 to 11 to select your system.
 
    ```sh
    *** Select target system ***
@@ -204,9 +214,9 @@ GadgetSeed is a multitasking operating system for embedded devices.
    Input No. : 
    ```
 
-1. Selecting an application by configuration
+1. Application selection by configuration
 
-   When you see something similar to the following, select the application you want to build.
+   When the following content is displayed, select the application to build.
    An example is when "3" (32F769IDISCOVERY) is selected as the system.
    Enter a number to select the application.
 
@@ -230,7 +240,7 @@ GadgetSeed is a multitasking operating system for embedded devices.
    Input No. : 
    ```
 
-   An example is when you select "8" (Internet radio player high resolution display) as the application.
+   An example is when "8" (Internet radio player high resolution display) is selected as the application.
 
    ```sh
    Select : 8
@@ -273,15 +283,15 @@ GadgetSeed is a multitasking operating system for embedded devices.
    arm-none-eabi-objcopy: gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.9.elf: warning: empty loadable segment detected at vaddr=0x90000000, is this intentional?
    ```
 
-## How to write and run software
+## How to write and execute software
 
    Use openocd and GDB to write the built software to the hardware.
    Use a serial terminal to use the debug console.
-   The following example uses terminals for openocd and GDB and serial terminals, respectively.
+   The following example uses terminals for openocd, GDB, and serial terminals, respectively.
 
-1. Launch openocd
+1. Start openocd
 
-   Open a terminal for openocd and run the following command for your hardware:
+   Open a terminal for openocd and execute the following command according to the hardware.
 
    ### 32F7xxxDISCOVERY
 
@@ -307,19 +317,19 @@ GadgetSeed is a multitasking operating system for embedded devices.
    sudo openocd -f /usr/share/openocd/scripts/board/st_nucleo_l1.cfg
    ```
 
-   openocd remains operational.
+   openocd will remain working.
 
 1. Start the serial terminal
 
-   Open the terminal for the serial terminal and run the following command:
+   Open a terminal for the serial terminal and execute the following command.
 
-   ### When to use picocom
+   ### When using picocom
 
    ```sh
    sudo picocom -l /dev/ttyACM0 -b 115200
    ```
 
-   ### When to use cu
+   ### When using cu
 
    ```sh
    sudo cu -l /dev/ttyACM0 -s 115200
@@ -327,27 +337,27 @@ GadgetSeed is a multitasking operating system for embedded devices.
 
 1. Write data to QSPI-ROM
 
-   The following applications must be written on the QSPI-ROM before they can be used. (This is not necessary except for the following applications.)
+   It is necessary to write the data in QSPI-ROM in advance to operate the following applications. (This work is not necessary except for the following applications.)
 
    * Internet radio player
    * Music player
 
-   After these applications build, a file with the name "-extrom.hex" is created.
+   After building these applications, a file named "* -extrom.hex" will be created.
 
-   [STM32 ST-LINK Utility](https://www.st.com/en/development-tools/stsw-link004.html) to write the "-extrom.hex" file to QSPI-ROM.
+   Write the "* -extrom.hex" file to QSPI-ROM using [STM32 ST-LINK Utility](https://www.st.com/en/development-tools/stsw-link004.html) please.
 
-   At this time, STM32 ST-LINK Utility seems to work only on Windows OS. Therefore, you will need a Windows PC to do this.
+   At the moment the STM32 ST-LINK Utility seems to work only on Windows OS. Therefore, you need a Windows PC to do this.
 
 1. Start GDB
 
-   Open a terminal for GDB and run the following command:
-   Run this command in the directory where GadgetSeed was built.
+   Open a terminal for GDB and execute the following command.
+   Run this command under the directory where you built GadgetSeed.
 
    ```sh
    arm-none-eabi-gdb -x gdbinit-openocd gadgetseed
    ```
 
-   The gadgetSeed built in the hardware is written with the above command.
+   The above command will write the GadgetSeed built to the hardware.
 
    ```
    GNU gdb (GNU Tools for Arm Embedded Processors 8-2018-q4-major) 8.2.50.20181213-git
@@ -378,8 +388,8 @@ GadgetSeed is a multitasking operating system for embedded devices.
    (gdb) 
    ```
 
-   You will see a message like the one above.
-   It may take several tens of seconds for the prompt (gdb) to appear.
+   A message like the one above will be output.
+   It takes tens of seconds for the prompt (gdb) to appear.
 
    Run GadgetSeed by typing the following command:
 
@@ -388,7 +398,7 @@ GadgetSeed is a multitasking operating system for embedded devices.
    Continuing.
    ```
 
-   GadgetSeed starts and prints the following display in the serial terminal:
+   GadgetSeed will start and the following display will be output to the serial terminal.
 
    ```
    GadgetSeed Ver. 0.9.9
@@ -414,59 +424,59 @@ GadgetSeed is a multitasking operating system for embedded devices.
    ```
 
    The serial terminal can enter each command as a command shell.
-   For information about the command shell, see:
+   See below for the command shell.
 
    [shell/SHELL.md](shell/SHELL.md)
 
 # Running on PC Linux (Ubuntu)
 
 You can run the GadgetSeed emulator on PC Linux.
-The GadgeSeed emulator is an experimental implementation. There is instability in the operation.
-Use the following command to install the packages required to build the emulator.
+The GadgeSeed emulator is an experimental implementation. There is an unstable part in the operation.
+Install the packages required to build the emulator with the following command.
 
 ```sh
 sudo apt install -y ncurses-dev libasound2-dev aptitude
 sudo aptitude install -y libgtk2.0-dev
 ```
 
-## Configuration and Build
+## Configuration and build
 
-To run the emulator, select "emu" when selecting a system in the configuration.
-You can build GadgetSeed again from the configuration with the following command:
+To run the emulator, select "emu" when selecting the system in the configuration.
+You can build GadgetSeed from the configuration again with the following command.
 
 ```sh
 make reset
 make
 ```
 
-## Run
+## execution
 
-You can run the GadgetSeed emulator with the following command:
+You can run the GadgetSeed emulator with the following command.
 
 ```sh
 ./gadgetseed
 ```
 
-# Document
+# document
 
-You can create a Document for GadgetSeed with the following command:
+You can create a GadgetSeed document with the following command:
 
 ```sh
 make docs
 ```
 
-The Doxygen document file is generated below.
+The Doxygen document file will be generated below.
 
 [docs/html/index.html](docs/html/index.html)
 
-See below for configuration items for building systems and developing applications.
+Please refer to the following for configuration items for system construction and application development.
 
 [configs/CONFIG.md](configs/CONFIG.md)
 
-# License
+# license
 
 [MIT](LICENSE.txt)
 
-# Author
+# author
 
 Takashi SHUDO([takashi.shudo@nifty.com](mailto:takashi.shudo@nifty.com))

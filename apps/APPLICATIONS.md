@@ -1,47 +1,47 @@
-# GadgetSeed Sample Application
+# GadgetSeed sample application
 
 ## Internet radio/Music player
 
-   It is a music player to operate with a touch panel.
+   A music player operated with a touch panel.
 
-   You can play [shoutcast](https://directory.shoutcast.com/) internet radio.
-   M3U, PLS files stored on MicroSD card can be played as a playlist of internet radio. (MP3,128Kbps only)
+   You can play Internet radio on [shoutcast](https://directory.shoutcast.com/).
+   M3U and PLS files saved on the MicroSD card can be played as playlists on Internet radio. (MP3, 128Kbps only)
 
-   You can play MP3 files and AAC files stored on your MicroSD card.
+   You can play MP3 files and AAC files saved on the MicroSD card.
 
-   You can view information about songs, including album art.
+   You can display music information including album art.
 
-   The AAC audio decoder uses [faad2](https://github.com/dsvensson/faad2).
+   I am using [faad2](https://github.com/dsvensson/faad2) for my AAC audio decoder.
 
-   The MP3 audio decoder uses [libmad](https://www.underbit.com/products/mad/).
+   I'm using [libmad](https://www.underbit.com/products/mad/) for my MP3 audio decoder.
 
    You can view album art in JPEG and PNG formats.
 
-   [picojpeg](https://code.google.com/archive/p/picojpeg/) is used to decode JPEG images.
+   I am using [picojpeg](https://code.google.com/archive/p/picojpeg/) to decode JPEG images.
 
-   PNG image codecs are using [libpng](http://www.libpng.org/pub/png/) and [zlib](https://zlib.net/).
+   I am using [libpng](http://www.libpng.org/pub/png/) and [zlib](https://zlib.net/) for the PNG image codec.
 
-   [mt19937ar](http://www.math.sci.hiroshima-u.ac.jp/m-mat/MT2002/MT2002/mt19937ar.html) is used to generate random numbers for random playback functions.
+   [Mt19937ar](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html) is used to generate random numbers for the random playback function.
 
-   Works with 32F769IDISCOVERY, 32F746GDISCOVERY.
+   Works with 32F769IDISCOVERY and 32F746GDISCOVERY.
 
    ![musicplay](internetradio.png)
 
-   The snapshot is of 32F769IDISCOVERY.
+   The snapshot is from 32F769IDISCOVERY.
 
-   Config files : internetradio_hr.conf, internetradio_lr.conf
+   Configuration files: internetradio_hr.conf, internetradio_lr.conf
 
-   Source File Directory : internetradio, soundplay, musicplay
+   Source file directory: internetradio, soundplay, musicplay
 
 ## File manager
 
-   It is a simple file manager. MP3, You can play AAC files. (32F769IDISCOVERY, 32F746GDISCOVERY only)
+   A simple file manager. You can play MP3 and AAC files. (32F769IDISCOVERY, 32F746GDISCOVERY only)
 
    You can view PNG image files. (32F769IDISCOVERY, 32F746GDISCOVERY only)
 
    You can view JPEG image files.
 
-   Works with 32F769IDISCOVERY, 32F746GDISCOVERY.
+   Works with 32F769IDISCOVERY and 32F746GDISCOVERY.
 
    Works with NUCLEO-F411RE + LCD (Kuman 2.8inch TFT LCD Shield).
 
@@ -51,64 +51,64 @@
 
    ![filemanager_2](filemanager_2.png)
 
-   The snapshot is of 32F769IDISCOVERY.
+   The snapshot is from 32F769IDISCOVERY.
 
-   Config file : filemanager_hr.conf, filemanager_lr.conf
+   Configuration files: filemanager_hr.conf, filemanager_lr.conf
 
-   Source File Directory : filemanager, soundplay
+   Source file directory: filemanager, soundplay
 
 ## Clock application
 
-   This is an application of digital clock using RTC.
+   It is an application of digital clock using RTC.
 
    ![clock](clock.png)
 
    ![clock_2](clock_2.png)
 
-   The snapshot is of 32F746GDISCOVERY.
+   The snapshot is from 32F746GDISCOVERY.
 
-   Config file : clock_hr.conf
+   Configuration file: clock_hr.conf
 
-   Source file directory : clock
+   Source file directory: clock
 
 ## Paint application
 
-   It is a simple drawing software using a touch panel.
+   It is a simple drawing software that uses a touch panel.
 
    ![paint](paint.png)
 
-   The snapshot is of 32F746GDISCOVERY.
+   The snapshot is from 32F746GDISCOVERY.
 
-   Config file : paint.conf
+   Config file: paint.conf
 
-   Source File Directory : paint
+   Source file directory: paint
 
 ## Graphics test
 
-   Random graphicdrawing test program.
+   Random graphic drawing test program.
 
    ![graphics_test](graphics_test.png)
 
    The snapshot is from NUCLEO-F411RE + LCD (Kuman 2.8inch TFT LCD Shield).
 
-   Config file : graphics_test.conf
+   Configuration file: graphics_test.conf
 
-   Source file directory : graphics_test
+   Source file directory: graphics_test
 
 ## LED brink
 
-   This is an application that flashes the LED.
-   Flash the LCD on the board.
+   It is an application that blinks the LED.
+   Blinks the LCD mounted on the board.
 
-   Works with 32F769IDISCOVERY, NUCLEO-F411RE.
+   Works with 32F769IDISCOVERY and NUCLEO-F411RE.
 
-   Config File : heartbeat.conf
+   Config file: heartbeat.conf
 
-   Source file directory : heartbeat
+   Source file directory: heartbeat
 
 ## Hello world
 
-   To the debug console"Hello, word!" to the <a0></a0>.
+   Display "Hello, world!" In the debug console.
 
    ```sh
    GadgetSeed Ver. 0.9.5
@@ -121,17 +121,17 @@
    : Hello, world!
    ```
 
-   Config file : hello_world.conf
+   Configuration file: hello_world.conf
 
-   Source file directory : hello_world
+   Source file directory: hello_world
 
 ## Network sample
 
-   HTTPSERVER, a sample of LwIP, works. Telnetd also works.
-   You can log in with telnet from outside and use the GadgetSeed debug console.
+   HTTPSERVER, which is a sample of LwIP, works. Also, telnetd works.
+   You can telnet from outside and use GadgetSeed's debug console.
 
-   Works with 32F769IDISCOVERY, 32F746GDISCOVERY.
+   Works with 32F769IDISCOVERY and 32F746GDISCOVERY.
 
-   Config file : network.conf
+   Config file: network.conf
 
-   Source file directory : httpserver, telnetd
+   Source file directory: httpserver, telnetd
