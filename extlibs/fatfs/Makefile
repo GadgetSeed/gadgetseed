@@ -2,7 +2,8 @@ include $(PRJ_DIR)/common.mk
 
 FFURL = http://elm-chan.org/fsw/ff/arc
 #FFARC = ff13c.zip
-FFARC = ff14.zip
+#FFARC = ff14.zip
+FFARC = ff14b.zip
 FFSRCDIR = source
 FFSRC  = $(FFSRCDIR)/ff.c
 FFOBJS = $(FFSRCDIR)/ff.o $(FFSRCDIR)/ffunicode.o fatfs.o diskio.o fattime.o

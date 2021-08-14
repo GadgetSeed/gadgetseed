@@ -1,5 +1,5 @@
---- source/ffconf.h.org	2019-07-07 21:09:43.000000000 +0900
-+++ source/ffconf.h	2019-10-13 15:21:03.000000000 +0900
+--- source/ffconf.h.org	2021-08-13 10:46:31.000000000 +0900
++++ source/ffconf.h	2021-08-13 10:46:31.000000000 +0900
 @@ -1,3 +1,13 @@
 +/*
 +  Gadgetseed ffconf.h
@@ -14,7 +14,7 @@
  /*---------------------------------------------------------------------------/
  /  FatFs Functional Configurations
  /---------------------------------------------------------------------------*/
-@@ -37,8 +47,11 @@
+@@ -29,8 +39,11 @@
  /* This option switches filtered directory read functions, f_findfirst() and
  /  f_findnext(). (0:Disable, 1:Enable 2:Enable with matching altname[] too) */
  
@@ -27,7 +27,7 @@
  /* This option switches f_mkfs() function. (0:Disable or 1:Enable) */
  
  
-@@ -50,7 +63,11 @@
+@@ -42,7 +55,11 @@
  /* This option switches f_expand function. (0:Disable or 1:Enable) */
  
  
@@ -39,7 +39,7 @@
  /* This option switches attribute manipulation functions, f_chmod() and f_utime().
  /  (0:Disable or 1:Enable) Also FF_FS_READONLY needs to be 0 to enable this option. */
  
-@@ -97,7 +114,7 @@
+@@ -113,7 +130,7 @@
  */
  
  
@@ -48,16 +48,7 @@
  #define FF_MAX_LFN		255
  /* The FF_USE_LFN switches the support for LFN (long file name).
  /
-@@ -137,7 +154,7 @@
- /  on character encoding. When LFN is not enabled, these options have no effect. */
- 
- 
--#define FF_STRF_ENCODE	3
-+#define FF_STRF_ENCODE	0
- /* When FF_LFN_UNICODE >= 1 with LFN enabled, string I/O functions, f_gets(),
- /  f_putc(), f_puts and f_printf() convert the character encoding in it.
- /  This option selects assumption of character encoding ON THE FILE to be
-@@ -163,7 +180,11 @@
+@@ -166,7 +183,11 @@
  / Drive/Volume Configurations
  /---------------------------------------------------------------------------*/
  
@@ -69,7 +60,7 @@
  /* Number of volumes (logical drives) to be used. (1-10) */
  
  
-@@ -230,7 +251,11 @@
+@@ -231,7 +252,11 @@
  /  buffer in the filesystem object (FATFS) is used for the file data transfer. */
  
  
@@ -81,7 +72,7 @@
  /* This option switches support for exFAT filesystem. (0:Disable or 1:Enable)
  /  To enable exFAT, also LFN needs to be enabled. (FF_USE_LFN >= 1)
  /  Note that enabling exFAT discards ANSI C (C89) compatibility. */
-@@ -263,9 +288,9 @@
+@@ -276,9 +301,9 @@
  
  
  /* #include <somertos.h>	// O/S definitions */
