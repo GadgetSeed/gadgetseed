@@ -2,7 +2,7 @@
 
 configs/\*.conf および configs/systems/\*.conf ファイルには以下のコンフィグレーション項目を設定することができます。
 
-| コンフィグレーション名 | 内容 |
+| コンフィグレーション名 | 説明 |
 |------------------------|------|
 | APPLICATION                        | アプリケーションディレクトリ                                               |
 | APPLICATION2                       | アプリケーションディレクトリ(2)                                            |
@@ -138,12 +138,14 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | SHELL_USER_COMMAND_NUM             | shellユーザコマンド登録可能数                                            |
 | SHELL_USE_FWTEST                   | ファイル書き込みテストコマンド(fwtest)を有効にする                                |
 | STM32CUBE_HAL_ARCH                 | STM32Cubeターゲット指定                                             |
+| STM32CUBE_HAL_DIR                  | STM32 HAL インストールディレクトリ指定                                     |
 | SYSTEM                             | システム名                                                        |
 | TARGET_SYSTEM_32F469IDISCOVERY     | ターゲットシステムは32F469IDISCOVERY                                   |
 | TARGET_SYSTEM_EMU                  | ターゲットシステムはエミュレータ                                             |
 | TARGET_SYSTEM_NUCLEO_F411RE        | ターゲットシステムはNUCLEO_F411RE                                      |
 | TARGET_SYSTEM_STM32F746GDISCOVERY  | ターゲットシステムは32F746GDISCOVERY                                   |
 | TARGET_SYSTEM_STM32F769IDISCOVERY  | ターゲットシステムは32F769IDISCOVERY                                   |
+| TARGET_SYSTEM_STM32H747IDISCOVERY  | ターゲットシステムは32H747IDISCOVERY                                   |
 | TCPIP_DEFAULT_DNSSERVER            | DNSサーバアドレス                                                   |
 | TCPIP_DEFAULT_DNSSERVER2           | DNSサーバアドレス2                                                  |
 | TCPIP_DEFAULT_GATEWAY              | TCP/IPデフォルトゲートウェイアドレス                                        |
@@ -153,6 +155,7 @@ configs/\*.conf および configs/systems/\*.conf ファイルには以下のコ
 | TCPIP_ENABLE_DHCP                  | DHCPを有効にする                                                   |
 | TCPIP_ENABLE_SNTP                  | SNTPを有効にする                                                   |
 | TCPIP_ENABLE_START_SNTPINIT        | システム起動時にSNTPを有効にする                                           |
+| TCPIP_ENABLE_STATS                 | TCP/IP統計情報を有効にする                                             |
 | TIMEZONE_STR                       | タイムゾーンを示す文字列                                                 |
 | UISTYLEDEF                         | UIスタイル定義ヘッダファイル名                                             |
 | UI_BUTTON_REPEAT_TIME              | UIボタン長押し時のリピートイベント発生までの時間(ms)                                |

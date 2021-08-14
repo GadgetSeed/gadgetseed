@@ -156,7 +156,7 @@ void lock_qspi(void)
 
 	rt = lock_device(qspi_dev, QSPI_LOCK_TIMEOUT);
 	if(rt < 0) {
-		gslog(0, "QSPI lock timeout(%d)\n", rt);
+		GSLOG(GSFFSERRLVL, "QSPI lock timeout(%d)\n", rt);
 	}
 }
 

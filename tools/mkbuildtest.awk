@@ -2,13 +2,20 @@ BEGIN {
 	printf("#!/bin/bash\n");
 }
 {
-	if($2 == "@target") {
-		for(i=3; i<=NF; i++) {
+	if($1 == "@target") {
+		for(i=2; i<=NF; i++) {
+			if(match($i, "emu") != 0) {
+				if(target != "all") {
+					continue;
+				}
+			}
 			appconf = FILENAME;
 			gsub("configs/", "", appconf);
 			gsub(".conf", "", appconf);
 
-			printf("make objclean;make configclean;find . -name *.[oa] | xargs rm;\n");
+			printf("make objclean;make configclean\n");
+			printf("find . -name *.[oa] | xargs rm\n");
+			printf("find . -name \".depend\" | xargs rm\n");
 
 			printf("echo \"SYSTEM_CONFIG = %s\" > config.mk\n", $i);
 			printf("echo \"APPLICATION_CONFIG = %s\" >> config.mk\n", appconf);

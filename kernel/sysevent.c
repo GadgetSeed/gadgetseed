@@ -181,6 +181,40 @@ int create_event(unsigned short what, unsigned short arg, void *private_data)
 	return set_event(&event);
 }
 
+static int do_keyrepeat(struct st_sysevent *event, int flg_add)
+{
+	if(key_repeat_flg) {
+		// キーリピート間隔
+		unsigned long long nt = get_kernel_time();
+		if(nt >= (key_repeat_int_count + key_repeat_int_time)) {
+			if(flg_add != 0) {
+				struct st_sysevent event;
+				key_repeat_int_count = nt;
+				event.what = EVT_KEYDOWN_REPEAT;
+				event.arg = last_key;
+				set_event(&event);
+			} else {
+				key_repeat_int_count = nt;
+				event->what = EVT_KEYDOWN_REPEAT;
+				event->arg = last_key;
+			}
+			return 1;	// イベント有り
+		}
+	} else {
+		if(last_key != 0) {
+			// キーリピートイベント追加処理
+			unsigned long long nt = get_kernel_time();
+			if(nt >= (key_repeat_start_count + key_repeat_start_time)) {
+				// キーリピート開始
+				key_repeat_int_count = nt;
+				key_repeat_flg = 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
 /**
    @brief	システムイベントを待つ
 
@@ -201,40 +235,25 @@ int get_event(struct st_sysevent *event, unsigned int timeout)
 
 	if(rtn >= 0) {
 		if((event->when + GSC_KERNEL_SYSTEMEVENT_LIFE_TIME) > get_kernel_time()) {
-			DKPRINTF(0x01, "get_event what = %d arg = %d\n",
-				 event->what, event->arg);
+			DKPRINTF(0x01, "get_event what = %d arg = %d\n", event->what, event->arg);
+			if(event->what == EVT_KEYDOWN) {
+				last_key = event->arg;
+				key_repeat_start_count = get_kernel_time();
+			} else if(event->what == EVT_KEYUP) {
+				last_key = 0;
+				key_repeat_flg = 0;
+			} else {
+				do_keyrepeat(event, 1);
+			}
 			return 1;	// イベント有り
 		} else {
 			return -1;	// 寿命切れイベント
 		}
 	} else {
-		if(key_repeat_flg) {
-			// キーリピート間隔
-			unsigned long long nt = get_kernel_time();
-			if(nt >= (key_repeat_int_count +
-				  key_repeat_int_time)) {
-				key_repeat_int_count = nt;
-				event->what = EVT_KEYDOWN_REPEAT;
-				event->arg = last_key;
-				return 1;	// イベント有り
-			} else {
-				goto no_event;
-			}
+		if(do_keyrepeat(event, 0) != 0) {
+			return 1;
 		} else {
-			if(last_key != 0) {
-				// キーリピートイベント追加処理
-				unsigned long long nt = get_kernel_time();
-				if(nt >=
-				   (key_repeat_start_count +
-				    key_repeat_start_time)) {
-					// キーリピート開始
-					key_repeat_int_count = 0;
-					key_repeat_flg = 1;
-				}
-				goto no_event;
-			} else {
-				goto no_event;
-			}
+			goto no_event;
 		}
 	}
 

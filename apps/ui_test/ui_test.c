@@ -254,6 +254,7 @@ static void draw_list_item(struct st_ui_selectlist *selectlist, struct st_box *b
 	set_draw_mode(GRP_DRAWMODE_REVERSE);
 	draw_fill_box(box);
 	set_draw_mode(GRP_DRAWMODE_NORMAL);
+	set_font_by_name(GSC_FONTS_DEFAULT_FONT);
 	draw_str_in_box(box, FONT_HATTR_LEFT, FONT_VATTR_CENTER, str);
 }
 

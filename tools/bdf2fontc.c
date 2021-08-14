@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
 		}
 
 		if(argc > 2) {
-			strncpy(fontname, argv[2], 256);
+			strncpy(fontname, argv[2], 256-1);
 		}
 
 		if(argc > 3) {

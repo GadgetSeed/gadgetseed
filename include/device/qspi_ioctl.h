@@ -34,5 +34,6 @@ struct st_qspi_info {
 #define IOCMD_QSPI_GET_STATUS		STDIOCTL(DEV_QSPI,4)	///< 状態(QSPISTAT_*))
 #define IOCMD_QSPI_INDIRECT_MODE	STDIOCTL(DEV_QSPI,6)	///< 関節アクセスモード
 #define IOCMD_QSPI_MEMORYMAP_MODE	STDIOCTL(DEV_QSPI,7)	///< メモリマップモード
+#define IOCMD_QSPI_INIT			STDIOCTL(DEV_QSPI,8)	///< 初期化
 
 #endif // QSPI_IOCTL_H

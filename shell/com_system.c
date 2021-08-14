@@ -892,7 +892,8 @@ static const struct st_shell_command com_sys_heap = {
 	.manual_str	= "Print heap memory status"
 };
 
-#if 0
+#define DEBUG_MALLOC
+#ifdef DEBUG_MALLOC
 static int mem_alloc(int argc, uchar *argv[]);
 
 static const struct st_shell_command com_mem_alloc = {
@@ -1161,7 +1162,7 @@ static const struct st_shell_command * const com_sys_list[] = {
 #endif
 #ifdef GSC_MEMORY_ENABLE_HEAP_MEMORY
 	&com_sys_heap,
-#if 0
+#ifdef DEBUG_MALLOC
 	&com_mem_alloc,
 	&com_mem_free,
 #endif

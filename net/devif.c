@@ -46,6 +46,7 @@
 #include "lwip/mem.h"
 #include "lwip/pbuf.h"
 #include "lwip/sys.h"
+#include "lwip/tcpip.h"
 
 #include "netif/etharp.h"
 
@@ -54,20 +55,18 @@
 #include "tkprintf.h"
 #include "device/ether_ioctl.h"
 #include "str.h"
+#include "log.h"
 
-//#define DEBUGKBITS 0x10
+//#define DEBUGKBITS 0x80
 #include "dkprintf.h"
 
 
-#define DEVNAME	"eth"
 #define STACKSIZE	(1024*8)
 
 #define IFNAME0 'e'
 #define IFNAME1 't'
 
 struct devif {
-	struct eth_addr *ethaddr;
-	/* Add whatever per-interface state that is needed here. */
 	struct st_device *dev;
 };
 
@@ -89,16 +88,16 @@ static int low_level_init(struct netif *netif)
 
 	/* Do whatever else is needed to initialize interface. */
 
-	devif->dev = open_device(DEVNAME);
+	devif->dev = open_device(DEF_DEV_NAME_ETHER);
 	DKPRINTF(0x01, "%s: fd %08lx\n", __FUNCTION__, (unsigned long)devif->dev);
 	if(devif->dev == 0) {
-		SYSERR_PRINT("cannot open " DEVNAME "\n");
+		SYSERR_PRINT("cannot open " DEF_DEV_NAME_ETHER "\n");
 		return -1;
 	}
 
 	rt = ioctl_device(devif->dev, IOCMD_ETHER_GET_MACADDR, 0, (void *)&my_macaddr);
 	if(rt != 0) {
-		SYSERR_PRINT("Cannot get MAC address \"%s\".\n", DEVNAME);
+		SYSERR_PRINT("Cannot get MAC address \"%s\".\n", DEF_DEV_NAME_ETHER);
 	}
 	ioctl_device(devif->dev, IOCMD_ETHER_CLEAR_BUF, 0, 0);
 	// 受信バッファクリア
@@ -132,12 +131,12 @@ static int low_level_init(struct netif *netif)
 /*---------------------------------------------------------------------------*/
 #include "task/syscall.h"
 
-static char obuf[1514];
+//static char obuf[1514];
 
 static err_t low_level_output(struct netif *netif, struct pbuf *p)
 {
-	struct pbuf *q;
-	char *bufptr;
+//	struct pbuf *q;
+//	char *bufptr;
 	struct devif *devif;
 
 	DKPRINTF(0x01, "##D %s\n", __FUNCTION__);
@@ -145,6 +144,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 	devif = (struct devif *)netif->state;
 	/* initiate transfer(); */
 
+#if 0
 	bufptr = &obuf[0];
 
 	for(q = p; q != NULL; q = q->next) {
@@ -152,12 +152,18 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
 		   time. The size of the data in each pbuf is kept in the ->len
 		   variable. */
 		/* send data from(q->payload, q->len); */
+		if(q->next != 0) {
+			DKPRINTF(0x20, "q->next= %p\n", q->next);
+			tkprintf("q->next= %p\n", q->next);
+		}
 		memorycopy(bufptr, q->payload, q->len);
 		bufptr += q->len;
 	}
+#endif
 
 	/* signal that packet should be sent(); */
-	if(write_device(devif->dev, (unsigned char *)obuf, p->tot_len) == -1) {
+//	if(write_device(devif->dev, (unsigned char *)obuf, p->tot_len) == -1) {
+	if(write_device(devif->dev, (unsigned char *)p->payload, p->tot_len) == -1) {
 		SYSERR_PRINT("write_device error\n");
 	}
 	return ERR_OK;
@@ -172,16 +178,17 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
  *
  */
 /*---------------------------------------------------------------------------*/
-static char ibuf[1514];
+//static char ibuf[1514];
 
 static struct pbuf * low_level_input(struct devif *devif)
 {
-	struct pbuf *p, *q;
-	long len;
-	char *bufptr;
+	struct pbuf *p;//, *q;
+	int len;
+//	char *bufptr;
 
 	DKPRINTF(0x01, "##D %s\n", __FUNCTION__);
 
+#if 0
 	/* Handle incoming packet. */
 	/* Obtain the size of the packet and put it into the "len"
 	   variable. */
@@ -190,6 +197,7 @@ static struct pbuf * low_level_input(struct devif *devif)
 	if(len == 0) {
 		return 0;
 	}
+#endif
 
 #ifdef DEBUG
 #if 1
@@ -219,8 +227,8 @@ static struct pbuf * low_level_input(struct devif *devif)
 #endif
 
 	/* We allocate a pbuf chain of pbufs from the pool. */
+#if 0
 	p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
-	DKPRINTF(0x10, "alloc %p %d\n", p, len);
 
 	if(p != NULL) {
 		DKPRINTF(0x08, "p->len= %d\n", p->len);
@@ -228,6 +236,9 @@ static struct pbuf * low_level_input(struct devif *devif)
 		   packet into the pbuf. */
 		bufptr = &ibuf[0];
 		for(q = p; q != NULL; q = q->next) {
+			if(q->next != 0) {
+				DKPRINTF(0x08, "q->next = %p\n", q->next);
+			}
 			/* Read enough bytes to fill this pbuf in the chain. The
 			   available data in the pbuf is given by the q->len
 			   variable. */
@@ -238,40 +249,113 @@ static struct pbuf * low_level_input(struct devif *devif)
 		/* acknowledge that packet has been read(); */
 	} else {
 		/* drop packet(); */
+		gslog(0, "Drop packet\n");
 	}
+#else
+//#define NEWRTHERAPI
+#ifndef NEWRTHERAPI
+	p = pbuf_alloc(PBUF_RAW, 1514, PBUF_POOL);
+	DKPRINTF(0x10, "alloc %p %d\n", p, len);
+	if(p != NULL) {
+		len = read_device(devif->dev, (unsigned char *)p->payload, 1514);
+		DKPRINTF(0x01, "len = %d\n", len);
+		if(len == 0) {
+			pbuf_free(p);
+			return 0;
+		} else {
+			p->len = len;
+		}
+	} else {
+		/* drop packet(); */
+		gslog(0, "Drop packet\n");
+	}
+#else
+	len = epbuf_get(devif->dev, (void **)&p);
+	if(len == 0) {
+		return 0;
+	}
+//#ifdef DEBUG
+#if 1
+#if 1
+#define NET_SHORT(x)	((((x) & 0x00ff)<<8) | (((x) & 0xff00)>>8))
+#else
+#define NET_SHORT(x)	x
+#endif
+
+	if(p != 0) {
+		unsigned char *ethhd = (unsigned char *)p->payload;
+		int i;
+
+		eprintf("DST : ");
+		for(i=0; i<6; i++) {
+			eprintf("%02X ", ethhd[i]);
+		}
+		eprintf("\n");
+
+		eprintf("SRC : ");
+		for(i=0; i<6; i++) {
+			eprintf("%02X ", ethhd[6 + i]);
+		}
+		eprintf("\n");
+	}
+#endif
+#endif
+#endif
 
 	return p;
 }
 /*---------------------------------------------------------------------------*/
-static struct netif *netifp;
-static struct devif *devif;
 static struct devif lwip_dev;
 
 static void devif_thread(void *arg)
 {
-	netifp = (struct netif *)arg;
-	devif = (struct devif *)netifp->state;
+	struct netif *netifp;
+	struct devif *devif;
 	struct pbuf *p;
 	int ret;
 
 	DKPRINTF(0x01, "##D %s start\n", __FUNCTION__);
 
+	netifp = (struct netif *)arg;
+	devif = (struct devif *)netifp->state;
+
 	for(;;) {
 		/* Wait for a packet to arrive. */
+		int cnt = 0;
+//		int zcnt = 0;
 		DKPRINTF(0x01, "##D %s select in\n", __FUNCTION__);
 		ret = select_device(devif->dev, 100);
 		DKPRINTF(0x01, "##D %s select out\n", __FUNCTION__);
 
 		if(ret >= 0) {
-			do {
+			for(;;) {
+				LOCK_TCPIP_CORE( );
 				p = low_level_input(devif);
 				if(p != NULL) {
+					cnt ++;
+					if(cnt > 1) {
+						DKPRINTF(0x80, "cnt = %d\n", cnt);
+					}
 					if(netifp->input(p, netifp) != ERR_OK) {
+#ifndef NEWRTHERAPI
 						pbuf_free(p);
 						DKPRINTF(0x10, "free %p\n", p);
+#else
+						epbuf_release(devif->dev, (void *)p);
+#endif
 					}
+#ifdef NEWRTHERAPI
+					epbuf_release(devif->dev, (void *)p);
+#endif
+				} else {
+					DKPRINTF(0x20, "no next input\n");
+//					zcnt ++;
+//					if(zcnt > 1) {
+						break;
+//					}
 				}
-			} while(p != NULL);
+				UNLOCK_TCPIP_CORE();
+			}
 		}
 	}
 }
@@ -307,8 +391,6 @@ err_t devif_init(struct netif *netif)
 	/* hardware address length */
 	netif->hwaddr_len = 6;
 
-	devif->ethaddr = (struct eth_addr *)&(netif->hwaddr[0]);
-
 	netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
 
 	if(low_level_init(netif) != 0) {
@@ -323,16 +405,8 @@ err_t devif_init(struct netif *netif)
 
 int link_up_netdev(void)
 {
-	struct devif *devif;
-
-	if(netifp == 0) {
-		return 0;
-	}
-
-	devif = (struct devif *)netifp->state;
-
-	if(devif->dev != 0) {
-		ioctl_device(devif->dev, IOCMD_ETHER_LINK_UP, 0, 0);
+	if(lwip_dev.dev != 0) {
+		ioctl_device(lwip_dev.dev, IOCMD_ETHER_LINK_UP, 0, 0);
 	}
 
 	return 0;
@@ -340,16 +414,8 @@ int link_up_netdev(void)
 
 int link_down_netdev(void)
 {
-	struct devif *devif;
-
-	if(netifp == 0) {
-		return 0;
-	}
-
-	devif = (struct devif *)netifp->state;
-
-	if(devif->dev != 0) {
-		ioctl_device(devif->dev, IOCMD_ETHER_LINK_DOWN, 0, 0);
+	if(lwip_dev.dev != 0) {
+		ioctl_device(lwip_dev.dev, IOCMD_ETHER_LINK_DOWN, 0, 0);
 	}
 
 	return 0;
@@ -357,16 +423,8 @@ int link_down_netdev(void)
 
 int net_status(void)
 {
-	struct devif *devif;
-
-	if(netifp == 0) {
-		return 0;
-	}
-
-	devif = (struct devif *)netifp->state;
-
-	if(devif->dev != 0) {
-		return ioctl_device(devif->dev, IOCMD_ETHER_GET_LINK_STATUS, 0, 0);
+	if(lwip_dev.dev != 0) {
+		return ioctl_device(lwip_dev.dev, IOCMD_ETHER_GET_LINK_STATUS, 0, 0);
 	} else {
 		return 0;
 	}

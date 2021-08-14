@@ -247,7 +247,7 @@ static void prepare_filelist(void)
 //	rt = 0;
 #endif
 
-	if(rt != 0) {
+	if(rt > 0) {
 		create_filelist();
 	}
 }

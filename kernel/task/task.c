@@ -1021,18 +1021,23 @@ void event_wakeup_ISR(void *sp, struct st_event *evtque, void *arg)
 			tmpp = &tmp;
 		}
 		if(write_fifo(&evtque->event, tmpp, evtque->size) != evtque->size) {
+#define DISPALREADYFULL
+#ifdef DISPALREADYFULL
 			static unsigned long long last_fifofull_time = 0;
 			unsigned long long fifofull_time = get_kernel_time();
 			if((last_fifofull_time + 500) < fifofull_time) {
 				last_fifofull_time = fifofull_time;
-				SYSERR_PRINT("\"%s\" event fifo full(arg=%p)\n", evtque->name, arg);
+#endif
+			SYSERR_PRINT("\"%s\" event fifo full(arg=%p, size=%d)\n", evtque->name, arg, fifo_size(&evtque->event));
 				DKFPRINTF(0x01, "event fifo full\n");
 				if(strcomp((const uchar *)evtque->name, (const uchar *)"sysevent") == 0) { // sysevent
 					struct st_sysevent *event = (struct st_sysevent *)arg;
 					SYSERR_PRINT(" what = %d, arg = %d\n", event->what, event->arg);
 				}
 			}
+#ifdef DISPALREADYFULL
 		}
+#endif
 		record_calltrace(SYSCALL_EVTQUE_WAKEUP, 0, evtque, 0, fifo_size(&evtque->event), sp);
 	}
 }

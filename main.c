@@ -12,6 +12,7 @@
 
     | ハードウェア	| MCU		| アーキテクチャ |
     |-------------------|:--------------|:---------------|
+    | 32H747IDISCOVERY	| STM32H747XIH6 | ARM Cortex-H7  |
     | 32F769IDISCOVERY	| STM32F769NIH6 | ARM Cortex-M7  |
     | 32F746GDISCOVERY	| STM32F746NGH6 | ARM Cortex-M7  |
     | 32F469IDISCOVERY	| STM32F469NIH6 | ARM Cortex-M4  |
