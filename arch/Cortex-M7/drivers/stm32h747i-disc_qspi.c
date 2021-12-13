@@ -201,14 +201,14 @@ static int qspi_ioctl(struct st_device *dev, unsigned int com, unsigned int arg,
 
 	case IOCMD_QSPI_INDIRECT_MODE:
 		{
-			DKFPRINTF(0x01, "Initialize\n");
+			DKFPRINTF(0x01, "Initialize INDIRECT_MODE\n");
 			rt = BSP_QSPI_DeInit(0);
 			if(rt != BSP_ERROR_NONE) {
-				SYSERR_PRINT("QSPI deinit error\n");
+				SYSERR_PRINT("QSPI deinit error(%d)\n", rt);
 			}
 			rt = init_qspi_stm32h747idisc();
 			if(rt != BSP_ERROR_NONE) {
-				SYSERR_PRINT("QSPI init error\n");
+				SYSERR_PRINT("QSPI init error(%d)\n", rt);
 			}
 		}
 //		if(0) //!!!
@@ -226,6 +226,8 @@ static int qspi_ioctl(struct st_device *dev, unsigned int com, unsigned int arg,
 					(void)dummy;
 				}
 #endif
+				//rt = BSP_QSPI_GetStatus(0);
+				//DKFPRINTF(0x01, "BSP_QSPI_GetStatus() = %d\n", rt);
 				rt = BSP_QSPI_DisableMemoryMappedMode(0);
 				if(rt != BSP_ERROR_NONE) {
 					SYSERR_PRINT("Failed to disabele memory map the QSPI !! (Error %d)\n", rt);
@@ -236,29 +238,29 @@ static int qspi_ioctl(struct st_device *dev, unsigned int com, unsigned int arg,
 				}
 			}
 		}
-		{
+		if(0) {
 			DKFPRINTF(0x01, "Initialize\n");
 			rt = BSP_QSPI_DeInit(0);
 			if(rt != BSP_ERROR_NONE) {
-				SYSERR_PRINT("QSPI deinit error\n");
+				SYSERR_PRINT("QSPI deinit error(%d)\n", rt);
 			}
 			rt = init_qspi_stm32h747idisc();
 			if(rt != BSP_ERROR_NONE) {
-				SYSERR_PRINT("QSPI init error\n");
+				SYSERR_PRINT("QSPI init error(%d)\n", rt);
 			}
 		}
 		break;
 
 	case IOCMD_QSPI_MEMORYMAP_MODE:
 		{
-			DKFPRINTF(0x01, "Initialize\n");
+			DKFPRINTF(0x01, "Initialize MEMORYMAP_MODE\n");
 			rt = BSP_QSPI_DeInit(0);
 			if(rt != BSP_ERROR_NONE) {
-				SYSERR_PRINT("QSPI deinit error\n");
+				SYSERR_PRINT("QSPI deinit error(%d)\n", rt);
 			}
 			rt = init_qspi_stm32h747idisc();
 			if(rt != BSP_ERROR_NONE) {
-				SYSERR_PRINT("QSPI init error\n");
+				SYSERR_PRINT("QSPI init error(%d)\n", rt);
 			}
 		}
 		{
@@ -267,6 +269,8 @@ static int qspi_ioctl(struct st_device *dev, unsigned int com, unsigned int arg,
 			if(QSPI_Ctx[0].IsInitialized == QSPI_ACCESS_MMP) {
 				DKFPRINTF(0x01, "Already memory map mode\n");
 			} else {
+				//rt = BSP_QSPI_GetStatus(0);
+				//DKFPRINTF(0x01, "BSP_QSPI_GetStatus() = %d\n", rt);
 				rt = BSP_QSPI_EnableMemoryMappedMode(0);
 				if(rt != BSP_ERROR_NONE) {
 					SYSERR_PRINT("Failed to configure the QSPI !! (Error %d)\n", rt);
@@ -284,11 +288,11 @@ static int qspi_ioctl(struct st_device *dev, unsigned int com, unsigned int arg,
 			DKFPRINTF(0x01, "Initialize\n");
 			rt = BSP_QSPI_DeInit(0);
 			if(rt != BSP_ERROR_NONE) {
-				SYSERR_PRINT("QSPI deinit error\n");
+				SYSERR_PRINT("QSPI deinit error(%d)\n", rt);
 			}
 			rt = init_qspi_stm32h747idisc();
 			if(rt != BSP_ERROR_NONE) {
-				SYSERR_PRINT("QSPI init error\n");
+				SYSERR_PRINT("QSPI init error(%d)\n", rt);
 			}
 		}
 		break;

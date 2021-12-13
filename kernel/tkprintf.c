@@ -12,7 +12,13 @@
 #include "timer.h"
 
 static struct st_device *kmess_dev;
-io_write kmess_out_func;
+
+int null_write(unsigned char *data, unsigned int count)
+{
+	return count;
+}
+
+io_write kmess_out_func = null_write;
 
 #ifdef GSC_KERNEL_MESSAGEOUT_LOG
 extern struct st_device *kmess_log_dev;

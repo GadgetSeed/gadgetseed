@@ -9,6 +9,7 @@ toolname="gcc-arm-none-eabi-10-2020-q4-major"
 
 arcfile=$toolname"-x86_64-linux.tar.bz2"
 #arcfile=$toolname"-mac.tar.bz2"
+#arcfile=$toolname"-aarch64-linux.tar.bz2"
 
 installpath="/opt"
 

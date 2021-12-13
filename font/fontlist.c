@@ -24,7 +24,7 @@
     | num24x48		| FONTS_ENABLE_FONT_NUM24X48		| オリジナル24x48サイズ数字フォント	|	|
     | num32x48		| FONTS_ENABLE_FONT_NUM32X48		| オリジナル32x48サイズ数字フォント	|	|
     | num48x64		| FONTS_ENABLE_FONT_NUM48X64		| オリジナル48x64サイズ数字フォント	|	|
-    | misaki		| FONTS_ENABLE_FONT_MISAKI		| 美咲フォント 8x8サイズ漢字フォント	| http://www.geocities.jp/littlimi/misaki.htm	|
+    | misaki		| FONTS_ENABLE_FONT_MISAKI		| 美咲フォント 8x8サイズ漢字フォント	| https://littlelimit.net/misaki.htm
     | knj10		| FONTS_ENABLE_FONT_NAGA10		| ナガ10フォント 10x10サイズ漢字フォント	| https://github.com/r-lyeh-archived/fortfont/tree/master/kochi-mincho/docs/naga10	|
     | jiskan16		| FONTS_ENABLE_FONT_JISKAN16		| jiskan16フォント 16x16サイズ漢字フォント	|	|
     | jiskan16gs	| FONTS_ENABLE_FONT_JISKAN16GS		| jiskan16フォント + オリジナル8x16サイズ半角フォント	|	|

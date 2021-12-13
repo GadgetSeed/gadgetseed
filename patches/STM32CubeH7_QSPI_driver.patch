@@ -1,0 +1,16 @@
+diff --git a/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_qspi.c b/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_qspi.c
+index 12214968c..b8258cf47 100644
+--- a/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_qspi.c
++++ b/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_qspi.c
+@@ -2181,7 +2181,11 @@ HAL_StatusTypeDef HAL_QSPI_Abort(QSPI_HandleTypeDef *hqspi)
+     SET_BIT(hqspi->Instance->CR, QUADSPI_CR_ABORT);
+ 
+     /* Wait until TC flag is set to go back in idle state */
++#ifdef ORIGINAL
+     status = QSPI_WaitFlagStateUntilTimeout(hqspi, QSPI_FLAG_TC, SET, tickstart, hqspi->Timeout);
++#else
++    status = HAL_OK;	// patch for GadgetSeed
++#endif
+ 
+     if (status == HAL_OK)
+     {

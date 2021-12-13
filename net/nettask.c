@@ -249,7 +249,9 @@ int net_task(void *arg)
 		stat = dhcp_supplied_address(&gv_netif);
 		if(flg_dhcp_stat != stat) {
 			if(stat != 0) {
-				gslog(0, "DHCP Bound\n");
+				const ip4_addr_t *addr;
+				addr = netif_ip4_addr(&gv_netif);
+				gslog(0, "DHCP Bound %s\n", ip4addr_ntoa(addr));
 			}
 			flg_dhcp_stat = stat;
 		}

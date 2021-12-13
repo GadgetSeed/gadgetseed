@@ -113,7 +113,7 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
 
    ![GadgetSeed](gadgetseed_devenv.png)
 
-### Ubuntu 20.04の場合
+### Ubuntu 21.10の場合
 
 1. STM32Cube HAL + LL Driversのインストール
 
@@ -154,7 +154,7 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
 1. make gcc openocd picocom等ツールのインストール
 
    ```sh
-   sudo apt install -y git make gcc unzip openocd picocom otf2bdf p7zip-full gawk
+   sudo apt install -y git make gcc unzip openocd picocom otf2bdf p7zip-full gawk libxml2-utils libncurses5
    ```
 
 <!--
@@ -203,15 +203,16 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
      1 : 32F469IDISCOVERY               : STM 32F469IDISCOVERY                          : 32F469IDISCOVERY.conf
      2 : 32F746GDISCOVERY               : STM 32F746GDISCOVERY                          : 32F746GDISCOVERY.conf
      3 : 32F769IDISCOVERY               : STM 32F769IDISCOVERY                          : 32F769IDISCOVERY.conf
-     4 : NUCLEO-F411RE                  : STM NUCLEO-F411RE                             : NUCLEO-F411RE.conf
-     5 : NUCLEO-F411RE_HVGA-LCD-HX8357D : STM NUCLEO-F411RE + MAR3520(HVGA LCD HX8357D) : NUCLEO-F411RE_HVGA-LCD-HX8357D.conf
-     6 : NUCLEO-F411RE_QVGA-LCD-ILI9341 : STM NUCLEO-F411RE + K60(QVGA LCD ILI9341)     : NUCLEO-F411RE_QVGA-LCD-ILI9341.conf
-     7 : NUCLEO-L152RE                  : STM NUCLEO-L152RE                             : NUCLEO-L152RE.conf
-     8 : emu_hvga                       : Emulator system with linux HVGA(480x320)      : emu_hvga.conf
-     9 : emu_qvga                       : Emulator system with linux QVGA(320x240)      : emu_qvga.conf
-    10 : emu_wqvga                      : Emulator system with linux WQVGA(480x272)     : emu_wqvga.conf
-    11 : emu_wvga                       : Emulator system with linux WVGA(800x480)      : emu_wvga.conf
-   Input No. : 
+     4 : 32H747IDISCOVERY               : STM32H747I-DISCOVERY                          : 32H747IDISCOVERY.conf
+     5 : NUCLEO-F411RE                  : STM NUCLEO-F411RE                             : NUCLEO-F411RE.conf
+     6 : NUCLEO-F411RE_HVGA-LCD-HX8357D : STM NUCLEO-F411RE + MAR3520(HVGA LCD HX8357D) : NUCLEO-F411RE_HVGA-LCD-HX8357D.conf
+     7 : NUCLEO-F411RE_QVGA-LCD-ILI9341 : STM NUCLEO-F411RE + K60(QVGA LCD ILI9341)     : NUCLEO-F411RE_QVGA-LCD-ILI9341.conf
+     8 : NUCLEO-L152RE                  : STM NUCLEO-L152RE                             : NUCLEO-L152RE.conf
+     9 : emu_hvga                       : Emulator system with linux HVGA(480x320)      : emu_hvga.conf
+    10 : emu_qvga                       : Emulator system with linux QVGA(320x240)      : emu_qvga.conf
+    11 : emu_wqvga                      : Emulator system with linux WQVGA(480x272)     : emu_wqvga.conf
+    12 : emu_wvga                       : Emulator system with linux WVGA(800x480)      : emu_wvga.conf
+   Input No. :
    ```
 
 1. コンフィグレーションによるアプリケーションの選択
@@ -257,30 +258,30 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
     :
     :
    arm-none-eabi-ranlib internetradio.a
-   echo "const char os_version[] = \"0.9.9\";" > version.c
+   echo "const char os_version[] = \"0.9.10\";" > version.c
    echo "const char build_date[] = __DATE__;" >> version.c
    echo "const char build_time[] = __TIME__;" >> version.c
    arm-none-eabi-gcc -g -Wall -mthumb -mcpu=cortex-m7 -mtune=cortex-m7 -fipa-sra -mfpu=fpv5-d16 -mfloat-abi=hard -O2 -I/Users/shudo/develop/gadgetseed/include -c version.c
-   arm-none-eabi-gcc -g -Wall -mthumb -mcpu=cortex-m7 -mtune=cortex-m7 -fipa-sra -mfpu=fpv5-d16 -mfloat-abi=hard -O2 -I/Users/shudo/develop/gadgetseed/include -Wl,-static -Wl,--gc-sections -nostartfiles -o gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.9.elf -Tarch/Cortex-M7/systems/32F769IDISCOVERY.lds -Wl,-Map=gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.9.map arch/Cortex-M7/start.o version.o \
+   arm-none-eabi-gcc -g -Wall -mthumb -mcpu=cortex-m7 -mtune=cortex-m7 -fipa-sra -mfpu=fpv5-d16 -mfloat-abi=hard -O2 -I/Users/shudo/develop/gadgetseed/include -Wl,-static -Wl,--gc-sections -nostartfiles -o gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.10.elf -Tarch/Cortex-M7/systems/32F769IDISCOVERY.lds -Wl,-Map=gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.10.map arch/Cortex-M7/start.o version.o \
    	main.o gs_logo.o apps/soundplay/soundplay.a apps/musicplay/musicplay.a apps/internetradio/internetradio.a shell/shell.a uilib/uilib.a extlibs/fatfs/libfatfs.a fs/fs.a graphics/graphics.a font/font.a fontdata/fontdata.a extlibs/lwip/liblwip.a net/net.a extlibs/libmad/libmad.a extlibs/faad2/libfaad2.a extlibs/picojpeg/libpicojpeg.a extlibs/libpng/libpng.a extlibs/zlib/libzlib.a kernel/kernel.a arch/Cortex-M7/arch.a drivers/drivers.a libs/libs.a kernel/task/task.a arch/Cortex-M7/arch.a -lm shell/shell.a uilib/uilib.a extlibs/fatfs/libfatfs.a fs/fs.a graphics/graphics.a font/font.a fontdata/fontdata.a extlibs/lwip/liblwip.a net/net.a extlibs/libmad/libmad.a extlibs/faad2/libfaad2.a extlibs/picojpeg/libpicojpeg.a extlibs/libpng/libpng.a extlibs/zlib/libzlib.a kernel/kernel.a arch/Cortex-M7/arch.a drivers/drivers.a libs/libs.a kernel/task/task.a
-   ln -f -s gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.9.elf gadgetseed
+   ln -f -s gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.10.elf gadgetseed
    arm-none-eabi-objdump -h -w --section=.VECTORS --section=.text --section=.rodata --section=.data \
-	--section=.bss --section=.stack --section=.extram --section=.qspirom gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.9.elf
-
-   gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.9.elf:     file format elf32-littlearm
-
+   	--section=.bss --section=.stack --section=.extram --section=.qspirom gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.10.elf
+   
+   gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.10.elf:     file format elf32-littlearm
+   
    Sections:
    Idx Name          Size      VMA       LMA       File off  Algn  Flags
      0 .VECTORS      000001f8  08000000  08000000  00010000  2**2  CONTENTS, ALLOC, LOAD, READONLY, DATA
-     1 .text         000e975c  08000200  08000200  00010200  2**6  CONTENTS, ALLOC, LOAD, READONLY, CODE
-     3 .data         00004294  20010000  080e9964  00100000  2**3  CONTENTS, ALLOC, LOAD, DATA
-     4 .bss          00043d68  20014298  080edc00  00104298  2**3  ALLOC
+     1 .text         000eeb74  08000200  08000200  00010200  2**6  CONTENTS, ALLOC, LOAD, READONLY, CODE
+     3 .data         000042a4  20010000  080eed7c  00100000  2**3  CONTENTS, ALLOC, LOAD, DATA
+     4 .bss          00046228  200142a8  080f3020  001042a8  2**3  ALLOC
      9 .stack        00000000  20006fa0  20006fa0  001b4e28  2**3  CONTENTS
     10 .extram       0099f204  c0000000  c0000000  001c0000  2**2  ALLOC
     11 .qspirom      000a4e28  90000000  90000000  00110000  2**2  CONTENTS, ALLOC, LOAD, READONLY, DATA
-   arm-none-eabi-objcopy -O ihex -j .qspirom gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.9.elf gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.9-extrom.hex
-   arm-none-eabi-objcopy -R .qspirom gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.9.elf
-   arm-none-eabi-objcopy: gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.9.elf: warning: empty loadable segment detected at vaddr=0x90000000, is this intentional?
+   arm-none-eabi-objcopy -O ihex -j .qspirom gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.10.elf gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.10-extrom.hex
+   arm-none-eabi-objcopy -R .qspirom gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.10.elf
+   arm-none-eabi-objcopy: gs-Cortex-M7-32F769IDISCOVERY-internetradio-0.9.10.elf: warning: empty loadable segment detected at vaddr=0x90000000, is this intentional?
    ```
 
 ## ソフトウェアの書き込みと実行方法
@@ -293,16 +294,28 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
 
    openocdの為にターミナルを開き、ハードウェアに合わせて以下のコマンドを実行します。
 
-   ### 32F7xxxDISCOVERY
+   ### 32H747IDISCOVERY
 
    ```sh
-   sudo openocd -f /usr/share/openocd/scripts/board/stm32f7discovery.cfg
+   sudo openocd -f /usr/share/openocd/scripts/board/stm32h747i-disco.cfg
+   ```
+
+   ### 32F769IDISCOVERY
+
+   ```sh
+   sudo openocd -f /usr/share/openocd/scripts/board/stm32f769i-disco.cfg
+   ```
+
+   ### 32F746GDISCOVERY
+
+   ```sh
+   sudo openocd -f /usr/share/openocd/scripts/board/stm32f746g-disco.cfg
    ```
 
    ### 32F469IDISCOVERY
 
    ```sh
-   sudo openocd -f /usr/share/openocd/scripts/board/stm32f469discovery.cfg
+   sudo openocd -f /usr/share/openocd/scripts/board/stm32f469i-disco.cfg
    ```
 
    ### NUCLEO-F4xxxx
@@ -344,9 +357,7 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
 
    これらのアプリケーションはビルド後に "*-extrom.hex" の名称のファイルが作成されます。
 
-   [STM32 ST-LINK Utility](https://www.st.com/ja/development-tools/stsw-link004.html)を使用して "*-extrom.hex" ファイルを QSPI-ROM に書き込みを行ってください。
-
-   現時点では STM32 ST-LINK Utility は Windows OS でのみ動作するようです。そのため、この操作を行うには Windows PC が必要になります。
+   [STM32CubeProgrammer](https://www.st.com/ja/development-tools/stm32cubeprog.html)を使用して "*-extrom.hex" ファイルを QSPI-ROM に書き込みを行ってください。
 
 1. GDB の起動
 
@@ -360,8 +371,8 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
    上記のコマンドでハードウェアにビルドした GadgetSeed が書き込まれます。
 
    ```
-   GNU gdb (GNU Tools for Arm Embedded Processors 8-2018-q4-major) 8.2.50.20181213-git
-   Copyright (C) 2018 Free Software Foundation, Inc.
+   GNU gdb (GNU Arm Embedded Toolchain 10-2020-q4-major) 10.1.90.20201028-git
+   Copyright (C) 2020 Free Software Foundation, Inc.
    License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
    This is free software: you are free to change and redistribute it.
    There is NO WARRANTY, to the extent permitted by law.
@@ -369,22 +380,26 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
    This GDB was configured as "--host=x86_64-apple-darwin10 --target=arm-none-eabi".
    Type "show configuration" for configuration details.
    For bug reporting instructions, please see:
-   <http://www.gnu.org/software/gdb/bugs/>.
+   <https://www.gnu.org/software/gdb/bugs/>.
    Find the GDB manual and other documentation resources online at:
        <http://www.gnu.org/software/gdb/documentation/>.
-
+   
    For help, type "help".
    Type "apropos word" to search for commands related to "word"...
    Reading symbols from gadgetseed...
-   0x00000000 in ?? ()
+   start () at start.c:14
+   14		init_sect();
+   Previous state query failed, trying to reconnect
+   Unable to match requested speed 2000 kHz, using 1800 kHz
+   Unable to match requested speed 2000 kHz, using 1800 kHz
    target halted due to debug-request, current mode: Thread 
    xPSR: 0x01000000 pc: 0x08000200 msp: 0x20010000
    Loading section .VECTORS, size 0x1f8 lma 0x8000000
-   Loading section .text, size 0xe975c lma 0x8000200
-   Loading section .ARM.excep, size 0x8 lma 0x80e995c
-   Loading section .data, size 0x4294 lma 0x80e9964
-   Start address 0x8000200, load size 973808
-   Transfer rate: 47 KB/sec, 14534 bytes/write.
+   Loading section .text, size 0xeeb74 lma 0x8000200
+   Loading section .ARM.excep, size 0x8 lma 0x80eed74
+   Loading section .data, size 0x42a4 lma 0x80eed7c
+   Start address 0x08000200, load size 995352
+   Transfer rate: 60 KB/sec, 14425 bytes/write.
    (gdb) 
    ```
 
@@ -401,25 +416,26 @@ GadgetSeedは組み込み機器向けのマルチタスクOSです。
    GadgetSeed が起動し、シリアルターミナルに以下の表示が出力されます。
 
    ```
-   GadgetSeed Ver. 0.9.9
-   (c)2010-2020 Takashi SHUDO
+   GadgetSeed Ver. 0.9.10
+   (c)2010-2021 Takashi SHUDO
    CPU ARCH     : Cortex-M7
    CPU NAME     : STM32F769NIH6
    SYSTEM       : 32F769IDISCOVERY
-   Build date   : 19:44:27 Jan  2 2020
-   Compiler     : 8.2.1 20181213 (release) [gcc-8-branch revision 267074]
-   STM32Cube HAL: FW.F7.1.15.0
+   Build date   : 10:22:29 Dec  5 2021
+   Compiler     : 10.2.1 20201103 (release)
+   STM32Cube HAL: FW.F7.1.16.0
    System Clock : 200 MHz
    GS Memory Alloc API is newlib API
    Heap area    : c099f204 - c0fffffc (6688248)
    6531 K byte free
    Graphics device "fb" Type : Frame buffer, Screen size 800x480(2), 16 bit color
    Storage 0: "sd"
-   Set RTC Time = 946684800.011
+   Set RTC Time = 1638668181.003
    RMII configuration Hardware Bug Version(0x1000)
    Touch sensor found
-   MAC Address : 02 00 00 00 07 69
-   Link Down, 100Mb/s, Half
+   MLAiC nAdkd rUepss ,: 0 2 00 010 000 007 69
+   Mb/s, Half
+   DHCP Start
    : 
    ```
 

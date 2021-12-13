@@ -1,14 +1,14 @@
 include $(PRJ_DIR)/common.mk
 
-LIBPNG = libpng-1.6.34
-LIBPNGARC = libpng-1.6.34.tar.xz
+LIBPNG = libpng-1.6.37
+LIBPNGARC = libpng-1.6.37.tar.xz
 LIBPNGURI = http://prdownloads.sourceforge.net/libpng/
 LIBPNGDIR = $(LIBPNG)
 LIBPNGSRC = $(LIBPNGDIR)/png.c
 
 LIB	= libpng.a
 
-CFLAGS += -I. -iquote $(LIBPNGDIR) -iquote $(PRJ_DIR)/$(LIBZLIB_DIR)/zlib-1.2.11
+CFLAGS += -I. -iquote $(LIBPNGDIR) -iquote $(PRJ_DIR)/$(LIBZLIB_DIR)/zlib-1.2.11 -DPNG_ARM_NEON_OPT=0
 
 PNGOBJS	= \
 	$(LIBPNGDIR)/png.o \

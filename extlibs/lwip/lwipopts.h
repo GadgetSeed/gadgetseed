@@ -14,6 +14,8 @@
 #include "net.h"
 #include "task/task.h"
 
+#define timeval	lwip_timeval
+
 #define LWIP_NO_STDINT_H	1
 
 #define TCPIP_THREAD_PRIO	TASK_PRIORITY_NETWORK

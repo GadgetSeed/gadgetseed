@@ -14,10 +14,11 @@
 #include "str.h"
 #include "timer.h"
 
+extern int null_write(unsigned char *data, unsigned int count);
 extern io_write kmess_out_func;
 
 struct st_device *kmess_log_dev;
-io_write kmess_log_func;
+io_write kmess_log_func = null_write;
 int flg_disp_logtimestamp = 0;
 
 #ifndef GSC_LOG_RECORDLOGPRI

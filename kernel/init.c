@@ -151,12 +151,12 @@ void init_gs(int *argc, char ***argv)
 	// カーネルタイマドライバ初期化
 	register_device(&GSC_KERNEL_TIMER_DEVICE, 0);	// sysconfig.h
 
-	// システム初期化
-	init_system2();
-
 	// コンソール初期化
 	init_console_device();
 	register_kernel_message_out_device();
+
+	// システム初期化
+	init_system2();
 
 	// バナー表示
 	display_bunner();
