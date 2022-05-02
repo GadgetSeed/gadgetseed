@@ -8,7 +8,7 @@ LIBPNGSRC = $(LIBPNGDIR)/png.c
 
 LIB	= libpng.a
 
-CFLAGS += -I. -iquote $(LIBPNGDIR) -iquote $(PRJ_DIR)/$(LIBZLIB_DIR)/zlib-1.2.11 -DPNG_ARM_NEON_OPT=0
+CFLAGS += -I. -iquote $(LIBPNGDIR) -iquote $(PRJ_DIR)/$(LIBZLIB_DIR)/zlib-1.2.12 -DPNG_ARM_NEON_OPT=0
 
 PNGOBJS	= \
 	$(LIBPNGDIR)/png.o \

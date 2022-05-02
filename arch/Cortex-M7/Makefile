@@ -42,7 +42,7 @@ ifeq ($(STM32CUBE_HAL_DIR),STM32CubeH7)
 	HAL_SRCS_DIR = $(HAL_DIR)/Drivers/STM32H7xx_HAL_Driver/Src
 	HAL_INCS_DIR = $(HAL_DIR)/Drivers/STM32H7xx_HAL_Driver/Inc
 	DEV_INCS_DIR = $(HAL_DIR)/Drivers/CMSIS/Device/ST/STM32H7xx/Include
-	TARGET_HAL_VER = "FW.H7.1.9.0"
+	TARGET_HAL_VER = "FW.H7.1.10.0"
 endif
 
 CFLAGS  += -I$(PRJ_DIR)/arch/$(ARCH)

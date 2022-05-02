@@ -14,7 +14,11 @@ mkdir -p $halpath
 cd $halpath
 
 #pwd
+echo STM32CubeF7
 git -C STM32CubeF7 pull
+echo STM32CubeF4
 git -C STM32CubeF4 pull
+echo STM32CubeL1
 git -C STM32CubeL1 pull
+echo STM32CubeH7
 git -C STM32CubeH7 pull

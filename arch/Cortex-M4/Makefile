@@ -1,6 +1,6 @@
 include $(PRJ_DIR)/common.mk
 
-TARGET_HAL_VER = "FW.F4.1.26.0"
+TARGET_HAL_VER = "FW.F4.1.27.0"
 
 ifdef STM32CUBE_HAL_ARCH	# $gsc STM32Cubeターゲット指定
 CFLAGS	+= -D$(STM32CUBE_HAL_ARCH)

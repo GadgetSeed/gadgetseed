@@ -19,7 +19,7 @@ endif
 ifeq ($(LIB_ENABLE_LIBPNG),YES)
 	OBJS += pngdec.o
 	CFLAGS += -I $(PRJ_DIR)/$(EXTLIBS_DIR)/libpng
-	CFLAGS += -I $(PRJ_DIR)/$(EXTLIBS_DIR)/libpng/libpng-1.6.34
+	CFLAGS += -I $(PRJ_DIR)/$(EXTLIBS_DIR)/libpng/libpng-1.6.37
 endif
 
 .c.o:

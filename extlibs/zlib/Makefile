@@ -1,7 +1,7 @@
 include $(PRJ_DIR)/common.mk
 
-LIBZLIB = zlib-1.2.11
-LIBZLIBARC = zlib-1.2.11.tar.xz
+LIBZLIB = zlib-1.2.12
+LIBZLIBARC = zlib-1.2.12.tar.xz
 LIBZLIBURI = https://zlib.net
 LIBZLIBDIR = $(LIBZLIB)
 LIBZLIBSRC = $(LIBZLIBDIR)/gzlib.c
